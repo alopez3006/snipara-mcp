@@ -1,6 +1,6 @@
 [project]
 name = "snipara-mcp"
-version = "2.2.0"
+version = "2.2.1"
 description = "MCP server for Snipara - Context optimization and Agent infrastructure for LLMs"
 readme = "README.md"
 requires-python = ">=3.10"
