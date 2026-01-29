@@ -34,7 +34,7 @@ snipara-mcp-status = "snipara_mcp.auth:status_cli"
 [project.urls]
 Homepage = "https://snipara.com"
 Documentation = "https://docs.snipara.com"
-Repository = "https://github.com/snipara/snipara-mcp"
+Repository = "https://github.com/alopez3006/snipara-mcp"
 
 [build-system]
 requires = ["hatchling<1.26"]
