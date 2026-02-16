@@ -76,20 +76,49 @@ snipara-mcp/
 
 ### Installation
 
-**Option 1: uvx (No Install Required)**
+**Option 1: npx create-snipara (Recommended)**
+```bash
+npx create-snipara
+```
+
+This interactive CLI guides you through:
+- Choosing your IDE (Claude Code, Cursor, Windsurf, VS Code)
+- Authenticating via OAuth (browser-based)
+- Auto-configuring MCP settings
+- Optional RLM Runtime setup for sandboxed code execution
+
+**Option 2: uvx (No Install Required)**
 ```bash
 uvx snipara-mcp
 ```
 
-**Option 2: pip**
+**Option 3: pip**
 ```bash
 pip install snipara-mcp
 ```
 
-**Option 3: With RLM Runtime**
+**Option 4: With RLM Runtime**
 ```bash
 pip install snipara-mcp[rlm]
 ```
+
+### Quick Setup with create-snipara
+
+```bash
+# Full setup: Snipara MCP + RLM Runtime
+npx create-snipara
+
+# Team API key (shared credentials)
+npx create-snipara --team-key
+
+# Runtime only (skip Snipara if already configured)
+npx create-snipara --runtime-only
+```
+
+| Flag | Purpose |
+|------|---------|
+| `--team-key` | Use team-shared API key (no individual login) |
+| `--runtime-only` | Skip Snipara setup, install only RLM Runtime |
 
 ### Configuration
 
@@ -477,7 +506,43 @@ snipara-mcp-status
 
 ## RLM Runtime Integration
 
-Use Snipara tools programmatically in Python:
+[RLM Runtime](https://github.com/alopez3006/rlm-runtime) provides sandboxed Python execution and autonomous agent capabilities that complement Snipara's context optimization.
+
+### Quick Start
+
+```bash
+# Install with Snipara support
+pip install rlm-runtime[mcp]
+
+# Or via create-snipara
+npx create-snipara
+```
+
+### TypeScript SDK
+
+For TypeScript/JavaScript projects, use the npm package:
+
+```bash
+npm install @rlm/runtime
+```
+
+```typescript
+import type { ExecutePythonParams, REPLResult, TrustLevel } from '@rlm/runtime';
+import { EXECUTION_PROFILES, isImportAllowed, MCP_TOOLS } from '@rlm/runtime';
+
+// Type-safe MCP tool parameters
+const params: ExecutePythonParams = {
+  code: 'result = sum(range(100))',
+  profile: 'default',
+  session_id: 'my-session',
+};
+
+// Check sandbox restrictions
+console.log(isImportAllowed('json'));      // true
+console.log(isImportAllowed('subprocess')); // false (blocked in sandbox)
+```
+
+### Python Usage
 
 ```python
 from rlm import RLM
@@ -491,6 +556,51 @@ rlm = RLM(
 
 # LLM can now query your docs during execution
 result = rlm.run("Implement auth following our coding standards")
+```
+
+### Trust Levels (v2.2.0+)
+
+RLM Runtime supports three execution modes:
+
+| Trust Level | Description | Use Case |
+|-------------|-------------|----------|
+| `sandboxed` | RestrictedPython, safe stdlib only | **Default** - safe for untrusted code |
+| `docker` | Docker container isolation | Production, CI/CD pipelines |
+| `local` | Full filesystem/subprocess access | Local development only |
+
+Configure in `rlm.toml`:
+
+```toml
+[rlm]
+trust_level = "local"  # Enable unrestricted local mode
+```
+
+⚠️ **Security Warning:** Only use `local` trust level for development on your own machine. Never expose to untrusted code.
+
+### MCP Tools
+
+When using RLM Runtime with Claude Code or other MCP clients:
+
+| Tool | Description |
+|------|-------------|
+| `execute_python` | Run Python code in sandbox |
+| `get_repl_context` | Get persistent session variables |
+| `set_repl_context` | Store variables for later use |
+| `rlm_agent_run` | Start autonomous agent |
+| `rlm_agent_status` | Check agent progress |
+
+### Combined Workflow Example
+
+```
+User: "Analyze our API usage patterns and recommend optimizations"
+
+Claude workflow:
+1. [snipara: rlm_context_query] → Get API documentation
+2. [snipara: rlm_shared_context] → Get team performance standards
+3. [rlm: execute_python] → Parse API logs, compute statistics
+4. [rlm: set_repl_context] → Store intermediate analysis
+5. [snipara: rlm_remember] → Save insights for future sessions
+6. Generate recommendations with context
 ```
 
 See: [rlm-runtime documentation](https://github.com/alopez3006/rlm-runtime)
@@ -536,6 +646,7 @@ We welcome contributions! Please:
 
 | Version | Date       | Changes                                             |
 | ------- | ---------- | --------------------------------------------------- |
+| 2.3.0   | 2026-02-16 | Enhanced RLM Runtime docs, npx create-snipara v1.1.0 |
 | 2.2.0   | 2026-01-29 | Separate public repository, update repo URL         |
 | 2.1.0   | 2025-01-25 | Full tool parity with FastAPI (39 tools)            |
 | 1.8.1   | 2025-01-25 | Add multi_project_query for cross-repo search       |
