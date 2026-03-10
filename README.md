@@ -325,7 +325,13 @@ Coordinate multiple AI agents with:
 - **rlm_store_summary** - Store LLM-generated summary
 - **rlm_stats** - Documentation statistics
 
-**Total:** 39 tools
+### Index Health & Analytics (NEW in v2.4.0)
+- **rlm_index_health** - Get comprehensive index health metrics (coverage, quality, tier distribution, stale docs)
+- **rlm_index_recommendations** - Get actionable recommendations to improve index health
+- **rlm_search_analytics** - Get search performance metrics (queries, success rate, latency percentiles, tool usage)
+- **rlm_query_trends** - Get query trends over time with configurable granularity
+
+**Total:** 43 tools
 
 Full documentation: [docs.snipara.com](https://docs.snipara.com)
 
@@ -644,9 +650,10 @@ We welcome contributions! Please:
 
 ## Version History
 
-| Version | Date       | Changes                                             |
-| ------- | ---------- | --------------------------------------------------- |
-| 2.3.0   | 2026-02-16 | Enhanced RLM Runtime docs, npx create-snipara v1.1.0 |
+| Version | Date       | Changes                                                          |
+| ------- | ---------- | ---------------------------------------------------------------- |
+| 2.4.0   | 2026-03-10 | Sprint 3: Index Health & Analytics (4 new tools, 43 tools total) |
+| 2.3.0   | 2026-02-16 | Enhanced RLM Runtime docs, npx create-snipara v1.1.0             |
 | 2.2.0   | 2026-01-29 | Separate public repository, update repo URL         |
 | 2.1.0   | 2025-01-25 | Full tool parity with FastAPI (39 tools)            |
 | 1.8.1   | 2025-01-25 | Add multi_project_query for cross-repo search       |
