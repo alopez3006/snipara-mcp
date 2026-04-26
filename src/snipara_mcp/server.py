@@ -9,7 +9,7 @@ Usage:
     snipara-mcp
 
 Authentication (in priority order):
-    1. OAuth token from ~/.snipara/tokens.json (run: snipara-mcp-login)
+    1. OAuth token from ~/.snipara/tokens.json (run: snipara login)
     2. SNIPARA_API_KEY environment variable (legacy)
 
 Environment variables:
@@ -20,6 +20,7 @@ Environment variables:
 """
 
 import asyncio
+import json
 import os
 import sys
 import time
@@ -28,7 +29,9 @@ from typing import Any
 import httpx
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool
+from mcp.types import Resource, ResourceTemplate, TextContent, Tool
+
+from .tool_contract import MCP_TOOL_DEFINITIONS, TOOL_NAMES
 
 # Configuration
 API_URL = os.environ.get("SNIPARA_API_URL", "https://api.snipara.com")
@@ -37,6 +40,33 @@ API_URL = os.environ.get("SNIPARA_API_URL", "https://api.snipara.com")
 _auth_token: str | None = None
 _auth_type: str = "none"  # "oauth", "api_key", or "none"
 _project_id: str | None = None
+
+
+def _requested_project() -> tuple[str | None, str | None, str | None]:
+    """Return the explicitly requested project from environment."""
+    env_project_id = os.environ.get("SNIPARA_PROJECT_ID") or None
+    env_project_slug = os.environ.get("SNIPARA_PROJECT_SLUG") or None
+    runtime_project = env_project_slug or env_project_id
+    return env_project_id, env_project_slug, runtime_project
+
+
+def _auth_from_token(project_id: str, token_data: dict[str, Any]) -> tuple[str, str, str] | None:
+    """Build auth tuple from a stored token, preferring legacy-compatible API keys."""
+    runtime_project = (
+        token_data.get("project_slug")
+        or token_data.get("project_id")
+        or project_id
+    )
+
+    api_key = token_data.get("api_key")
+    if api_key:
+        return api_key, "api_key", runtime_project
+
+    access_token = token_data.get("access_token")
+    if access_token:
+        return access_token, "oauth", runtime_project
+
+    return None
 
 
 def _load_auth() -> tuple[str | None, str, str | None]:
@@ -50,48 +80,86 @@ def _load_auth() -> tuple[str | None, str, str | None]:
     """
     # Check if OAuth should be skipped
     ignore_oauth = os.environ.get("SNIPARA_IGNORE_OAUTH", "").lower() in ("true", "1", "yes")
+    env_project_id, env_project_slug, requested_project = _requested_project()
 
     # Try OAuth tokens first (unless ignored)
     if not ignore_oauth:
         try:
             from .auth import load_tokens
+
             tokens = load_tokens()
             if tokens:
-                # If PROJECT_ID is set, use that project's token
-                env_project_id = os.environ.get("SNIPARA_PROJECT_ID")
-                if env_project_id and env_project_id in tokens:
-                    token_data = tokens[env_project_id]
-                    access_token = token_data.get("access_token")
-                    if access_token:
-                        return access_token, "oauth", env_project_id
-                # Otherwise, use the first available token
-                for project_id, token_data in tokens.items():
-                    access_token = token_data.get("access_token")
-                    if access_token:
-                        return access_token, "oauth", project_id
+                explicit_project_requested = bool(env_project_id or env_project_slug)
+
+                if explicit_project_requested:
+                    matching_tokens: list[tuple[str, dict[str, Any]]] = []
+                    seen_projects: set[str] = set()
+
+                    if env_project_id and env_project_id in tokens:
+                        matching_tokens.append((env_project_id, tokens[env_project_id]))
+                        seen_projects.add(env_project_id)
+
+                    if env_project_slug:
+                        for project_id, token_data in tokens.items():
+                            if project_id in seen_projects:
+                                continue
+                            if token_data.get("project_slug") == env_project_slug:
+                                matching_tokens.append((project_id, token_data))
+                                seen_projects.add(project_id)
+
+                    for project_id, token_data in matching_tokens:
+                        auth = _auth_from_token(project_id, token_data)
+                        if auth:
+                            return auth
+                else:
+                    # Only fall back to the first available stored token when no
+                    # project has been pinned explicitly by the workspace.
+                    for project_id, token_data in tokens.items():
+                        auth = _auth_from_token(project_id, token_data)
+                        if auth:
+                            return auth
         except ImportError:
             pass  # auth module not available
         except Exception:
             pass  # Token loading failed
 
-    # Fall back to API key
+    # Fall back to API key from environment
     api_key = os.environ.get("SNIPARA_API_KEY", "")
-    project_id = os.environ.get("SNIPARA_PROJECT_ID", "")
+    project_id = requested_project or ""
     if api_key and project_id:
         return api_key, "api_key", project_id
 
-    return None, "none", project_id or None
+    # Try .snipara.toml unified config (if snipara SDK installed)
+    try:
+        from snipara.config import load_config
+        cfg = load_config()
+        cfg_key = cfg.project.api_key or ""
+        cfg_slug = cfg.project.slug or ""
+        if cfg_key and cfg_slug:
+            return cfg_key, "api_key", cfg_slug
+    except ImportError:
+        pass  # snipara SDK not installed
+    except Exception:
+        pass  # Config loading failed
+
+    return None, "none", requested_project
 
 
 # Load auth on module import
 _auth_token, _auth_type, _project_id = _load_auth()
 
 # Legacy compatibility
-API_KEY = _auth_token or os.environ.get("SNIPARA_API_KEY", "")
-PROJECT_ID = _project_id or os.environ.get("SNIPARA_PROJECT_ID", "")
+API_KEY = (
+    _auth_token
+    if _auth_type == "api_key" and _auth_token
+    else os.environ.get("SNIPARA_API_KEY", "")
+)
+PROJECT_ID = _project_id or (_requested_project()[2] or "")
 
 # Session context cache
 _session_context: str = ""
+_session_initialized: bool = False
+_session_last_bootstrap_at: float = 0.0
 
 # Settings cache (5 minute TTL)
 _settings_cache: dict[str, Any] = {}
@@ -129,6 +197,13 @@ async def get_project_settings() -> dict[str, Any]:
         "includeSummaries": True,
         "autoInjectContext": False,
         "enrichPrompts": False,
+        "memoryAutoRecallOnSessionStart": True,
+        "memoryAutoRecallOnResume": True,
+        "memoryDeduplicateBeforeWrite": True,
+        "memoryEndOfTaskCommitEnabled": True,
+        "memoryWorkspaceProfileEnabled": True,
+        "memoryNoveltyThreshold": 0.92,
+        "memoryResumeWindowMinutes": 180,
     }
 
 server = Server("snipara")
@@ -161,585 +236,137 @@ async def call_api(tool: str, params: dict[str, Any]) -> dict[str, Any]:
         return response.json()
 
 
+def _json_text(value: Any) -> str:
+    """Render JSON-safe text for generic MCP responses."""
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, indent=2, ensure_ascii=True, sort_keys=False)
+
+
+def _tool_result_payload(result: dict[str, Any]) -> Any:
+    """Extract the most useful payload from a hosted tool response."""
+    return result.get("result", result.get("data"))
+
+
+def _generic_success_response(name: str, payload: Any) -> list[TextContent]:
+    """Render a generic tool payload when no curated formatter exists."""
+    if payload in (None, "", [], {}):
+        return [TextContent(type="text", text=f"**{name}** completed successfully.")]
+
+    if isinstance(payload, str):
+        return [TextContent(type="text", text=payload)]
+
+    return [TextContent(type="text", text=f"**{name}**\n```json\n{_json_text(payload)}\n```")]
+
+
+def _format_memory_error(error: str | None) -> str:
+    """Add targeted guidance for common memory parameter mistakes."""
+    message = error or "Unknown error"
+    if "unsupported memory type 'workflow'" in message.lower():
+        return (
+            f"{message}\nHint: `workflow` is only supported in "
+            "`rlm_end_of_task_commit.persist_types`."
+        )
+    return message
+
+
+def _format_session_bootstrap(
+    session_memories: dict[str, Any] | None,
+    tenant_profiles: dict[str, Any] | None,
+) -> str:
+    sections: list[str] = []
+
+    profiles = (tenant_profiles or {}).get("profiles") or []
+    if profiles:
+        latest = profiles[0]
+        sections.append("Workspace Profile:")
+        sections.append(latest.get("content", "")[:1500])
+
+    critical = ((session_memories or {}).get("critical") or {}).get("memories") or []
+    if critical:
+        sections.append("Critical Memories:")
+        for memory in critical[:8]:
+            sections.append(f"- {memory.get('content', '')[:240]}")
+
+    daily = ((session_memories or {}).get("daily") or {}).get("memories") or []
+    if daily:
+        sections.append("Recent Context:")
+        for memory in daily[:6]:
+            sections.append(f"- {memory.get('content', '')[:240]}")
+
+    return "\n".join(section for section in sections if section).strip()
+
+
+async def ensure_session_bootstrap(force: bool = False) -> None:
+    """Initialize session context from memory automation settings."""
+    global _session_initialized, _session_last_bootstrap_at, _session_context
+
+    settings = await get_project_settings()
+    now = time.time()
+    resume_window_minutes = settings.get("memoryResumeWindowMinutes", 180)
+    should_refresh = (
+        _session_initialized
+        and settings.get("memoryAutoRecallOnResume", True)
+        and (now - _session_last_bootstrap_at) > (resume_window_minutes * 60)
+    )
+
+    if not force:
+        if _session_initialized and not should_refresh:
+            return
+        if not _session_initialized and not settings.get("memoryAutoRecallOnSessionStart", True):
+            return
+
+    session_memories: dict[str, Any] | None = None
+    tenant_profiles: dict[str, Any] | None = None
+
+    try:
+        session_result = await call_api(
+            "rlm_session_memories",
+            {"max_critical_tokens": 4000, "max_daily_tokens": 2000, "include_yesterday": True},
+        )
+        if session_result.get("success"):
+            session_memories = session_result.get("result", {})
+    except Exception:
+        session_memories = None
+
+    if settings.get("memoryWorkspaceProfileEnabled", True):
+        try:
+            tenant_result = await call_api("rlm_tenant_profile_get", {})
+            if tenant_result.get("success"):
+                tenant_profiles = tenant_result.get("result", {})
+        except Exception:
+            tenant_profiles = None
+
+    formatted = _format_session_bootstrap(session_memories, tenant_profiles)
+    if formatted:
+        _session_context = formatted
+    _session_initialized = True
+    _session_last_bootstrap_at = now
+
+
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     """List available Snipara tools."""
     return [
         Tool(
-            name="rlm_context_query",
-            description="""Query optimized context from your documentation.
-
-Returns ranked, relevant sections that fit within your token budget.
-This is the PRIMARY tool - use it for any documentation questions.
-
-Examples:
-- "How does authentication work?"
-- "What are the API endpoints?"
-- "Where is the database schema?"
-
-Returns sections with relevance scores, file paths, and line numbers.""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "Your question"},
-                    "max_tokens": {"type": "integer", "default": 4000, "description": "Token budget"},
-                    "search_mode": {"type": "string", "enum": ["keyword", "semantic", "hybrid"], "default": "hybrid"},
-                },
-                "required": ["query"],
-            },
-        ),
-        Tool(
-            name="rlm_ask",
-            description="Query documentation (basic). Use rlm_context_query for better results.",
-            inputSchema={
-                "type": "object",
-                "properties": {"question": {"type": "string", "description": "The question to ask"}},
-                "required": ["question"],
-            },
-        ),
-        Tool(
-            name="rlm_search",
-            description="Search documentation for a pattern (regex supported).",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "pattern": {"type": "string", "description": "Regex pattern"},
-                    "max_results": {"type": "integer", "default": 20},
-                },
-                "required": ["pattern"],
-            },
-        ),
-        Tool(
-            name="rlm_decompose",
-            description="Break complex query into sub-queries with execution order.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "Complex question to decompose"},
-                    "max_depth": {"type": "integer", "default": 2},
-                },
-                "required": ["query"],
-            },
-        ),
-        Tool(
-            name="rlm_multi_query",
-            description="Execute multiple queries in one call with shared token budget.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "queries": {
-                        "type": "array",
-                        "items": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
-                    },
-                    "max_tokens": {"type": "integer", "default": 8000},
-                },
-                "required": ["queries"],
-            },
-        ),
-        Tool(
-            name="rlm_inject",
-            description="Set session context for subsequent queries.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "context": {"type": "string", "description": "Context to inject"},
-                    "append": {"type": "boolean", "default": False},
-                },
-                "required": ["context"],
-            },
-        ),
-        Tool(
-            name="rlm_context",
-            description="Show current session context.",
-            inputSchema={"type": "object", "properties": {}, "required": []},
-        ),
-        Tool(
-            name="rlm_clear_context",
-            description="Clear session context.",
-            inputSchema={"type": "object", "properties": {}, "required": []},
-        ),
-        Tool(
-            name="rlm_stats",
-            description="Show documentation statistics.",
-            inputSchema={"type": "object", "properties": {}, "required": []},
-        ),
-        Tool(
-            name="rlm_sections",
-            description="List all document sections.",
-            inputSchema={"type": "object", "properties": {}, "required": []},
-        ),
-        Tool(
-            name="rlm_read",
-            description="Read specific lines from documentation.",
-            inputSchema={
-                "type": "object",
-                "properties": {"start_line": {"type": "integer"}, "end_line": {"type": "integer"}},
-                "required": ["start_line", "end_line"],
-            },
-        ),
-        Tool(
-            name="rlm_settings",
-            description="Show current project settings from dashboard (max_tokens, search_mode, etc.).",
-            inputSchema={"type": "object", "properties": {"refresh": {"type": "boolean", "default": False, "description": "Force refresh from API"}}, "required": []},
-        ),
-        Tool(
-            name="rlm_upload_document",
-            description="Upload or update a document in the project. Supports .md, .txt, .mdx files.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "path": {"type": "string", "description": "Document path (e.g., 'docs/api.md')"},
-                    "content": {"type": "string", "description": "Document content (markdown)"},
-                },
-                "required": ["path", "content"],
-            },
-        ),
-        Tool(
-            name="rlm_sync_documents",
-            description="Bulk sync multiple documents. Use for batch uploads or CI/CD integration.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "documents": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "path": {"type": "string"},
-                                "content": {"type": "string"},
-                            },
-                            "required": ["path", "content"],
-                        },
-                        "description": "Documents to sync",
-                    },
-                    "delete_missing": {"type": "boolean", "default": False, "description": "Delete docs not in list"},
-                },
-                "required": ["documents"],
-            },
-        ),
-        # Phase 4.5: Planning
-        Tool(
-            name="rlm_plan",
-            description="Generate execution plan for complex queries. Returns step-by-step plan with dependencies.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "Complex question to plan for"},
-                    "strategy": {
-                        "type": "string",
-                        "enum": ["breadth_first", "depth_first", "relevance_first"],
-                        "default": "relevance_first",
-                        "description": "Execution strategy",
-                    },
-                    "max_tokens": {"type": "integer", "default": 16000, "description": "Total token budget"},
-                },
-                "required": ["query"],
-            },
-        ),
-        # Phase 4.6: Summary Storage
-        Tool(
-            name="rlm_store_summary",
-            description="Store LLM-generated summary for a document. Enables faster future queries.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "document_path": {"type": "string", "description": "Path to the document"},
-                    "summary": {"type": "string", "description": "Summary text to store"},
-                    "summary_type": {
-                        "type": "string",
-                        "enum": ["concise", "detailed", "technical", "keywords", "custom"],
-                        "default": "concise",
-                        "description": "Type of summary",
-                    },
-                    "section_id": {"type": "string", "description": "Optional section identifier"},
-                    "line_start": {"type": "integer", "description": "Optional start line"},
-                    "line_end": {"type": "integer", "description": "Optional end line"},
-                    "generated_by": {"type": "string", "description": "Model that generated the summary"},
-                },
-                "required": ["document_path", "summary"],
-            },
-        ),
-        Tool(
-            name="rlm_get_summaries",
-            description="Retrieve stored summaries with optional filters.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "document_path": {"type": "string", "description": "Filter by document path"},
-                    "summary_type": {
-                        "type": "string",
-                        "enum": ["concise", "detailed", "technical", "keywords", "custom"],
-                        "description": "Filter by summary type",
-                    },
-                    "section_id": {"type": "string", "description": "Filter by section ID"},
-                    "include_content": {"type": "boolean", "default": True, "description": "Include summary content"},
-                },
-                "required": [],
-            },
-        ),
-        Tool(
-            name="rlm_delete_summary",
-            description="Delete stored summaries by ID, document path, or type.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "summary_id": {"type": "string", "description": "Specific summary ID to delete"},
-                    "document_path": {"type": "string", "description": "Delete all summaries for document"},
-                    "summary_type": {
-                        "type": "string",
-                        "enum": ["concise", "detailed", "technical", "keywords", "custom"],
-                        "description": "Delete summaries of this type",
-                    },
-                },
-                "required": [],
-            },
-        ),
-        # Phase 7: Shared Context
-        Tool(
-            name="rlm_shared_context",
-            description="Get merged context from linked shared collections. Returns categorized docs with budget allocation.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "max_tokens": {"type": "integer", "default": 4000, "description": "Token budget"},
-                    "categories": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "enum": ["MANDATORY", "BEST_PRACTICES", "GUIDELINES", "REFERENCE"],
-                        },
-                        "description": "Filter by categories (default: all)",
-                    },
-                    "include_content": {"type": "boolean", "default": True, "description": "Include merged content"},
-                },
-                "required": [],
-            },
-        ),
-        Tool(
-            name="rlm_list_templates",
-            description="List available prompt templates from shared collections.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "category": {"type": "string", "description": "Filter by category"},
-                },
-                "required": [],
-            },
-        ),
-        Tool(
-            name="rlm_get_template",
-            description="Get a specific prompt template by ID or slug. Optionally render with variables.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "template_id": {"type": "string", "description": "Template ID"},
-                    "slug": {"type": "string", "description": "Template slug"},
-                    "variables": {
-                        "type": "object",
-                        "additionalProperties": {"type": "string"},
-                        "description": "Variables to substitute in template",
-                    },
-                },
-                "required": [],
-            },
-        ),
-        # Phase 8.2: Agent Memory Tools
-        Tool(
-            name="rlm_remember",
-            description="""Store a memory for later semantic recall.
-
-Memories can be facts, decisions, learnings, preferences, todos, or context.
-Each memory gets a confidence score that decays over time if not accessed.
-
-Examples:
-- Remember a user preference: type="preference", content="User prefers dark mode"
-- Store a learned fact: type="fact", content="API uses JWT for auth"
-- Record a decision: type="decision", content="Chose React over Vue for frontend"
-""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "content": {"type": "string", "description": "The memory content to store"},
-                    "type": {
-                        "type": "string",
-                        "enum": ["fact", "decision", "learning", "preference", "todo", "context"],
-                        "default": "fact",
-                        "description": "Type of memory",
-                    },
-                    "scope": {
-                        "type": "string",
-                        "enum": ["agent", "project", "team", "user"],
-                        "default": "project",
-                        "description": "Visibility scope",
-                    },
-                    "category": {"type": "string", "description": "Optional category for grouping"},
-                    "ttl_days": {"type": "integer", "description": "Days until expiration (null = permanent)"},
-                    "related_to": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "IDs of related memories",
-                    },
-                    "document_refs": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Referenced document paths",
-                    },
-                },
-                "required": ["content"],
-            },
-        ),
-        Tool(
-            name="rlm_recall",
-            description="""Semantically recall relevant memories based on a query.
-
-Uses embeddings to find memories similar to the query, weighted by confidence.
-Confidence decays over time if memories aren't accessed.
-
-Examples:
-- "What did the user say about their preferences?"
-- "What decisions did we make about the architecture?"
-- "What did I learn about the authentication system?"
-""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "Search query"},
-                    "type": {
-                        "type": "string",
-                        "enum": ["fact", "decision", "learning", "preference", "todo", "context"],
-                        "description": "Filter by memory type",
-                    },
-                    "scope": {
-                        "type": "string",
-                        "enum": ["agent", "project", "team", "user"],
-                        "description": "Filter by scope",
-                    },
-                    "category": {"type": "string", "description": "Filter by category"},
-                    "limit": {"type": "integer", "default": 5, "description": "Maximum memories to return"},
-                    "min_relevance": {"type": "number", "default": 0.5, "description": "Minimum relevance score (0-1)"},
-                },
-                "required": ["query"],
-            },
-        ),
-        Tool(
-            name="rlm_memories",
-            description="List memories with optional filters. For browsing stored memories without semantic search.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "type": {
-                        "type": "string",
-                        "enum": ["fact", "decision", "learning", "preference", "todo", "context"],
-                        "description": "Filter by memory type",
-                    },
-                    "scope": {
-                        "type": "string",
-                        "enum": ["agent", "project", "team", "user"],
-                        "description": "Filter by scope",
-                    },
-                    "category": {"type": "string", "description": "Filter by category"},
-                    "search": {"type": "string", "description": "Text search in content"},
-                    "limit": {"type": "integer", "default": 20, "description": "Maximum memories to return"},
-                    "offset": {"type": "integer", "default": 0, "description": "Pagination offset"},
-                },
-                "required": [],
-            },
-        ),
-        Tool(
-            name="rlm_forget",
-            description="Delete memories by ID or filter criteria. Use with caution.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "memory_id": {"type": "string", "description": "Specific memory ID to delete"},
-                    "type": {
-                        "type": "string",
-                        "enum": ["fact", "decision", "learning", "preference", "todo", "context"],
-                        "description": "Delete all of this type",
-                    },
-                    "category": {"type": "string", "description": "Delete all in this category"},
-                    "older_than_days": {"type": "integer", "description": "Delete memories older than N days"},
-                },
-                "required": [],
-            },
-        ),
-        # Phase 9.1: Multi-Agent Swarm Tools
-        Tool(
-            name="rlm_swarm_create",
-            description="""Create a new agent swarm for multi-agent coordination.
-
-Swarms allow multiple agents to work together with shared state, resource claims, and task queues.
-""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string", "description": "Swarm name"},
-                    "description": {"type": "string", "description": "Swarm description"},
-                    "max_agents": {"type": "integer", "default": 10, "description": "Maximum agents allowed"},
-                    "config": {"type": "object", "description": "Optional swarm configuration"},
-                },
-                "required": ["name"],
-            },
-        ),
-        Tool(
-            name="rlm_swarm_join",
-            description="Join an existing swarm as an agent.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm to join"},
-                    "agent_id": {"type": "string", "description": "Your unique agent identifier"},
-                    "role": {
-                        "type": "string",
-                        "enum": ["coordinator", "worker", "observer"],
-                        "default": "worker",
-                        "description": "Your role in the swarm",
-                    },
-                    "capabilities": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Your capabilities (e.g., 'code', 'test', 'review')",
-                    },
-                },
-                "required": ["swarm_id", "agent_id"],
-            },
-        ),
-        Tool(
-            name="rlm_claim",
-            description="""Claim exclusive access to a resource (file, function, module).
-
-Claims prevent other agents from modifying the same resource simultaneously.
-Claims auto-expire after timeout to prevent deadlocks.
-""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "agent_id": {"type": "string", "description": "Your agent identifier"},
-                    "resource_type": {
-                        "type": "string",
-                        "enum": ["file", "function", "module", "component", "other"],
-                        "description": "Type of resource",
-                    },
-                    "resource_id": {"type": "string", "description": "Resource identifier (e.g., file path)"},
-                    "timeout_seconds": {"type": "integer", "default": 300, "description": "Claim timeout"},
-                },
-                "required": ["swarm_id", "agent_id", "resource_type", "resource_id"],
-            },
-        ),
-        Tool(
-            name="rlm_release",
-            description="Release a claimed resource.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "agent_id": {"type": "string", "description": "Your agent identifier"},
-                    "claim_id": {"type": "string", "description": "Claim ID to release"},
-                    "resource_type": {"type": "string", "description": "Resource type (alternative to claim_id)"},
-                    "resource_id": {"type": "string", "description": "Resource ID (alternative to claim_id)"},
-                },
-                "required": ["swarm_id", "agent_id"],
-            },
-        ),
-        Tool(
-            name="rlm_state_get",
-            description="Read shared swarm state by key.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "key": {"type": "string", "description": "State key to read"},
-                },
-                "required": ["swarm_id", "key"],
-            },
-        ),
-        Tool(
-            name="rlm_state_set",
-            description="""Write shared swarm state with optimistic locking.
-
-Provide expected_version to prevent lost updates from concurrent modifications.
-""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "agent_id": {"type": "string", "description": "Your agent identifier"},
-                    "key": {"type": "string", "description": "State key"},
-                    "value": {"description": "Value to set (any JSON-serializable type)"},
-                    "expected_version": {"type": "integer", "description": "Expected version for optimistic locking"},
-                },
-                "required": ["swarm_id", "agent_id", "key", "value"],
-            },
-        ),
-        Tool(
-            name="rlm_broadcast",
-            description="Send an event to all agents in the swarm.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "agent_id": {"type": "string", "description": "Your agent identifier"},
-                    "event_type": {"type": "string", "description": "Event type (e.g., 'task_completed', 'error')"},
-                    "payload": {"type": "object", "description": "Event data"},
-                },
-                "required": ["swarm_id", "agent_id", "event_type"],
-            },
-        ),
-        Tool(
-            name="rlm_task_create",
-            description="Create a task in the swarm's distributed task queue.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "agent_id": {"type": "string", "description": "Creating agent identifier"},
-                    "title": {"type": "string", "description": "Task title"},
-                    "description": {"type": "string", "description": "Task description"},
-                    "priority": {"type": "integer", "default": 0, "description": "Priority (higher = more urgent)"},
-                    "depends_on": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Task IDs this depends on",
-                    },
-                    "metadata": {"type": "object", "description": "Additional task data"},
-                },
-                "required": ["swarm_id", "agent_id", "title"],
-            },
-        ),
-        Tool(
-            name="rlm_task_claim",
-            description="""Claim a task from the queue.
-
-If task_id not specified, claims the highest priority task with all dependencies satisfied.
-""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "agent_id": {"type": "string", "description": "Your agent identifier"},
-                    "task_id": {"type": "string", "description": "Specific task to claim (optional)"},
-                    "timeout_seconds": {"type": "integer", "default": 600, "description": "Task timeout"},
-                },
-                "required": ["swarm_id", "agent_id"],
-            },
-        ),
-        Tool(
-            name="rlm_task_complete",
-            description="Mark a claimed task as completed or failed.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "swarm_id": {"type": "string", "description": "Swarm ID"},
-                    "agent_id": {"type": "string", "description": "Your agent identifier"},
-                    "task_id": {"type": "string", "description": "Task to complete"},
-                    "success": {"type": "boolean", "default": True, "description": "Whether task succeeded"},
-                    "result": {"description": "Task result data"},
-                },
-                "required": ["swarm_id", "agent_id", "task_id"],
-            },
-        ),
+            name=tool["name"],
+            description=tool["description"],
+            inputSchema=tool["inputSchema"],
+        )
+        for tool in MCP_TOOL_DEFINITIONS
     ]
+
+
+@server.list_resources()
+async def list_resources() -> list[Resource]:
+    """Snipara MCP is tool-only and does not expose resources."""
+    return []
+
+
+@server.list_resource_templates()
+async def list_resource_templates() -> list[ResourceTemplate]:
+    """Snipara MCP is tool-only and does not expose resource templates."""
+    return []
 
 
 @server.call_tool()
@@ -748,6 +375,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     global _session_context
 
     try:
+        await ensure_session_bootstrap()
+
         if name == "rlm_context_query":
             # Get project settings from dashboard (cached)
             settings = await get_project_settings()
@@ -759,14 +388,20 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             # Use settings from dashboard, allow override from arguments
             max_tokens = arguments.get("max_tokens") or settings.get("maxTokensPerQuery", 4000)
             search_mode = arguments.get("search_mode") or settings.get("searchMode", "hybrid")
-            include_summaries = settings.get("includeSummaries", True)
+            include_summaries = arguments.get(
+                "prefer_summaries",
+                settings.get("includeSummaries", True),
+            )
 
             result = await call_api("rlm_context_query", {
                 "query": query,
                 "max_tokens": max_tokens,
                 "search_mode": search_mode,
-                "include_metadata": True,
+                "include_metadata": arguments.get("include_metadata", True),
                 "prefer_summaries": include_summaries,
+                "return_references": arguments.get("return_references", False),
+                "auto_decompose": arguments.get("auto_decompose", True),
+                "include_all_tiers": arguments.get("include_all_tiers", False),
             })
 
             if result.get("success"):
@@ -789,30 +424,36 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
         elif name == "rlm_ask":
-            question = arguments["question"]
+            question = arguments.get("query") or arguments.get("question")
+            if not question:
+                return [TextContent(type="text", text="**Error:** rlm_ask requires `query`.")]
             if _session_context:
                 question = f"Context: {_session_context}\n\nQuestion: {question}"
 
-            result = await call_api("rlm_context_query", {
-                "query": question, "max_tokens": 4000, "search_mode": "hybrid", "include_metadata": True,
+            result = await call_api("rlm_ask", {
+                "query": question,
             })
 
             if result.get("success"):
-                data = result.get("result", {})
-                sections = data.get("sections", [])
+                data = _tool_result_payload(result) or {}
+                sections = data.get("sections", []) if isinstance(data, dict) else []
                 if sections:
                     parts = ["## Relevant Documentation\n"]
                     for s in sections:
+                        file_path = s.get("file", s.get("file_path", ""))
                         parts.append(f"### {s.get('title', 'Untitled')}")
-                        parts.append(f"*{s.get('file', '')}*\n")
+                        parts.append(f"*{file_path}*\n")
                         parts.append(s.get("content", ""))
                         parts.append("")
                     return [TextContent(type="text", text="\n".join(parts))]
-                return [TextContent(type="text", text="No relevant documentation found.")]
+                return _generic_success_response(name, data)
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
         elif name == "rlm_search":
-            result = await call_api("rlm_search", {"pattern": arguments["pattern"]})
+            result = await call_api("rlm_search", {
+                "pattern": arguments["pattern"],
+                "max_results": arguments.get("max_results", 20),
+            })
             if result.get("success"):
                 matches = result.get("result", {}).get("matches", [])
                 max_results = arguments.get("max_results", 20)
@@ -901,8 +542,59 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 return [TextContent(type="text", text=f"**Stats:**\n- Files: {fmt(files_loaded)}\n- Lines: {fmt(total_lines)}\n- Characters: {fmt(total_chars)}\n- Sections: {fmt(sections)}")]
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
+        elif name == "rlm_help":
+            result = await call_api("rlm_help", {
+                "query": arguments.get("query"),
+                "tool": arguments.get("tool"),
+                "tier": arguments.get("tier"),
+                "limit": arguments.get("limit", 5),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+
+                if data.get("recommendations"):
+                    lines = [f"**Tool recommendations** for: {data.get('query', 'your task')}\n"]
+                    for item in data.get("recommendations", []):
+                        lines.append(
+                            f"- `{item.get('tool', '')}` ({item.get('tier', '')}): {item.get('description', '')}"
+                        )
+                    if data.get("tip"):
+                        lines.append("")
+                        lines.append(data["tip"])
+                    return [TextContent(type="text", text="\n".join(lines))]
+
+                if data.get("tools") and data.get("tier"):
+                    lines = [f"**{data.get('tier', '').title()} tools**\n"]
+                    for item in data.get("tools", []):
+                        lines.append(f"- `{item.get('tool', '')}`: {item.get('description', '')}")
+                    return [TextContent(type="text", text="\n".join(lines))]
+
+                if data.get("tool"):
+                    lines = [
+                        f"**{data.get('tool', '')}**",
+                        f"Tier: {data.get('tier', '')}",
+                        data.get("description", ""),
+                    ]
+                    use_cases = data.get("use_cases") or []
+                    if use_cases:
+                        lines.append("")
+                        lines.append("Use cases:")
+                        for use_case in use_cases:
+                            lines.append(f"- {use_case}")
+                    if data.get("example"):
+                        lines.append("")
+                        lines.append(f"Example: `{data['example']}`")
+                    return [TextContent(type="text", text="\n".join(lines))]
+
+                return [TextContent(type="text", text="No tool guidance available.")]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
         elif name == "rlm_sections":
-            result = await call_api("rlm_sections", {})
+            result = await call_api("rlm_sections", {
+                "limit": arguments.get("limit"),
+                "offset": arguments.get("offset"),
+                "filter": arguments.get("filter"),
+            })
             if result.get("success"):
                 sections = result.get("result", {}).get("sections", [])
                 lines = ["**Documents:**\n"]
@@ -981,15 +673,15 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
         # Phase 4.6: Summary Storage
         elif name == "rlm_store_summary":
-            result = await call_api("rlm_store_summary", {
-                "document_path": arguments["document_path"],
-                "summary": arguments["summary"],
-                "summary_type": arguments.get("summary_type", "concise"),
-                "section_id": arguments.get("section_id"),
-                "line_start": arguments.get("line_start"),
-                "line_end": arguments.get("line_end"),
-                "generated_by": arguments.get("generated_by"),
-            })
+            result = await call_api(
+                "rlm_store_summary",
+                {
+                    "document_path": arguments["document_path"],
+                    "summary": arguments["summary"],
+                    "summary_type": arguments.get("summary_type", "concise"),
+                    "generated_by": arguments.get("generated_by"),
+                },
+            )
             if result.get("success"):
                 data = result.get("result", {})
                 action = "created" if data.get("created") else "updated"
@@ -1000,7 +692,6 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             result = await call_api("rlm_get_summaries", {
                 "document_path": arguments.get("document_path"),
                 "summary_type": arguments.get("summary_type"),
-                "section_id": arguments.get("section_id"),
                 "include_content": arguments.get("include_content", True),
             })
             if result.get("success"):
@@ -1021,7 +712,6 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             result = await call_api("rlm_delete_summary", {
                 "summary_id": arguments.get("summary_id"),
                 "document_path": arguments.get("document_path"),
-                "summary_type": arguments.get("summary_type"),
             })
             if result.get("success"):
                 data = result.get("result", {})
@@ -1118,8 +808,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
         # Phase 8.2: Agent Memory Handlers
         elif name == "rlm_remember":
+            content = arguments.get("text") or arguments.get("content")
+            if not content:
+                return [TextContent(type="text", text="**Error:** rlm_remember requires `text` or `content`.")]
             result = await call_api("rlm_remember", {
-                "content": arguments["content"],
+                "text": content,
                 "type": arguments.get("type", "fact"),
                 "scope": arguments.get("scope", "project"),
                 "category": arguments.get("category"),
@@ -1130,6 +823,80 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             if result.get("success"):
                 data = result.get("result", {})
                 return [TextContent(type="text", text=f"**Memory stored** (ID: {data.get('memory_id', '')})\nType: {data.get('type', '')} | Scope: {data.get('scope', '')}")]
+            return [TextContent(type="text", text=f"**Error:** {_format_memory_error(result.get('error'))}")]
+
+        elif name == "rlm_remember_if_novel":
+            content = arguments.get("text") or arguments.get("content")
+            if not content:
+                return [
+                    TextContent(
+                        type="text",
+                        text="**Error:** rlm_remember_if_novel requires `text` or legacy `content`.",
+                    )
+                ]
+            result = await call_api("rlm_remember_if_novel", {
+                "text": content,
+                "type": arguments.get("type", "fact"),
+                "scope": arguments.get("scope", "project"),
+                "category": arguments.get("category"),
+                "ttl_days": arguments.get("ttl_days"),
+                "related_to": arguments.get("related_to"),
+                "document_refs": arguments.get("document_refs"),
+                "novelty_threshold": arguments.get("novelty_threshold"),
+                "dedupe_limit": arguments.get("dedupe_limit", 5),
+                "allow_supersede": arguments.get("allow_supersede", True),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                status = "stored" if data.get("stored") else "skipped"
+                lines = [
+                    f"**Memory {status}**",
+                    f"Reason: {data.get('reason', 'unknown')}",
+                ]
+                if data.get("memory_id"):
+                    lines.append(f"ID: {data['memory_id']}")
+                matches = data.get("matched_memories") or []
+                if matches:
+                    lines.append("")
+                    lines.append("Similar memories:")
+                    for match in matches[:3]:
+                        preview = match.get("content", "")[:120]
+                        score = match.get("relevance") or match.get("score") or 0
+                        lines.append(f"- {preview} (score: {score:.2f})")
+                return [TextContent(type="text", text="\n".join(lines))]
+            return [TextContent(type="text", text=f"**Error:** {_format_memory_error(result.get('error'))}")]
+
+        elif name == "rlm_end_of_task_commit":
+            result = await call_api("rlm_end_of_task_commit", {
+                "summary": arguments["summary"],
+                "outcome": arguments.get("outcome", "completed"),
+                "files_touched": arguments.get("files_touched"),
+                "artifacts": arguments.get("artifacts"),
+                "persist_types": arguments.get("persist_types"),
+                "category": arguments.get("category"),
+                "dry_run": arguments.get("dry_run", False),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                return [TextContent(type="text", text=(
+                    f"**Task commit processed**\nStored: {data.get('stored_count', 0)} | "
+                    f"Skipped: {data.get('skipped_count', 0)}"
+                ))]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_remember_bulk":
+            result = await call_api("rlm_remember_bulk", {
+                "memories": arguments["memories"],
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                stored = data.get("stored_count", 0)
+                failed = data.get("failed_count", 0)
+                lines = ["**Bulk memory storage complete**", f"Stored: {stored} | Failed: {failed}"]
+                memory_ids = data.get("memory_ids", [])
+                if memory_ids:
+                    lines.append(f"IDs: {', '.join(memory_ids[:5])}{'...' if len(memory_ids) > 5 else ''}")
+                return [TextContent(type="text", text="\n".join(lines))]
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
         elif name == "rlm_recall":
@@ -1140,17 +907,48 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 "category": arguments.get("category"),
                 "limit": arguments.get("limit", 5),
                 "min_relevance": arguments.get("min_relevance", 0.5),
+                "include_inactive": arguments.get("include_inactive", False),
+                "warning_threshold": arguments.get("warning_threshold", 0.72),
             })
             if result.get("success"):
                 data = result.get("result", {})
                 memories = data.get("memories", [])
+                warnings = data.get("warnings", [])
                 if memories:
                     lines = [f"**Recalled {len(memories)} memories** (searched {data.get('total_searched', 0)})\n"]
                     for m in memories:
                         conf = m.get("confidence", 1.0)
                         rel = m.get("relevance", 0)
+                        status = m.get("status", "ACTIVE")
                         lines.append(f"**[{m.get('type', '')}]** {m.get('content', '')[:200]}")
-                        lines.append(f"  *Relevance: {rel:.2f} | Confidence: {conf:.2f} | Accessed: {m.get('access_count', 0)}x*\n")
+                        lines.append(
+                            f"  *Relevance: {rel:.2f} | Confidence: {conf:.2f} | "
+                            f"Status: {status} | Accessed: {m.get('access_count', 0)}x*\n"
+                        )
+                    if warnings:
+                        lines.append("**Inactive memory warnings**")
+                        for warning in warnings:
+                            reason = warning.get("reason") or "No reason provided"
+                            lines.append(
+                                f"- **[{warning.get('status', 'INACTIVE')}]** "
+                                f"{warning.get('content', '')[:160]}"
+                            )
+                            lines.append(
+                                f"  *Relevance: {warning.get('relevance', 0):.2f} | "
+                                f"Reason: {reason}*"
+                            )
+                    return [TextContent(type="text", text="\n".join(lines))]
+                if warnings:
+                    lines = ["No active memories found.", "", "**Inactive memory warnings**"]
+                    for warning in warnings:
+                        reason = warning.get("reason") or "No reason provided"
+                        lines.append(
+                            f"- **[{warning.get('status', 'INACTIVE')}]** "
+                            f"{warning.get('content', '')[:160]}"
+                        )
+                        lines.append(
+                            f"  *Relevance: {warning.get('relevance', 0):.2f} | Reason: {reason}*"
+                        )
                     return [TextContent(type="text", text="\n".join(lines))]
                 return [TextContent(type="text", text="No relevant memories found.")]
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
@@ -1160,9 +958,11 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 "type": arguments.get("type"),
                 "scope": arguments.get("scope"),
                 "category": arguments.get("category"),
+                "status": arguments.get("status"),
                 "search": arguments.get("search"),
                 "limit": arguments.get("limit", 20),
                 "offset": arguments.get("offset", 0),
+                "include_inactive": arguments.get("include_inactive", False),
             })
             if result.get("success"):
                 data = result.get("result", {})
@@ -1171,11 +971,53 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     lines = [f"**{data.get('total_count', len(memories))} memories** (showing {len(memories)})\n"]
                     for m in memories:
                         lines.append(f"- **[{m.get('type', '')}]** {m.get('content', '')[:100]}...")
-                        lines.append(f"  *ID: {m.get('memory_id', '')} | Category: {m.get('category', 'none')}*")
+                        lines.append(
+                            f"  *ID: {m.get('memory_id', '')} | Status: {m.get('status', 'ACTIVE')} | "
+                            f"Category: {m.get('category', 'none')}*"
+                        )
                     if data.get("has_more"):
                         lines.append(f"\n*More results available (offset: {arguments.get('offset', 0) + len(memories)})*")
                     return [TextContent(type="text", text="\n".join(lines))]
                 return [TextContent(type="text", text="No memories found.")]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_memory_invalidate":
+            params = {"memory_id": arguments["memory_id"]}
+            if arguments.get("invalidated_at") is not None:
+                params["invalidated_at"] = arguments["invalidated_at"]
+            if arguments.get("reason") is not None:
+                params["reason"] = arguments["reason"]
+            result = await call_api("rlm_memory_invalidate", params)
+            if result.get("success"):
+                data = result.get("result", {})
+                return [TextContent(
+                    type="text",
+                    text=(
+                        f"**Memory invalidated**\n"
+                        f"ID: {data.get('memory_id', '')} | "
+                        f"Status: {data.get('status', 'INVALIDATED')}"
+                    ),
+                )]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_memory_supersede":
+            params = {
+                "old_memory_id": arguments["old_memory_id"],
+                "new_memory_id": arguments["new_memory_id"],
+            }
+            if arguments.get("reason") is not None:
+                params["reason"] = arguments["reason"]
+            result = await call_api("rlm_memory_supersede", params)
+            if result.get("success"):
+                data = result.get("result", {})
+                return [TextContent(
+                    type="text",
+                    text=(
+                        f"**Memory superseded**\n"
+                        f"Old ID: {data.get('old_memory_id', '')} ({data.get('old_status', 'SUPERSEDED')})\n"
+                        f"New ID: {data.get('new_memory_id', '')} ({data.get('new_status', 'ACTIVE')})"
+                    ),
+                )]
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
         elif name == "rlm_forget":
@@ -1188,6 +1030,51 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             if result.get("success"):
                 data = result.get("result", {})
                 return [TextContent(type="text", text=f"**{data.get('message', 'Deleted')}** ({data.get('deleted_count', 0)} memories)")]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_session_memories":
+            result = await call_api("rlm_session_memories", {
+                "max_critical_tokens": arguments.get("max_critical_tokens", 8000),
+                "max_daily_tokens": arguments.get("max_daily_tokens", 4000),
+                "include_yesterday": arguments.get("include_yesterday", True),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                critical = (data.get("critical") or {}).get("memories", [])
+                daily = (data.get("daily") or {}).get("memories", [])
+                return [TextContent(type="text", text=(
+                    f"**Session memories**\nCritical: {len(critical)} | Daily: {len(daily)}"
+                ))]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_memory_daily_brief":
+            result = await call_api("rlm_memory_daily_brief", {
+                "date": arguments.get("date"),
+                "max_items": arguments.get("max_items", 10),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                brief = data.get("brief")
+                if brief:
+                    return [TextContent(type="text", text=brief)]
+                counts = data.get("counts", {})
+                return [TextContent(type="text", text=(
+                    f"**Daily brief**\nDecisions: {counts.get('decisions', 0)} | "
+                    f"TODOs: {counts.get('todos', 0)} | Learnings: {counts.get('learnings', 0)}"
+                ))]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_tenant_profile_get":
+            result = await call_api("rlm_tenant_profile_get", {
+                "tenant_id": arguments.get("tenant_id"),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                profiles = data.get("profiles", [])
+                if profiles:
+                    latest = profiles[0]
+                    return [TextContent(type="text", text=latest.get("content", ""))]
+                return [TextContent(type="text", text=data.get("message", "No tenant profiles found."))]
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
         # Phase 9.1: Multi-Agent Swarm Handlers
@@ -1250,8 +1137,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             if result.get("success"):
                 data = result.get("result", {})
                 if data.get("found"):
-                    import json as json_mod
-                    value_str = json_mod.dumps(data.get("value"), indent=2) if isinstance(data.get("value"), (dict, list)) else str(data.get("value"))
+                    value_str = _json_text(data.get("value"))
                     return [TextContent(type="text", text=f"**{arguments['key']}** (v{data.get('version', 0)})\n```json\n{value_str}\n```")]
                 return [TextContent(type="text", text=f"Key '{arguments['key']}' not found")]
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
@@ -1263,6 +1149,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 "key": arguments["key"],
                 "value": arguments["value"],
                 "expected_version": arguments.get("expected_version"),
+                "ttl_seconds": arguments.get("ttl_seconds"),
             })
             if result.get("success"):
                 data = result.get("result", {})
@@ -1289,8 +1176,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 "title": arguments["title"],
                 "description": arguments.get("description"),
                 "priority": arguments.get("priority", 0),
+                "deadline": arguments.get("deadline"),
                 "depends_on": arguments.get("depends_on"),
                 "metadata": arguments.get("metadata"),
+                "for_agent_id": arguments.get("for_agent_id"),
             })
             if result.get("success"):
                 data = result.get("result", {})
@@ -1323,8 +1212,147 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 return [TextContent(type="text", text=f"**Task {data.get('status', 'completed')}:** {arguments['task_id']}")]
             return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
+        # Sprint 3: Index Health & Analytics
+        elif name == "rlm_index_health":
+            result = await call_api("rlm_index_health", {
+                "stale_threshold_days": arguments.get("stale_threshold_days", 30),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                lines = [
+                    f"**Index Health Score: {data.get('health_score', 0):.0f}/100** ({data.get('health_status', 'unknown').upper()})\n",
+                    f"**Coverage:** {data.get('coverage', {}).get('percentage', 0):.1f}% ({data.get('coverage', {}).get('indexed', 0)}/{data.get('coverage', {}).get('total', 0)} docs)",
+                    f"**Quality:** {data.get('quality', {}).get('avg_score', 0):.2f} avg ({data.get('quality', {}).get('high', 0)} high, {data.get('quality', {}).get('medium', 0)} medium, {data.get('quality', {}).get('low', 0)} low)",
+                    f"**Freshness:** {data.get('freshness', {}).get('percentage', 0):.1f}% fresh, {data.get('freshness', {}).get('stale_count', 0)} stale docs\n",
+                    "**Tier Distribution:**",
+                ]
+                for tier, count in data.get("tier_distribution", {}).items():
+                    lines.append(f"  - {tier}: {count}")
+                if data.get("stale_documents"):
+                    lines.append(f"\n**Stale Documents:** ({len(data['stale_documents'])})")
+                    for doc in data["stale_documents"][:5]:
+                        lines.append(f"  - {doc.get('path', '')} ({doc.get('days_since_update', 0)} days)")
+                if data.get("client_notice"):
+                    lines.append(f"\n**Action needed:** {data['client_notice']}")
+                if data.get("recommended_tool") == "rlm_reindex":
+                    args = data.get("recommended_tool_arguments", {})
+                    lines.append(
+                        "Recommended: "
+                        f"rlm_reindex(mode=\"{args.get('mode', 'incremental')}\", kind=\"{args.get('kind', 'doc')}\")"
+                    )
+                return [TextContent(type="text", text="\n".join(lines))]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_index_recommendations":
+            result = await call_api("rlm_index_recommendations", {})
+            if result.get("success"):
+                data = result.get("result", {})
+                recs = data.get("recommendations", [])
+                if recs:
+                    lines = [
+                        f"**Index Health: {data.get('health_score', 0):.0f}/100** ({data.get('health_status', 'unknown').upper()})\n",
+                        f"**{len(recs)} Recommendations:**\n",
+                    ]
+                    for i, rec in enumerate(recs, 1):
+                        priority = rec.get("priority", "medium").upper()
+                        lines.append(f"{i}. [{priority}] {rec.get('title', '')}")
+                        lines.append(f"   {rec.get('description', '')}")
+                        if rec.get("action"):
+                            lines.append(f"   Action: {rec['action']}")
+                        if rec.get("tool") == "rlm_reindex":
+                            args = rec.get("arguments", {})
+                            lines.append(
+                                "   MCP: "
+                                f"rlm_reindex(mode=\"{args.get('mode', 'incremental')}\", kind=\"{args.get('kind', 'doc')}\")"
+                            )
+                        lines.append("")
+                    return [TextContent(type="text", text="\n".join(lines))]
+                return [TextContent(type="text", text=f"**Index Health: {data.get('health_score', 0):.0f}/100** - No recommendations needed!")]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_reindex":
+            payload: dict[str, Any] = {}
+            if arguments.get("job_id"):
+                payload["job_id"] = arguments["job_id"]
+            else:
+                payload["mode"] = arguments.get("mode", "incremental")
+                payload["kind"] = arguments.get("kind", "doc")
+
+            result = await call_api("rlm_reindex", payload)
+            if result.get("success"):
+                data = result.get("result", {})
+                if data.get("action") == "status":
+                    lines = [
+                        f"**Reindex job {data.get('id', arguments.get('job_id', ''))}**",
+                        f"Status: {str(data.get('status', 'unknown')).upper()} | Progress: {data.get('progress', 0)}%",
+                        f"Kind: {str(data.get('index_kind', 'doc')).lower()} | Mode: {str(data.get('index_mode', 'incremental')).lower()}",
+                        f"Documents: {data.get('documents_processed', 0)}/{data.get('documents_total', 0)} | Chunks: {data.get('chunks_created', 0)}",
+                    ]
+                    if data.get("error_message"):
+                        lines.append(f"Error: {data['error_message']}")
+                    return [TextContent(type="text", text="\n".join(lines))]
+
+                lines = [
+                    f"**Reindex job created:** {data.get('job_id', '')}",
+                    f"Status: {str(data.get('status', 'pending')).upper()} | Progress: {data.get('progress', 0)}%",
+                    f"Kind: {str(data.get('index_kind', 'doc')).lower()} | Mode: {str(data.get('index_mode', 'incremental')).lower()}",
+                ]
+                if data.get("already_exists"):
+                    lines.append("A matching pending/running job already existed, so it was reused.")
+                lines.append(f"Poll via: rlm_reindex(job_id=\"{data.get('job_id', '')}\")")
+                return [TextContent(type="text", text="\n".join(lines))]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_search_analytics":
+            result = await call_api("rlm_search_analytics", {
+                "days": arguments.get("days", 30),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                latency = data.get("latency", {})
+                lines = [
+                    f"**Search Analytics** (Last {arguments.get('days', 30)} days)\n",
+                    f"**Queries:** {data.get('total_queries', 0)} total, {data.get('successful_queries', 0)} successful ({data.get('success_rate', 0):.1f}%)",
+                    f"**Tokens:** {data.get('total_input_tokens', 0):,} in / {data.get('total_output_tokens', 0):,} out\n",
+                    f"**Latency (ms):** p50={latency.get('p50', 0):.0f}, p90={latency.get('p90', 0):.0f}, p99={latency.get('p99', 0):.0f}\n",
+                    "**Top Tools:**",
+                ]
+                for tool in data.get("tool_usage", [])[:5]:
+                    lines.append(f"  - {tool.get('tool', '')}: {tool.get('count', 0)} calls ({tool.get('success_rate', 0):.1f}%)")
+                if data.get("errors"):
+                    lines.append("\n**Errors:**")
+                    for err in data.get("errors", [])[:3]:
+                        lines.append(f"  - {err.get('category', '')}: {err.get('count', 0)}")
+                return [TextContent(type="text", text="\n".join(lines))]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
+        elif name == "rlm_query_trends":
+            result = await call_api("rlm_query_trends", {
+                "days": arguments.get("days", 7),
+                "granularity": arguments.get("granularity", "day"),
+            })
+            if result.get("success"):
+                data = result.get("result", {})
+                trends = data.get("trends", [])
+                if trends:
+                    lines = [
+                        f"**Query Trends** ({arguments.get('granularity', 'day')}ly, last {arguments.get('days', 7)} days)\n",
+                    ]
+                    for t in trends[-10:]:  # Show last 10 periods
+                        bucket = t.get("bucket", "")[:10] if arguments.get("granularity") == "day" else t.get("bucket", "")[:16]
+                        lines.append(f"  {bucket}: {t.get('count', 0)} queries ({t.get('success_rate', 0):.0f}% success)")
+                    return [TextContent(type="text", text="\n".join(lines))]
+                return [TextContent(type="text", text="No query trends available for this period.")]
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
+
         else:
-            return [TextContent(type="text", text=f"Unknown tool: {name}")]
+            if name not in TOOL_NAMES:
+                return [TextContent(type="text", text=f"Unknown tool: {name}")]
+
+            result = await call_api(name, arguments)
+            if result.get("success"):
+                return _generic_success_response(name, _tool_result_payload(result))
+            return [TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")]
 
     except httpx.HTTPStatusError as e:
         return [TextContent(type="text", text=f"**API Error:** {e.response.status_code} - {e.response.text}")]
@@ -1340,14 +1368,18 @@ async def run_server():
 
     # Reload auth in case it changed
     _auth_token, _auth_type, _project_id = _load_auth()
-    API_KEY = _auth_token or os.environ.get("SNIPARA_API_KEY", "")
-    PROJECT_ID = _project_id or os.environ.get("SNIPARA_PROJECT_ID", "")
+    API_KEY = (
+        _auth_token
+        if _auth_type == "api_key" and _auth_token
+        else os.environ.get("SNIPARA_API_KEY", "")
+    )
+    PROJECT_ID = _project_id or (_requested_project()[2] or "")
 
     if not _auth_token and not API_KEY:
         print("Error: No authentication found.", file=sys.stderr)
         print("", file=sys.stderr)
         print("Options:", file=sys.stderr)
-        print("  1. Run 'snipara-mcp-login' to authenticate via browser (recommended)", file=sys.stderr)
+        print("  1. Run 'snipara login' to authenticate via browser (recommended)", file=sys.stderr)
         print("  2. Set SNIPARA_API_KEY environment variable", file=sys.stderr)
         sys.exit(1)
 

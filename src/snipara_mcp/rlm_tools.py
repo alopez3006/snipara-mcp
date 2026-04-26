@@ -21,12 +21,13 @@ import os
 from typing import Any, TYPE_CHECKING
 
 import httpx
+from .tool_contract import TOOL_DEFINITIONS
 
 if TYPE_CHECKING:
     from rlm.backends.base import Tool
 
 # Default API URL - matches the MCP endpoint format
-DEFAULT_API_URL = "https://snipara.com"
+DEFAULT_API_URL = "https://api.snipara.com"
 
 
 class SniparaClient:
@@ -49,6 +50,7 @@ class SniparaClient:
         self.project_slug = project_slug
         self.api_url = api_url or os.environ.get("SNIPARA_API_URL", DEFAULT_API_URL)
         self._client: httpx.AsyncClient | None = None
+        self._tool_endpoint_url: str | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create the HTTP client."""
@@ -73,23 +75,90 @@ class SniparaClient:
             Tool result dictionary
         """
         client = await self._get_client()
-        response = await client.post(
-            f"{self.api_url}/api/mcp/{self.project_slug}",
-            json={"tool": tool_name, "params": params},
-        )
-        response.raise_for_status()
-        result = response.json()
+        last_response: httpx.Response | None = None
 
-        if not result.get("success"):
-            raise RuntimeError(result.get("error", "Unknown error"))
+        for endpoint_url in self._candidate_tool_urls():
+            response = await client.post(
+                endpoint_url,
+                json={"tool": tool_name, "params": params},
+            )
 
-        return result.get("result", {})
+            if response.status_code == 404:
+                last_response = response
+                continue
+
+            response.raise_for_status()
+            result = response.json()
+
+            if not result.get("success"):
+                raise RuntimeError(result.get("error", "Unknown error"))
+
+            self._tool_endpoint_url = endpoint_url
+            return result.get("result", {})
+
+        if last_response is not None:
+            last_response.raise_for_status()
+
+        raise RuntimeError("Unable to resolve a working Snipara MCP tool endpoint.")
+
+    def _candidate_tool_urls(self) -> list[str]:
+        """Return candidate REST endpoints for tool calls.
+
+        Prefer the hosted MCP backend endpoint and fall back to the web proxy
+        route for self-hosted or older deployments.
+        """
+        if self._tool_endpoint_url:
+            return [self._tool_endpoint_url]
+
+        base_url = self.api_url.rstrip("/")
+        candidates = [
+            f"{base_url}/v1/{self.project_slug}/mcp",
+            f"{base_url}/api/mcp/{self.project_slug}",
+        ]
+
+        deduped: list[str] = []
+        for candidate in candidates:
+            if candidate not in deduped:
+                deduped.append(candidate)
+        return deduped
 
     async def close(self) -> None:
         """Close the HTTP client."""
         if self._client:
             await self._client.aclose()
             self._client = None
+
+
+def _build_contract_handler(client: SniparaClient, tool_name: str):
+    """Create a generic handler that forwards kwargs to a hosted MCP tool."""
+
+    async def _handler(**kwargs: Any) -> dict[str, Any]:
+        return await client.call_tool(tool_name, kwargs)
+
+    _handler.__name__ = tool_name
+    return _handler
+
+
+def _build_contract_tools(Tool: type["Tool"], client: SniparaClient, legacy_tools: list["Tool"]) -> list["Tool"]:
+    """Expose the full hosted tool contract alongside the legacy alias surface."""
+    legacy_names = {tool.name for tool in legacy_tools}
+    generated_tools: list["Tool"] = []
+
+    for tool_definition in TOOL_DEFINITIONS:
+        tool_name = tool_definition["name"]
+        if tool_name in legacy_names:
+            continue
+
+        generated_tools.append(
+            Tool(
+                name=tool_name,
+                description=tool_definition["description"],
+                parameters=tool_definition["inputSchema"],
+                handler=_build_contract_handler(client, tool_name),
+            )
+        )
+
+    return generated_tools
 
 
 def get_snipara_tools(
@@ -123,9 +192,25 @@ def get_snipara_tools(
             "Install with: pip install rlm-runtime"
         )
 
-    # Get credentials from args or environment
+    # Get credentials from args, .snipara.toml, or environment
+    # Try loading from unified config if snipara SDK is installed
+    _snipara_config = None
+    if not (api_key and project_slug):
+        try:
+            from snipara.config import load_config
+            _snipara_config = load_config()
+        except ImportError:
+            pass  # snipara SDK not installed — use env vars
+
     api_key = api_key or os.environ.get("SNIPARA_API_KEY")
     project_slug = project_slug or os.environ.get("SNIPARA_PROJECT_SLUG")
+
+    # Fall back to .snipara.toml values
+    if _snipara_config:
+        api_key = api_key or _snipara_config.project.api_key
+        project_slug = project_slug or _snipara_config.project.slug
+        if not api_url and _snipara_config.project.api_url != "https://api.snipara.com":
+            api_url = _snipara_config.project.api_url
 
     if not api_key:
         raise ValueError(
@@ -367,7 +452,7 @@ def get_snipara_tools(
         Returns:
             Dictionary with answer
         """
-        return await client.call_tool("rlm_ask", {"question": question})
+        return await client.call_tool("rlm_ask", {"query": question})
 
     async def inject(context: str, append: bool = False) -> dict[str, Any]:
         """Inject context into the session.
@@ -547,7 +632,7 @@ def get_snipara_tools(
             Dictionary with memory_id and status
         """
         params: dict[str, Any] = {
-            "content": content,
+            "text": content,
             "type": type,
             "scope": scope,
         }
@@ -571,6 +656,8 @@ def get_snipara_tools(
         limit: int = 5,
         min_relevance: float = 0.5,
         include_expired: bool = False,
+        include_inactive: bool = False,
+        warning_threshold: float = 0.72,
     ) -> dict[str, Any]:
         """Recall memories semantically.
 
@@ -582,15 +669,19 @@ def get_snipara_tools(
             limit: Maximum memories to return
             min_relevance: Minimum relevance score (0-1)
             include_expired: Include expired memories
+            include_inactive: Include inactive memories in primary results
+            warning_threshold: Minimum relevance for inactive-memory warnings
 
         Returns:
-            Dictionary with recalled memories
+            Dictionary with recalled memories and optional warnings
         """
         params: dict[str, Any] = {
             "query": query,
             "limit": limit,
             "min_relevance": min_relevance,
             "include_expired": include_expired,
+            "include_inactive": include_inactive,
+            "warning_threshold": warning_threshold,
         }
         if type:
             params["type"] = type
@@ -604,10 +695,12 @@ def get_snipara_tools(
         type: str | None = None,
         scope: str | None = None,
         category: str | None = None,
+        status: str | None = None,
         search: str | None = None,
         limit: int = 20,
         offset: int = 0,
         include_expired: bool = False,
+        include_inactive: bool = False,
     ) -> dict[str, Any]:
         """List stored memories.
 
@@ -615,10 +708,12 @@ def get_snipara_tools(
             type: Filter by memory type
             scope: Filter by scope
             category: Filter by category
+            status: Filter by lifecycle status
             search: Text search in content
             limit: Maximum memories to return
             offset: Offset for pagination
             include_expired: Include expired memories
+            include_inactive: Include inactive memories in the result set
 
         Returns:
             Dictionary with memories list
@@ -627,6 +722,7 @@ def get_snipara_tools(
             "limit": limit,
             "offset": offset,
             "include_expired": include_expired,
+            "include_inactive": include_inactive,
         }
         if type:
             params["type"] = type
@@ -634,9 +730,56 @@ def get_snipara_tools(
             params["scope"] = scope
         if category:
             params["category"] = category
+        if status:
+            params["status"] = status
         if search:
             params["search"] = search
         return await client.call_tool("rlm_memories", params)
+
+    async def memory_invalidate(
+        memory_id: str,
+        invalidated_at: str | None = None,
+        reason: str | None = None,
+    ) -> dict[str, Any]:
+        """Invalidate a stored memory without deleting it.
+
+        Args:
+            memory_id: Memory ID to invalidate
+            invalidated_at: Optional ISO timestamp for the invalidation event
+            reason: Optional invalidation reason
+
+        Returns:
+            Dictionary with updated status and timestamp
+        """
+        params: dict[str, Any] = {"memory_id": memory_id}
+        if invalidated_at:
+            params["invalidated_at"] = invalidated_at
+        if reason:
+            params["reason"] = reason
+        return await client.call_tool("rlm_memory_invalidate", params)
+
+    async def memory_supersede(
+        old_memory_id: str,
+        new_memory_id: str,
+        reason: str | None = None,
+    ) -> dict[str, Any]:
+        """Replace an existing memory with an updated one.
+
+        Args:
+            old_memory_id: Memory ID being replaced
+            new_memory_id: Memory ID replacing the old one
+            reason: Optional supersession reason
+
+        Returns:
+            Dictionary with old/new memory IDs and statuses
+        """
+        params: dict[str, Any] = {
+            "old_memory_id": old_memory_id,
+            "new_memory_id": new_memory_id,
+        }
+        if reason:
+            params["reason"] = reason
+        return await client.call_tool("rlm_memory_supersede", params)
 
     async def forget(
         memory_id: str | None = None,
@@ -843,6 +986,7 @@ def get_snipara_tools(
 
     async def task_create(
         swarm_id: str,
+        agent_id: str,
         title: str,
         description: str | None = None,
         priority: int = 0,
@@ -852,6 +996,7 @@ def get_snipara_tools(
 
         Args:
             swarm_id: Swarm ID
+            agent_id: Agent ID creating the task
             title: Task title
             description: Task description
             priority: Priority (higher = more urgent)
@@ -862,6 +1007,7 @@ def get_snipara_tools(
         """
         params: dict[str, Any] = {
             "swarm_id": swarm_id,
+            "agent_id": agent_id,
             "title": title,
             "priority": priority,
         }
@@ -962,8 +1108,89 @@ def get_snipara_tools(
             "delete_missing": delete_missing,
         })
 
+    # ============ INDEX HEALTH & ANALYTICS TOOLS (Sprint 3) ============
+
+    async def index_health(
+        stale_threshold_days: int = 30,
+    ) -> dict[str, Any]:
+        """Get comprehensive index health metrics.
+
+        Args:
+            stale_threshold_days: Days after which content is considered stale
+
+        Returns:
+            Dictionary with health score, coverage, quality, tier distribution, stale docs
+        """
+        return await client.call_tool("rlm_index_health", {
+            "stale_threshold_days": stale_threshold_days,
+        })
+
+    async def index_recommendations() -> dict[str, Any]:
+        """Get actionable recommendations to improve index health.
+
+        Returns:
+            Dictionary with prioritized recommendations
+        """
+        return await client.call_tool("rlm_index_recommendations", {})
+
+    async def reindex(
+        job_id: str | None = None,
+        mode: str = "incremental",
+        kind: str = "doc",
+    ) -> dict[str, Any]:
+        """Trigger a reindex job or poll an existing one.
+
+        Args:
+            job_id: Existing job ID to poll
+            mode: Reindex mode when creating a job (incremental or full)
+            kind: Reindex kind when creating a job (doc or code)
+
+        Returns:
+            Dictionary with job creation or status info
+        """
+        payload: dict[str, Any] = {}
+        if job_id:
+            payload["job_id"] = job_id
+        else:
+            payload["mode"] = mode
+            payload["kind"] = kind
+        return await client.call_tool("rlm_reindex", payload)
+
+    async def search_analytics(
+        days: int = 30,
+    ) -> dict[str, Any]:
+        """Get comprehensive search analytics.
+
+        Args:
+            days: Number of days to analyze (1-90)
+
+        Returns:
+            Dictionary with query stats, latency percentiles, tool usage, errors
+        """
+        return await client.call_tool("rlm_search_analytics", {
+            "days": days,
+        })
+
+    async def query_trends(
+        days: int = 7,
+        granularity: str = "day",
+    ) -> dict[str, Any]:
+        """Get query trends over time.
+
+        Args:
+            days: Number of days to analyze (1-30)
+            granularity: Time bucket size (hour, day, week)
+
+        Returns:
+            Dictionary with time-bucketed query counts and metrics
+        """
+        return await client.call_tool("rlm_query_trends", {
+            "days": days,
+            "granularity": granularity,
+        })
+
     # Build and return tool list
-    return [
+    legacy_tools = [
         Tool(
             name="context_query",
             description=(
@@ -1557,6 +1784,16 @@ def get_snipara_tools(
                         "default": False,
                         "description": "Include expired memories",
                     },
+                    "include_inactive": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": "Include inactive memories in the primary results",
+                    },
+                    "warning_threshold": {
+                        "type": "number",
+                        "default": 0.72,
+                        "description": "Minimum relevance for inactive-memory warnings",
+                    },
                 },
                 "required": ["query"],
             },
@@ -1585,6 +1822,11 @@ def get_snipara_tools(
                         "type": "string",
                         "description": "Filter by category",
                     },
+                    "status": {
+                        "type": "string",
+                        "enum": ["ACTIVE", "INVALIDATED", "SUPERSEDED"],
+                        "description": "Filter by memory lifecycle",
+                    },
                     "search": {
                         "type": "string",
                         "description": "Text search in content",
@@ -1604,9 +1846,66 @@ def get_snipara_tools(
                         "default": False,
                         "description": "Include expired memories",
                     },
+                    "include_inactive": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": "Include inactive memories in the result set",
+                    },
                 },
             },
             handler=memories,
+        ),
+        Tool(
+            name="memory_invalidate",
+            description=(
+                "Invalidate a stored memory without deleting it. "
+                "Useful when the information is obsolete but should remain discoverable as inactive history."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "memory_id": {
+                        "type": "string",
+                        "description": "Memory ID to invalidate",
+                    },
+                    "invalidated_at": {
+                        "type": "string",
+                        "description": "Optional ISO timestamp for the invalidation event",
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Optional reason why the memory is no longer valid",
+                    },
+                },
+                "required": ["memory_id"],
+            },
+            handler=memory_invalidate,
+        ),
+        Tool(
+            name="memory_supersede",
+            description=(
+                "Replace an existing memory with updated content. "
+                "Creates a new active memory and marks the old one as superseded."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "old_memory_id": {
+                        "type": "string",
+                        "description": "Memory ID being replaced",
+                    },
+                    "new_memory_id": {
+                        "type": "string",
+                        "description": "Memory ID replacing the old one",
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Why the previous memory is being superseded",
+                    },
+                },
+                "required": ["old_memory_id", "new_memory_id"],
+            },
+            handler=memory_supersede,
         ),
         Tool(
             name="forget",
@@ -1864,6 +2163,10 @@ def get_snipara_tools(
                         "type": "string",
                         "description": "Swarm ID",
                     },
+                    "agent_id": {
+                        "type": "string",
+                        "description": "Agent ID creating the task",
+                    },
                     "title": {
                         "type": "string",
                         "description": "Task title",
@@ -1883,7 +2186,7 @@ def get_snipara_tools(
                         "description": "Task IDs that must complete first",
                     },
                 },
-                "required": ["swarm_id", "title"],
+                "required": ["swarm_id", "agent_id", "title"],
             },
             handler=task_create,
         ),
@@ -2001,4 +2304,109 @@ def get_snipara_tools(
             },
             handler=sync_documents,
         ),
+        # ============ INDEX HEALTH & ANALYTICS TOOLS (Sprint 3) ============
+        Tool(
+            name="index_health",
+            description=(
+                "Get comprehensive index health metrics for your project. "
+                "Returns coverage, quality scores, tier distribution, stale document detection, "
+                "and overall health score. Use this to monitor the health of your documentation index."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "stale_threshold_days": {
+                        "type": "integer",
+                        "default": 30,
+                        "description": "Days after which content is considered stale (1-365)",
+                    },
+                },
+            },
+            handler=index_health,
+        ),
+        Tool(
+            name="index_recommendations",
+            description=(
+                "Get actionable recommendations to improve your index health. "
+                "Returns prioritized list of recommendations based on current health metrics. "
+                "Recommendations include actions like reindexing, improving coverage, and reviewing quality."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {},
+            },
+            handler=index_recommendations,
+        ),
+        Tool(
+            name="reindex",
+            description=(
+                "Trigger a project reindex job or poll an existing reindex job. "
+                "Use this after syncs or when index coverage is degraded."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "job_id": {
+                        "type": "string",
+                        "description": "Existing job ID to poll instead of creating a new one",
+                    },
+                    "mode": {
+                        "type": "string",
+                        "default": "incremental",
+                        "description": "Reindex mode when creating a job (incremental or full)",
+                    },
+                    "kind": {
+                        "type": "string",
+                        "default": "doc",
+                        "description": "Index kind when creating a job (doc or code)",
+                    },
+                },
+            },
+            handler=reindex,
+        ),
+        Tool(
+            name="search_analytics",
+            description=(
+                "Get comprehensive search analytics for your project. "
+                "Returns query counts, success rates, latency percentiles (p50/p75/p90/p95/p99), "
+                "tool usage breakdown, daily trends, and error analysis."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "days": {
+                        "type": "integer",
+                        "default": 30,
+                        "description": "Number of days to analyze (1-90)",
+                    },
+                },
+            },
+            handler=search_analytics,
+        ),
+        Tool(
+            name="query_trends",
+            description=(
+                "Get query trends over time with configurable granularity. "
+                "Returns time-bucketed query counts, success rates, and latency for trend analysis."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "days": {
+                        "type": "integer",
+                        "default": 7,
+                        "description": "Number of days to analyze (1-30)",
+                    },
+                    "granularity": {
+                        "type": "string",
+                        "enum": ["hour", "day", "week"],
+                        "default": "day",
+                        "description": "Time bucket size",
+                    },
+                },
+            },
+            handler=query_trends,
+        ),
     ]
+
+    return legacy_tools + _build_contract_tools(Tool, client, legacy_tools)

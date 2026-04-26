@@ -1,132 +1,49 @@
-# Snipara MCP
+# Snipara MCP Server
 
 [![PyPI version](https://badge.fury.io/py/snipara-mcp.svg)](https://pypi.org/project/snipara-mcp/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Model Context Protocol (MCP) server for [Snipara](https://snipara.com) - Context optimization and Agent infrastructure for LLMs.**
+MCP server for [Snipara](https://snipara.com) - Context optimization and Agent infrastructure for LLMs.
 
-![Snipara MCP Demo](https://snipara.com/images/mcp-demo.gif)
+**Two Products in One:**
 
-## Overview
+- **Snipara** - Context optimization with 90% token reduction
+- **Snipara Agents** - Multi-agent memory, swarms, and coordination
 
-Snipara MCP is a client package that connects AI assistants to the [Snipara API](https://snipara.com), enabling:
+The stdio package keeps full parity with the hosted backend contract. The packaged tool surface is generated from `apps/mcp-server/src/mcp/tool_defs.py`.
 
-- **🔍 90% Context Reduction** - Query 500K tokens, get 5K relevant results
-- **🌐 Multi-Project Search** - Search across all your repos in one query
-- **🧠 AI Memory** - Persistent semantic memory across sessions
-- **👥 Team Standards** - Auto-inject coding standards into every query
-- **🤖 Multi-Agent Swarms** - Coordinate multiple AI agents with shared state
+Works with any MCP-compatible client including Claude Desktop, Cursor, Windsurf, Claude Code, Gemini, GPT, and more.
 
-### How It Works
+**LLM-agnostic**: Snipara optimizes context delivery - you use your own LLM (Claude, GPT, Gemini, Llama, etc.).
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Your AI Assistant (Claude, GPT, Cursor, etc.)                 │
-│  ├── Asks: "How does authentication work?"                     │
-│  └── Uses: rlm_context_query("authentication")                 │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                   ┌─────────▼─────────┐
-                   │  Snipara MCP      │  (This package)
-                   │  Client Library   │
-                   └─────────┬─────────┘
-                             │ HTTPS
-                             ▼
-                   ┌─────────────────────┐
-                   │  Snipara API        │
-                   │  api.snipara.com    │
-                   │  - Indexed docs     │
-                   │  - Semantic search  │
-                   │  - Agent memory     │
-                   └─────────┬───────────┘
-                             │
-                   ┌─────────▼─────────┐
-                   │  Returns: 3K      │
-                   │  relevant tokens  │
-                   │  instead of 50K   │
-                   └───────────────────┘
-```
+## Installation
 
-**Key Insight:** This is the **client package** - it connects to Snipara's API to fetch optimized context. The server-side implementation is private.
+### Option 1: uvx (Recommended - No Install)
 
-## What's In This Repository
-
-This is the **open-source MCP client package** published to PyPI as [`snipara-mcp`](https://pypi.org/project/snipara-mcp/).
-
-```
-snipara-mcp/
-├── src/snipara_mcp/
-│   ├── __init__.py         # Package entry point
-│   ├── server.py           # MCP stdio transport (2,050 lines)
-│   ├── rlm_tools.py        # 39 tool implementations (2,117 lines)
-│   └── auth.py             # OAuth device flow (402 lines)
-├── skill.md                # ClawdHub marketplace documentation
-├── pyproject.toml          # PyPI package configuration
-└── README.md               # This file
-```
-
-**What's NOT in this repo (private):**
-- FastAPI backend server
-- Database models and search algorithms
-- Rate limiting and billing logic
-- Internal API endpoints
-
-## Quick Start
-
-### Installation
-
-**Option 1: npx create-snipara (Recommended)**
-```bash
-npx create-snipara
-```
-
-This interactive CLI guides you through:
-- Choosing your IDE (Claude Code, Cursor, Windsurf, VS Code)
-- Authenticating via OAuth (browser-based)
-- Auto-configuring MCP settings
-- Optional RLM Runtime setup for sandboxed code execution
-
-**Option 2: uvx (No Install Required)**
 ```bash
 uvx snipara-mcp
 ```
 
-**Option 3: pip**
+### Option 2: pip
+
 ```bash
 pip install snipara-mcp
 ```
 
-**Option 4: With RLM Runtime**
+### Option 3: With RLM Runtime Integration
+
 ```bash
 pip install snipara-mcp[rlm]
 ```
 
-### Quick Setup with create-snipara
+This installs `rlm-runtime` as a dependency, enabling programmatic access to Snipara tools within the RLM orchestrator.
 
-```bash
-# Full setup: Snipara MCP + RLM Runtime
-npx create-snipara
+## Configuration
 
-# Team API key (shared credentials)
-npx create-snipara --team-key
+### Claude Desktop
 
-# Runtime only (skip Snipara if already configured)
-npx create-snipara --runtime-only
-```
-
-| Flag | Purpose |
-|------|---------|
-| `--team-key` | Use team-shared API key (no individual login) |
-| `--runtime-only` | Skip Snipara setup, install only RLM Runtime |
-
-### Configuration
-
-Get your API key from [snipara.com/dashboard](https://snipara.com/dashboard)
-
-#### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -135,15 +52,15 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
       "command": "uvx",
       "args": ["snipara-mcp"],
       "env": {
-        "SNIPARA_API_KEY": "rlm_your_key",
-        "SNIPARA_PROJECT_ID": "your_project_id"
+        "SNIPARA_API_KEY": "sk-your-api-key",
+        "SNIPARA_PROJECT_ID": "your-project-id"
       }
     }
   }
 }
 ```
 
-#### Cursor
+### Cursor
 
 Add to `~/.cursor/mcp.json`:
 
@@ -154,23 +71,23 @@ Add to `~/.cursor/mcp.json`:
       "command": "uvx",
       "args": ["snipara-mcp"],
       "env": {
-        "SNIPARA_API_KEY": "rlm_your_key",
-        "SNIPARA_PROJECT_ID": "your_project_id"
+        "SNIPARA_API_KEY": "sk-your-api-key",
+        "SNIPARA_PROJECT_ID": "your-project-id"
       }
     }
   }
 }
 ```
 
-#### Claude Code
+### Claude Code
 
 ```bash
 claude mcp add snipara -- uvx snipara-mcp
-export SNIPARA_API_KEY="rlm_your_key"
-export SNIPARA_PROJECT_ID="your_project_id"
 ```
 
-#### Windsurf
+Then set environment variables in your shell or `.env` file.
+
+### Windsurf
 
 Add to `~/.codeium/windsurf/mcp_config.json`:
 
@@ -181,296 +98,315 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
       "command": "uvx",
       "args": ["snipara-mcp"],
       "env": {
-        "SNIPARA_API_KEY": "rlm_your_key",
-        "SNIPARA_PROJECT_ID": "your_project_id"
+        "SNIPARA_API_KEY": "sk-your-api-key",
+        "SNIPARA_PROJECT_ID": "your-project-id"
       }
     }
   }
 }
 ```
 
-### Your First Query
+## Quick Setup (Recommended)
 
-Once configured, ask your AI:
+### Option A: Initialize in Your Project (New!)
 
-> "Use snipara to find how authentication works"
-
-Behind the scenes:
-```
-rlm_context_query("authentication")
-→ 2 seconds later
-→ Returns top 3 relevant docs (3K tokens instead of 50K)
-```
-
-## Features
-
-### 🎯 Context Optimization (All Plans)
-
-**Tools:** `rlm_context_query`, `rlm_ask`, `rlm_search`
-
-Query your documentation with semantic search and get only relevant results within your token budget.
-
-```json
-{
-  "query": "authentication implementation",
-  "max_tokens": 6000,
-  "search_mode": "hybrid"
-}
-```
-
-### 🌐 Multi-Project Search (Team+)
-
-**Tool:** `rlm_multi_project_query`
-
-Search across all your team's repositories in one query.
-
-```json
-{
-  "query": "How do we handle webhooks?",
-  "project_ids": [],
-  "max_tokens": 8000
-}
-```
-
-### 🧠 AI Memory (Agents Plans)
-
-**Tools:** `rlm_remember`, `rlm_recall`
-
-Persistent semantic memory across sessions with confidence decay.
-
-```json
-// Store once
-{
-  "content": "User prefers TypeScript strict mode",
-  "type": "preference",
-  "scope": "project"
-}
-
-// Recall later
-{
-  "query": "What are my coding preferences?",
-  "limit": 5
-}
-```
-
-### 👥 Team Standards (Team+)
-
-**Tool:** `rlm_shared_context`
-
-Auto-inject team coding standards into every query.
-
-```json
-{
-  "categories": ["MANDATORY", "BEST_PRACTICES"],
-  "max_tokens": 4000
-}
-```
-
-### 🤖 Multi-Agent Swarms (Enterprise)
-
-**Tools:** `rlm_swarm_create`, `rlm_claim`, `rlm_task_create`, etc.
-
-Coordinate multiple AI agents with:
-- Shared state management
-- Resource claims (prevent conflicts)
-- Distributed task queue
-- Event broadcasting
-
-```json
-// Create swarm
-{ "name": "code-review-swarm", "max_agents": 5 }
-
-// Claim file access
-{ "swarm_id": "...", "resource_type": "file", "resource_id": "src/auth.ts" }
-
-// Create task
-{ "swarm_id": "...", "title": "Review auth module", "priority": 90 }
-```
-
-## Complete Tool Reference
-
-### Primary Tools
-- **rlm_context_query** - Semantic search with token budget
-- **rlm_ask** - Quick keyword search
-- **rlm_search** - Regex pattern search
-
-### Advanced Tools
-- **rlm_multi_query** - Parallel queries
-- **rlm_decompose** - Break down complex questions
-- **rlm_plan** - Generate execution plan
-- **rlm_inject** - Set session context
-
-### Team Tools
-- **rlm_multi_project_query** - Cross-repo search
-- **rlm_shared_context** - Team standards
-- **rlm_list_templates** - Prompt templates
-- **rlm_upload_shared_document** - Upload team docs
-
-### Memory Tools (Agents Plan)
-- **rlm_remember** - Store memory
-- **rlm_recall** - Semantic recall
-- **rlm_memories** - List all memories
-- **rlm_forget** - Delete memories
-
-### Swarm Tools (Enterprise)
-- **rlm_swarm_create** / **rlm_swarm_join**
-- **rlm_claim** / **rlm_release**
-- **rlm_state_get** / **rlm_state_set**
-- **rlm_broadcast**
-- **rlm_task_create** / **rlm_task_claim** / **rlm_task_complete**
-
-### Document Management
-- **rlm_upload_document** - Upload single doc
-- **rlm_sync_documents** - Bulk sync
-- **rlm_store_summary** - Store LLM-generated summary
-- **rlm_stats** - Documentation statistics
-
-### Index Health & Analytics (NEW in v2.4.0)
-- **rlm_index_health** - Get comprehensive index health metrics (coverage, quality, tier distribution, stale docs)
-- **rlm_index_recommendations** - Get actionable recommendations to improve index health
-- **rlm_search_analytics** - Get search performance metrics (queries, success rate, latency percentiles, tool usage)
-- **rlm_query_trends** - Get query trends over time with configurable granularity
-
-**Total:** 43 tools
-
-Full documentation: [docs.snipara.com](https://docs.snipara.com)
-
-## Pricing
-
-### Context Plans (Documentation Search)
-
-| Plan       | Price   | Queries/mo | Search Mode       | Multi-Project |
-| ---------- | ------- | ---------- | ----------------- | ------------- |
-| FREE       | $0      | 100        | Keyword only      | ❌            |
-| PRO        | $19/mo  | 5,000      | Semantic + Hybrid | ❌            |
-| TEAM       | $49/mo  | 20,000     | Semantic + Hybrid | ✅            |
-| ENTERPRISE | $499/mo | Unlimited  | Semantic + Hybrid | ✅            |
-
-### Agents Plans (Memory & Swarms)
-
-| Plan       | Price   | Features                                    |
-| ---------- | ------- | ------------------------------------------- |
-| STARTER    | $15/mo  | Basic memory (100 memories)                 |
-| PRO        | $39/mo  | Unlimited memories, swarms                  |
-| TEAM       | $79/mo  | Team-wide memory (requires Context TEAM+)   |
-| ENTERPRISE | $199/mo | Advanced coordination (requires Context ENT |
-
-**Note:** Context and Agents are separate subscriptions.
-
-## Development
-
-### Prerequisites
-
-- Python 3.10+
-- pip or uv
-
-### Local Setup
+The fastest way to get started — run `snipara-init` in your project directory:
 
 ```bash
-# Clone the repo
-git clone https://github.com/alopez3006/snipara-mcp.git
-cd snipara-mcp
+# Install
+pip install snipara-mcp
 
-# Install dependencies
-pip install -e .
-
-# Set environment variables
-export SNIPARA_API_KEY="rlm_your_key"
-export SNIPARA_PROJECT_ID="your_project_id"
-
-# Test the package
-python -m snipara_mcp
+# Initialize Snipara in your project
+snipara-init
 ```
 
-### Project Structure
+**What happens:**
 
-```
-src/snipara_mcp/
-├── __init__.py         # Package entry point, CLI main()
-├── server.py           # MCP stdio transport implementation
-│                       # - Handles MCP protocol (JSON-RPC)
-│                       # - Tool registration and dispatch
-│                       # - Prompt auto-injection
-│
-├── rlm_tools.py        # 39 tool implementations
-│                       # - Context optimization tools
-│                       # - Agent memory tools
-│                       # - Multi-agent swarm tools
-│                       # - Document management
-│
-└── auth.py             # OAuth device flow authentication
-                        # - Login/logout/status CLI commands
-                        # - Token storage and refresh
-```
+1. Detects your project type (Node.js, Python, Go, Rust, Java)
+2. Extracts project slug from git remote (or uses directory name)
+3. Creates `.mcp.json` with Snipara server configuration
+4. Adds `SNIPARA_API_KEY` to `.env.example`
+5. Uploads CLAUDE.md, README.md, and docs/\*.md (if authenticated)
+6. Tests API connection
 
-### Testing
+**Options:**
 
 ```bash
-# Test basic connection
-uvx snipara-mcp
-
-# Test with specific tool
-echo '{"query": "test"}' | uvx snipara-mcp
-
-# Test OAuth flow
-snipara-mcp-login
-snipara-mcp-status
+snipara-init                    # Auto-detect and initialize
+snipara-init --slug my-project  # Use specific slug
+snipara-init --dry-run          # Preview what would be done
+snipara-init --no-upload        # Skip doc upload
+snipara-init --skip-test        # Skip connection test
 ```
 
-### Publishing to PyPI
+### Option B: Device Flow Login
+
+Alternatively, sign in via browser with `snipara login`. A free account and project are created automatically if you don't have one. The legacy `snipara-mcp-login` alias still works for older installs.
 
 ```bash
-# Bump version in pyproject.toml
-# version = "2.2.1"
+# Install
+pip install snipara-mcp
 
-# Build distribution
+# Sign in (opens browser, auto-creates account + project)
+snipara login
+```
+
+**What happens:**
+
+1. The CLI opens your browser to the Snipara authorization page (code pre-filled in URL)
+2. Sign in with GitHub or Google — a free account is created automatically if needed
+3. Select your project and click **Authorize**
+4. Return to your terminal — the CLI receives the token automatically (no copying needed)
+5. The CLI prints a `.mcp.json` snippet with your API key and MCP endpoint
+
+Tokens are stored securely in `~/.snipara/tokens.json`.
+
+### CLI Commands
+
+| Command              | Description                                               |
+| -------------------- | --------------------------------------------------------- |
+| `snipara-init`       | Initialize Snipara in current project (creates .mcp.json) |
+| `snipara login`      | Sign in via browser (auto-creates free account + project) |
+| `snipara-mcp-login`  | Legacy alias for `snipara login`                          |
+| `snipara-mcp-logout` | Clear all stored tokens                                   |
+| `snipara-mcp-status` | Show current auth status and stored tokens                |
+
+## Environment Variables
+
+| Variable               | Required | Description                                |
+| ---------------------- | -------- | ------------------------------------------ |
+| `SNIPARA_API_KEY`      | Yes\*    | Your Snipara API key                       |
+| `SNIPARA_PROJECT_ID`   | Yes\*    | Your project ID                            |
+| `SNIPARA_PROJECT_SLUG` | Yes\*    | Your project slug                          |
+| `SNIPARA_API_URL`      | No       | API URL (default: https://api.snipara.com) |
+
+\* Not required if you use `snipara login` (OAuth tokens from `~/.snipara/tokens.json` are used automatically).
+
+Get your API key and project ID from [snipara.com/dashboard](https://snipara.com/dashboard) or run `snipara login` for automatic setup.
+
+### Project-scoped OAuth behavior
+
+When you use `snipara-mcp-login`, the client stores OAuth tokens in `~/.snipara/tokens.json`.
+
+If `SNIPARA_PROJECT_ID` or `SNIPARA_PROJECT_SLUG` is set:
+
+- the stdio client selects only the token that matches that project
+- it does not silently fall back to another project's token
+- a separate API key is not required when a matching OAuth token already exists
+
+Legacy `/v1/{project}` routes also accept `Authorization: Bearer ...`, so OAuth-based logins work for the stdio client without forcing a second API key.
+
+## Available Tools
+
+The current stdio surface includes:
+
+- Retrieval and query tools such as `rlm_context_query`, `rlm_ask`, `rlm_search`, `rlm_multi_query`, `rlm_plan`, `rlm_get_chunk`, `rlm_load_document`, and `rlm_load_project`
+- Shared context and template tools such as `rlm_shared_context`, `rlm_list_templates`, `rlm_get_template`, `rlm_list_collections`, `rlm_upload_shared_document`, and shared collection management tools
+- Summary and memory automation tools such as `rlm_store_summary`, `rlm_remember_if_novel`, `rlm_end_of_task_commit`, `rlm_memory_compact`, `rlm_journal_append`, and `rlm_tenant_profile_get`
+- Swarm and coordination tools such as `rlm_swarm_create`, `rlm_claim`, `rlm_state_poll`, `rlm_task_bulk_create`, `rlm_task_reassign`, and `rlm_agent_status`
+- Hierarchical task tools such as `rlm_htask_create_feature`, `rlm_htask_tree`, `rlm_htask_recommend_batch`, `rlm_htask_policy_update`, and `rlm_htask_audit_trail`
+- Decision and operational tools such as `rlm_decision_create`, `rlm_index_health`, `rlm_index_recommendations`, `rlm_reindex`, `rlm_search_analytics`, `rlm_query_trends`, and `rlm_request_access`
+
+### New In 2.7.2
+
+- `rlm_upload_document` and `rlm_sync_documents` accept `kind`, `format`, `language`, and
+  `metadata` for provider-neutral document sync
+- binary payload parity for PDF, DOCX, PPTX, SVG, and VSDX using `base64:<payload>`
+- package metadata points to the public mirror while the monorepo remains the source of truth
+
+### New In 2.7.0
+
+- `rlm_reindex` for triggering and tracking index maintenance through MCP
+- clearer hosted guidance when `rlm_index_health` detects degraded coverage
+- code graph parity for the current Python, TypeScript, and Go structural tool surface
+- shared context collection management tools exposed in the packaged stdio contract
+
+### Search & Navigation
+
+- **`rlm_search`** - Regex pattern search
+- **`rlm_sections`** - List all document sections
+- **`rlm_read`** - Read specific line ranges
+- **`rlm_stats`** - Documentation statistics
+
+### Advanced (Pro+)
+
+- **`rlm_decompose`** - Break complex queries into sub-queries
+- **`rlm_multi_query`** - Execute multiple queries with shared token budget
+- **`rlm_multi_project_query`** - Query across multiple projects in your team
+
+### Session Context
+
+- **`rlm_ask`** - Query with LLM-generated answer (uses server-side model)
+- **`rlm_inject`** - Set context for subsequent queries
+- **`rlm_context`** - Show current context
+- **`rlm_clear_context`** - Clear context
+- **`rlm_settings`** - Get project settings from dashboard
+- **`rlm_plan`** - Generate implementation plan from query
+
+### Summary Storage (New in 1.8.0)
+
+- **`rlm_store_summary`** - Store conversation summary for persistence
+  - `summary`: Summary text (required)
+  - `conversation_id`: Optional conversation identifier
+  - `metadata`: Optional JSON metadata
+- **`rlm_get_summaries`** - Retrieve stored summaries
+  - `conversation_id`: Filter by conversation
+  - `limit`: Max results (default: 10)
+- **`rlm_delete_summary`** - Delete a stored summary by ID
+
+### Document Management (New in 1.2.0)
+
+- **`rlm_upload_document`** - Upload or update a single document
+  - `path`: Document path (e.g., "CLAUDE.md")
+  - `content`: Document content (markdown)
+- **`rlm_sync_documents`** - Bulk sync multiple documents
+  - `documents`: Array of `{path, content}` objects
+  - `delete_missing`: Delete docs not in list (default: false)
+
+### Shared Context (Team+)
+
+- **`rlm_shared_context`** - Get merged context from linked shared collections
+  - `max_tokens`: Token budget (default: 4000)
+  - `categories`: Filter by priority (MANDATORY, BEST_PRACTICES, GUIDELINES, REFERENCE)
+- **`rlm_list_templates`** - List available prompt templates
+- **`rlm_get_template`** - Get and render a prompt template with variables
+
+### Agent Memory (New in 1.6.0)
+
+Persistent semantic memory for AI agents with confidence decay over time.
+
+- **`rlm_remember`** - Store a memory for later semantic recall
+  - `content`: Memory content (required)
+  - `type`: `fact`, `decision`, `learning`, `preference`, `todo`, `context`
+  - `scope`: `agent`, `project`, `team`, `user`
+  - `category`: Optional grouping
+  - `ttl_days`: Days until expiration (null = permanent)
+- **`rlm_recall`** - Semantically recall relevant memories
+  - `query`: Search query (required)
+  - `type`, `scope`, `category`: Filters
+  - `limit`: Max results (default: 5)
+  - `min_relevance`: Minimum score 0-1 (default: 0.5)
+  - `include_inactive`: Include invalidated/superseded memories in main results
+  - `warning_threshold`: Surface inactive-memory warnings above this relevance
+- **`rlm_memories`** - List memories with filters
+  - `status`: Filter by `ACTIVE`, `INVALIDATED`, `SUPERSEDED`
+  - `include_inactive`: Include inactive memories in the result set
+- **`rlm_memory_invalidate`** - Mark a memory inactive without deleting it
+  - `memory_id`: required
+  - `invalidated_at`: optional ISO timestamp
+- **`rlm_memory_supersede`** - Replace one memory ID with another and keep the old one as superseded
+  - `old_memory_id`, `new_memory_id`: required
+- **`rlm_forget`** - Delete memories by ID or filter
+
+### Multi-Agent Swarms (New in 1.6.0)
+
+Coordinate multiple AI agents with shared state, resource claims, and task queues.
+
+- **`rlm_swarm_create`** - Create a new agent swarm
+  - `name`: Swarm name (required)
+  - `max_agents`: Maximum agents (default: 10)
+- **`rlm_swarm_join`** - Join an existing swarm
+  - `swarm_id`, `agent_id`: Required
+  - `role`: `coordinator`, `worker`, `observer`
+- **`rlm_claim`** - Claim exclusive access to a resource (file, function, module)
+  - Auto-expires to prevent deadlocks
+- **`rlm_release`** - Release a claimed resource
+- **`rlm_state_get`** / **`rlm_state_set`** - Read/write shared swarm state
+  - Optimistic locking with `expected_version`
+- **`rlm_broadcast`** - Send event to all agents in swarm
+- **`rlm_task_create`** - Create task in distributed queue
+  - Supports `depends_on` for task dependencies
+- **`rlm_task_claim`** - Claim next available task (respects dependencies)
+- **`rlm_task_complete`** - Mark task as completed or failed
+
+## Example Usage
+
+Once configured, ask your LLM:
+
+> "Use snipara to find how authentication works in my codebase"
+
+The LLM will call `rlm_context_query` and return relevant documentation sections.
+
+### Agent Memory Example
+
+> "Remember that the user prefers TypeScript over JavaScript"
+
+> "What do you remember about the user's preferences?"
+
+### Multi-Agent Swarm Example
+
+> "Create a swarm called 'refactoring-team' for coordinating the auth refactor"
+
+> "Claim the file src/auth.ts so other agents don't modify it"
+
+> "Create a task to update the login flow, depending on the token-refresh task"
+
+## Alternative: Direct HTTP (No Local Install)
+
+For clients that support HTTP transport (Claude Code, Cursor v0.48+), you can connect directly without installing anything:
+
+**Claude Code:**
+
+```json
+{
+  "mcpServers": {
+    "snipara": {
+      "type": "http",
+      "url": "https://api.snipara.com/mcp/YOUR_PROJECT_ID",
+      "headers": {
+        "Authorization": "Bearer sk-your-api-key"
+      }
+    }
+  }
+}
+```
+
+## CI/CD Integration
+
+Sync docs automatically on git push using the webhook endpoint:
+
+```bash
+curl -X POST "https://api.snipara.com/v1/YOUR_PROJECT_ID/webhook/sync" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"documents": [{"path": "CLAUDE.md", "content": "..."}]}'
+```
+
+See [GitHub Action example](https://github.com/Snipara/snipara-server#github-action-example) for automated sync on push.
+
+## Development and Validation
+
+The packaged MCP contract is generated from the hosted backend source of truth at `apps/mcp-server/src/mcp/tool_defs.py`.
+
+When backend MCP tools change, regenerate the packaged contract before committing:
+
+```bash
+uv run --project apps/mcp-server python scripts/sync_snipara_mcp_contract.py
+```
+
+For deterministic local validation, use Python 3.11, which matches CI:
+
+```bash
+cd apps/mcp-server/snipara-mcp
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+ruff check src/snipara_mcp tests
+pytest tests -v --tb=short
 python -m build
-
-# Upload to PyPI
-python -m twine upload dist/*
 ```
 
-## Architecture
+Repository CI now validates both:
 
-### MCP Protocol
-
-This package implements the [Model Context Protocol](https://modelcontextprotocol.io/) stdio transport:
-
-```
-AI Client → stdin → snipara-mcp → HTTPS → api.snipara.com
-AI Client ← stdout ← snipara-mcp ← JSON ← api.snipara.com
-```
-
-### Authentication
-
-Supports two authentication methods:
-
-1. **API Key** (Recommended)
-   ```bash
-   export SNIPARA_API_KEY="rlm_..."
-   ```
-
-2. **OAuth Device Flow**
-   ```bash
-   snipara-mcp-login
-   # Follow browser prompt to authorize
-   ```
-
-Tokens are stored in `~/.snipara/credentials.json`
-
-### Rate Limiting
-
-Rate limits are enforced server-side based on your plan:
-- FREE: 100 queries/month
-- PRO: 5,000 queries/month
-- TEAM: 20,000 queries/month
-- ENTERPRISE: Unlimited
+- backend MCP tests in `apps/mcp-server/tests/`
+- package-local lint, tests, and wheel/sdist builds in `apps/mcp-server/snipara-mcp/`
 
 ## Upgrading
 
-When a new version is released:
+When a new version is released on PyPI, follow these steps to get the latest tools:
 
-### 1. Clear uvx cache
+### 1. Clear the uvx cache
+
 ```bash
 # macOS/Linux
 rm -rf ~/.cache/uv/tools/snipara-mcp
@@ -482,196 +418,167 @@ rmdir /s %LOCALAPPDATA%\uv\tools\snipara-mcp
 
 ### 2. Restart your MCP client
 
-MCP tool definitions are loaded at startup. Restart Claude Desktop, Cursor, or your MCP client.
+MCP tool definitions are loaded at startup. You **must restart** Claude Desktop, Cursor, Claude Code, or your MCP client to load the new tools.
 
-### 3. Verify version
+### 3. Verify the version
 
-```bash
-snipara-mcp-status
+After restart, the new tools should be available. You can check by asking:
+
+> "Use snipara to show settings"
+
+If `rlm_settings` works, you have the latest version.
+
+### Important: Use uvx, not local Python
+
+Always configure with `uvx` to get automatic updates from PyPI:
+
+```json
+{
+  "command": "uvx",
+  "args": ["snipara-mcp"]
+}
 ```
+
+**Do NOT use local Python paths** like:
+
+```json
+{
+  "command": "/usr/bin/python3",
+  "args": ["-m", "snipara_mcp"],
+  "env": { "PYTHONPATH": "/local/path" }
+}
+```
+
+This bypasses PyPI and you won't get updates.
+
+## Maintainer Release Notes
+
+Changes under `apps/mcp-server/snipara-mcp/**` are only released to users after:
+
+1. bumping `version` in `pyproject.toml`
+2. merging to `main`
+3. letting `.github/workflows/publish-pypi.yml` publish the new version
+
+Without the version bump, the workflow will skip publishing if that version already exists on PyPI.
+
+The monorepo path `apps/mcp-server/snipara-mcp/` is the source of truth for this package. The
+public `alopez3006/snipara-mcp` repository is a generated mirror for distribution and discovery,
+synced by `scripts/sync-snipara-mcp-public.sh` and the mirror workflow on `main`.
 
 ## Troubleshooting
 
 ### MCP tools not showing up
 
-1. **Restart your MCP client** - Tools are cached at startup
-2. **Clear uvx cache** - See Upgrading section
-3. **Check config syntax** - Ensure valid JSON in MCP config
+1. **Restart your MCP client** - Tool definitions are cached at startup
+2. **Clear uvx cache** - Old version may be cached (see Upgrading section)
+3. **Check config syntax** - Ensure valid JSON in your MCP config file
 
 ### "Invalid API key" error
 
-- Verify API key in [dashboard](https://snipara.com/dashboard)
-- Check for whitespace in config
-- Try OAuth: `snipara-mcp-login`
+- Verify your API key is correct in the dashboard
+- Check the key hasn't been rotated
+- Ensure no extra whitespace in the config
 
 ### MCP server not connecting
 
-- Check `uvx` is installed: `uvx --version`
-- Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Check Claude Code output panel for errors
+- Check that `uvx` is installed: `which uvx` or `uvx --version`
+- Install uv if missing: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Check Claude Code output panel for connection errors
 
-## RLM Runtime Integration
+## RLM Runtime Integration (New in 1.4.0)
 
-[RLM Runtime](https://github.com/alopez3006/rlm-runtime) provides sandboxed Python execution and autonomous agent capabilities that complement Snipara's context optimization.
+Snipara MCP can be used as a tool provider for [rlm-runtime](https://github.com/Snipara/rlm-runtime), enabling LLMs to query your documentation during autonomous code execution.
 
-### Quick Start
-
-```bash
-# Install with Snipara support
-pip install rlm-runtime[mcp]
-
-# Or via create-snipara
-npx create-snipara
-```
-
-### TypeScript SDK
-
-For TypeScript/JavaScript projects, use the npm package:
+### Installation
 
 ```bash
-npm install @rlm/runtime
+pip install snipara-mcp[rlm]
 ```
 
-```typescript
-import type { ExecutePythonParams, REPLResult, TrustLevel } from '@rlm/runtime';
-import { EXECUTION_PROFILES, isImportAllowed, MCP_TOOLS } from '@rlm/runtime';
-
-// Type-safe MCP tool parameters
-const params: ExecutePythonParams = {
-  code: 'result = sum(range(100))',
-  profile: 'default',
-  session_id: 'my-session',
-};
-
-// Check sandbox restrictions
-console.log(isImportAllowed('json'));      // true
-console.log(isImportAllowed('subprocess')); // false (blocked in sandbox)
-```
-
-### Python Usage
+### Usage with RLM Runtime
 
 ```python
 from rlm import RLM
 
-# Snipara tools auto-registered when credentials set
+# Snipara tools are auto-registered when credentials are set
 rlm = RLM(
     model="claude-sonnet-4-20250514",
     snipara_api_key="rlm_your_key",
     snipara_project_slug="your-project"
 )
 
-# LLM can now query your docs during execution
-result = rlm.run("Implement auth following our coding standards")
+# The LLM can now query your docs during execution
+result = rlm.run("Implement the auth flow following our coding standards")
 ```
 
-### Trust Levels (v2.2.0+)
+### Manual Tool Registration
 
-RLM Runtime supports three execution modes:
+```python
+from snipara_mcp import get_snipara_tools
 
-| Trust Level | Description | Use Case |
-|-------------|-------------|----------|
-| `sandboxed` | RestrictedPython, safe stdlib only | **Default** - safe for untrusted code |
-| `docker` | Docker container isolation | Production, CI/CD pipelines |
-| `local` | Full filesystem/subprocess access | Local development only |
+# Get tools as RLM-compatible Tool objects
+tools = get_snipara_tools(
+    api_key="rlm_your_key",
+    project_slug="your-project"
+)
 
-Configure in `rlm.toml`:
-
-```toml
-[rlm]
-trust_level = "local"  # Enable unrestricted local mode
+# Register with RLM
+from rlm import RLM
+rlm = RLM(model="claude-sonnet-4-20250514", tools=tools)
 ```
 
-⚠️ **Security Warning:** Only use `local` trust level for development on your own machine. Never expose to untrusted code.
+### Available Tools (Programmatic API)
 
-### MCP Tools
+When using `get_snipara_tools()`, the programmatic wrappers now expose the full hosted `rlm_*` contract generated from `tool_contract.py`, while preserving the legacy high-level aliases defined in `src/snipara_mcp/rlm_tools.py` (`context_query`, `remember`, `task_create`, etc.).
 
-When using RLM Runtime with Claude Code or other MCP clients:
+See [`src/snipara_mcp/rlm_tools.py`](./src/snipara_mcp/rlm_tools.py) for the exact wrapper surface and signatures.
 
-| Tool | Description |
-|------|-------------|
-| `execute_python` | Run Python code in sandbox |
-| `get_repl_context` | Get persistent session variables |
-| `set_repl_context` | Store variables for later use |
-| `rlm_agent_run` | Start autonomous agent |
-| `rlm_agent_status` | Check agent progress |
+### CLI Tool Introspection
 
-### Combined Workflow Example
-
-```
-User: "Analyze our API usage patterns and recommend optimizations"
-
-Claude workflow:
-1. [snipara: rlm_context_query] → Get API documentation
-2. [snipara: rlm_shared_context] → Get team performance standards
-3. [rlm: execute_python] → Parse API logs, compute statistics
-4. [rlm: set_repl_context] → Store intermediate analysis
-5. [snipara: rlm_remember] → Save insights for future sessions
-6. Generate recommendations with context
-```
-
-See: [rlm-runtime documentation](https://github.com/alopez3006/rlm-runtime)
-
-## CI/CD Integration
-
-Auto-sync docs on git push:
+The `snipara` CLI also exposes generic MCP inspection helpers:
 
 ```bash
-curl -X POST "https://api.snipara.com/v1/YOUR_PROJECT/webhook/sync" \
-  -H "X-API-Key: YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"documents": [{"path": "docs/api.md", "content": "..."}]}'
+snipara tools list --slug your-project
+snipara tools call rlm_help --slug your-project --args '{"query":"session automation"}'
 ```
 
-See: [GitHub Action example](#) (coming soon)
+### Environment Variables
 
-## Support
-
-- **Website:** [snipara.com](https://snipara.com)
-- **Documentation:** [docs.snipara.com](https://docs.snipara.com)
-- **Issues:** [GitHub Issues](https://github.com/alopez3006/snipara-mcp/issues)
-- **Email:** support@snipara.com
-- **Discord:** [Join our community](https://discord.gg/snipara)
-
-## Contributing
-
-We welcome contributions! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-**Development Guidelines:**
-- Follow existing code style
-- Add docstrings to public functions
-- Update README if adding features
-- Test with multiple MCP clients
+```bash
+export SNIPARA_API_KEY="rlm_your_key"
+export SNIPARA_PROJECT_SLUG="your-project"
+export SNIPARA_API_URL="https://api.snipara.com"  # Optional
+```
 
 ## Version History
 
-| Version | Date       | Changes                                                          |
-| ------- | ---------- | ---------------------------------------------------------------- |
-| 2.4.0   | 2026-03-10 | Sprint 3: Index Health & Analytics (4 new tools, 43 tools total) |
-| 2.3.0   | 2026-02-16 | Enhanced RLM Runtime docs, npx create-snipara v1.1.0             |
-| 2.2.0   | 2026-01-29 | Separate public repository, update repo URL         |
-| 2.1.0   | 2025-01-25 | Full tool parity with FastAPI (39 tools)            |
-| 1.8.1   | 2025-01-25 | Add multi_project_query for cross-repo search       |
-| 1.7.6   | 2025-01-24 | Redis URL protocol support                          |
-| 1.7.0   | 2025-01-21 | OAuth device flow authentication                    |
-| 1.6.0   | 2025-01-20 | Agent Memory and Multi-Agent Swarms (14 new tools)  |
-| 1.5.0   | 2025-01-18 | Auto-inject Snipara usage instructions              |
-| 1.4.0   | 2025-01-15 | RLM Runtime integration                             |
-| 1.3.0   | 2025-01-10 | Shared Context tools (Team+)                        |
-| 1.2.0   | 2025-01-05 | Document upload and sync tools                      |
-| 1.0.0   | 2024-12-15 | Initial release with core context optimization      |
+| Version | Date       | Changes                                                                |
+| ------- | ---------- | ---------------------------------------------------------------------- |
+| 2.7.2   | 2026-04-26 | Binary document sync parity and public mirror automation               |
+| 2.7.0   | 2026-04-24 | Reindex MCP tool, shared context management, current code graph parity |
+| 2.6.1   | 2026-04-16 | Contract parity, package validation, mirror hardening                  |
+| 2.4.0   | 2026-02-11 | Add `snipara-init` CLI for project initialization                      |
+| 2.3.1   | 2026-01-31 | Fix device flow CLI: remove misleading code entry step                 |
+| 1.8.1   | 2025-01-25 | Add multi_project_query for cross-project search                       |
+| 1.8.0   | 2025-01-25 | Full tool parity with FastAPI server (21 new tools)                    |
+| 1.7.6   | 2025-01-24 | Fix Redis URL protocol support, graceful env handling                  |
+| 1.7.5   | 2025-01-23 | CI/CD improvements, production environment secrets                     |
+| 1.7.1   | 2025-01-22 | OAuth device flow fixes                                                |
+| 1.7.0   | 2025-01-21 | OAuth device flow authentication (`snipara-mcp-login`)                 |
+| 1.6.0   | 2025-01-20 | Agent Memory and Multi-Agent Swarms (14 new tools)                     |
+| 1.5.0   | 2025-01-18 | Auto-inject Snipara usage instructions                                 |
+| 1.4.0   | 2025-01-15 | RLM Runtime integration                                                |
+| 1.3.0   | 2025-01-10 | Shared Context tools (Team+)                                           |
+| 1.2.0   | 2025-01-05 | Document upload and sync tools                                         |
+| 1.1.0   | 2024-12-20 | Session context management                                             |
+| 1.0.0   | 2024-12-15 | Initial release with core context optimization                         |
+
+## Support
+
+- Website: [snipara.com](https://snipara.com)
+- Issues: [github.com/Snipara/snipara-server/issues](https://github.com/Snipara/snipara-server/issues)
+- Email: support@starbox-group.com
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file
-
----
-
-**Built with ❤️ by the Snipara team**
-
-[Website](https://snipara.com) • [Documentation](https://docs.snipara.com) • [PyPI](https://pypi.org/project/snipara-mcp/) • [GitHub](https://github.com/alopez3006/snipara-mcp)
+MIT

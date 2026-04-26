@@ -1,9 +1,28 @@
 """Snipara MCP Server - Context optimization for LLMs."""
 
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+
 from .server import main
 
-__version__ = "2.1.0"
-__all__ = ["main", "get_snipara_tools"]
+
+def _discover_version() -> str:
+    """Resolve the package version from local checkout first, then installed metadata."""
+    pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    if pyproject.exists():
+        import tomllib
+
+        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+        return data["project"]["version"]
+
+    try:
+        return version("snipara-mcp")
+    except PackageNotFoundError:
+        return "0.0.0"
+
+
+__version__ = _discover_version()
+__all__ = ["main", "get_snipara_tools", "__version__"]
 
 
 def get_snipara_tools(*args, **kwargs):

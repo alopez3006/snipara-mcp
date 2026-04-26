@@ -495,7 +495,7 @@ Every developer:
 - **Documentation:** https://docs.snipara.com
 - **GitHub:** https://github.com/snipara/snipara-mcp
 - **Issues:** https://github.com/snipara/snipara-mcp/issues
-- **Email:** support@snipara.com
+- **Email:** support@starbox-group.com
 
 ---
 
