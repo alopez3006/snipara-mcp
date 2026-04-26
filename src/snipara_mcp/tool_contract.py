@@ -432,7 +432,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'required': ['collection_id']}},
  {'name': 'rlm_upload_shared_document',
   'description': 'Upload or update a document in a shared context collection. Use for team best '
-                 'practices, coding standards, and guidelines. Requires Team plan or higher.',
+                 'practices, coding standards, business playbooks, reusable examples, and '
+                 'guidelines. Requires Team plan or higher.',
   'inputSchema': {'type': 'object',
                   'properties': {'collection_id': {'type': 'string',
                                                    'description': 'The shared collection ID'},
@@ -457,6 +458,128 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                               'description': 'Priority within category (higher = '
                                                              'more important)'}},
                   'required': ['collection_id', 'title', 'content']}},
+ {'name': 'rlm_list_business_collections',
+  'description': 'List Team Business Context collections for the current team, including Business '
+                 'Library, Offer Templates, Company Presentations, and Reference Diagrams. Use '
+                 'this before uploading reusable business knowledge.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'include_custom': {'type': 'boolean',
+                                                    'default': False,
+                                                    'description': 'Also include custom '
+                                                                   'collections that look '
+                                                                   'business-oriented. Preset '
+                                                                   'business collections are '
+                                                                   'always included.'},
+                                 'include_missing_presets': {'type': 'boolean',
+                                                             'default': True,
+                                                             'description': 'Return missing preset '
+                                                                            'definitions so the '
+                                                                            'caller can create '
+                                                                            'them with '
+                                                                            'rlm_ensure_business_collection.'}},
+                  'required': []}},
+ {'name': 'rlm_ensure_business_collection',
+  'description': 'Create or return an existing Team Business Context collection. Prefer preset '
+                 'slugs for the standard workspace business library.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'preset': {'type': 'string',
+                                            'enum': ['business_library',
+                                                     'offer_templates',
+                                                     'company_presentations',
+                                                     'reference_diagrams'],
+                                            'description': 'Standard Team Business Context preset '
+                                                           'to create or return.'},
+                                 'name': {'type': 'string',
+                                          'description': 'Custom collection display name. Required '
+                                                         'when preset is omitted.'},
+                                 'slug': {'type': 'string',
+                                          'description': 'Custom collection slug. Defaults to a '
+                                                         'slugified name.'},
+                                 'description': {'type': 'string',
+                                                 'description': 'Optional collection description'}},
+                  'required': []}},
+ {'name': 'rlm_upload_business_document',
+  'description': 'Upload or update a reusable document in a Team Business Context collection. For '
+                 'current client/project files with metadata, use rlm_upload_document instead.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'collection_id': {'type': 'string',
+                                                   'description': 'Business collection ID. If '
+                                                                  'omitted, provide preset or '
+                                                                  'collection_slug.'},
+                                 'preset': {'type': 'string',
+                                            'enum': ['business_library',
+                                                     'offer_templates',
+                                                     'company_presentations',
+                                                     'reference_diagrams'],
+                                            'description': 'Business preset to resolve or create '
+                                                           'before upload.'},
+                                 'collection_slug': {'type': 'string',
+                                                     'description': 'Business collection slug to '
+                                                                    'resolve when collection_id is '
+                                                                    'omitted.'},
+                                 'title': {'type': 'string', 'description': 'Document title'},
+                                 'content': {'type': 'string',
+                                             'description': 'Document content (usually markdown)'},
+                                 'category': {'type': 'string',
+                                              'enum': ['MANDATORY',
+                                                       'BEST_PRACTICES',
+                                                       'GUIDELINES',
+                                                       'REFERENCE'],
+                                              'default': 'REFERENCE',
+                                              'description': 'Shared-context category used for '
+                                                             'token budget allocation.'},
+                                 'tags': {'type': 'array',
+                                          'items': {'type': 'string'},
+                                          'description': 'Tags such as offer, template, diagram, '
+                                                         'client-example, or methodology.'},
+                                 'priority': {'type': 'integer',
+                                              'default': 0,
+                                              'minimum': 0,
+                                              'maximum': 100,
+                                              'description': 'Priority within category (higher = '
+                                                             'more important).'},
+                                 'allow_custom_collection': {'type': 'boolean',
+                                                             'default': False,
+                                                             'description': 'Allow upload to a '
+                                                                            'custom '
+                                                                            'business-looking '
+                                                                            'collection instead of '
+                                                                            'a standard preset.'}},
+                  'required': ['title', 'content']}},
+ {'name': 'rlm_list_client_projects',
+  'description': 'List client/project business-context workspaces in the current team. These are '
+                 'project-scoped containers for current client documents, deliverables, diagrams, '
+                 'and history.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'include_internal': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Also return internal, '
+                                                                     'research, and code projects '
+                                                                     'with their scope '
+                                                                     'classification.'},
+                                 'limit': {'type': 'integer',
+                                           'default': 100,
+                                           'minimum': 1,
+                                           'maximum': 500}},
+                  'required': []}},
+ {'name': 'rlm_create_client_project',
+  'description': 'Create a client/project business-context workspace in the current team. Use this '
+                 'before uploading current client documents with rlm_upload_document.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'name': {'type': 'string',
+                                          'description': 'Client/project display name'},
+                                 'slug': {'type': 'string',
+                                          'description': 'Optional stable project slug. Defaults '
+                                                         'to a slugified name.'},
+                                 'description': {'type': 'string',
+                                                 'description': 'Optional description. Snipara '
+                                                                'prefixes it as Client business '
+                                                                'context when needed.'},
+                                 'external_client_id': {'type': 'string',
+                                                        'description': 'Optional external client '
+                                                                       'identifier echoed back for '
+                                                                       'integrator workflows.'}},
+                  'required': ['name']}},
  {'name': 'rlm_remember',
   'description': 'Store a memory for later semantic recall. Direct writes support fact, decision, '
                  'learning, preference, todo, and context. Use rlm_end_of_task_commit for workflow '
@@ -2234,6 +2357,11 @@ MCP_TOOL_NAMES = ['rlm_context_query',
  'rlm_link_collection',
  'rlm_unlink_collection',
  'rlm_upload_shared_document',
+ 'rlm_list_business_collections',
+ 'rlm_ensure_business_collection',
+ 'rlm_upload_business_document',
+ 'rlm_list_client_projects',
+ 'rlm_create_client_project',
  'rlm_remember',
  'rlm_remember_if_novel',
  'rlm_end_of_task_commit',

@@ -202,10 +202,18 @@ The current stdio surface includes:
 
 - Retrieval and query tools such as `rlm_context_query`, `rlm_ask`, `rlm_search`, `rlm_multi_query`, `rlm_plan`, `rlm_get_chunk`, `rlm_load_document`, and `rlm_load_project`
 - Shared context and template tools such as `rlm_shared_context`, `rlm_list_templates`, `rlm_get_template`, `rlm_list_collections`, `rlm_upload_shared_document`, and shared collection management tools
+- Business context and client/project tools such as `rlm_list_business_collections`, `rlm_ensure_business_collection`, `rlm_upload_business_document`, `rlm_list_client_projects`, and `rlm_create_client_project`
 - Summary and memory automation tools such as `rlm_store_summary`, `rlm_remember_if_novel`, `rlm_end_of_task_commit`, `rlm_memory_compact`, `rlm_journal_append`, and `rlm_tenant_profile_get`
 - Swarm and coordination tools such as `rlm_swarm_create`, `rlm_claim`, `rlm_state_poll`, `rlm_task_bulk_create`, `rlm_task_reassign`, and `rlm_agent_status`
 - Hierarchical task tools such as `rlm_htask_create_feature`, `rlm_htask_tree`, `rlm_htask_recommend_batch`, `rlm_htask_policy_update`, and `rlm_htask_audit_trail`
 - Decision and operational tools such as `rlm_decision_create`, `rlm_index_health`, `rlm_index_recommendations`, `rlm_reindex`, `rlm_search_analytics`, `rlm_query_trends`, and `rlm_request_access`
+
+### New In 2.8.0
+
+- Team Business Context tools for Business Library, Offer Templates, Company Presentations, and Reference Diagrams
+- client/project workspace tools so MCP clients can create and list business-context project scopes before uploading current client files
+- `rlm_upload_document` forwarding now preserves `kind`, `format`, `language`, and `metadata` through the packaged stdio wrapper
+- rlm-runtime helper `upload_document` accepts the same metadata and binary parser fields
 
 ### New In 2.7.2
 
@@ -258,9 +266,11 @@ The current stdio surface includes:
 
 - **`rlm_upload_document`** - Upload or update a single document
   - `path`: Document path (e.g., "CLAUDE.md")
-  - `content`: Document content (markdown)
+  - `content`: Document content (markdown/text) or `base64:<payload>` for parser-backed binary files
+  - `kind`, `format`, `language`: Optional document classification fields
+  - `metadata`: Optional business/client context metadata for health and freshness
 - **`rlm_sync_documents`** - Bulk sync multiple documents
-  - `documents`: Array of `{path, content}` objects
+  - `documents`: Array of `{path, content, kind?, format?, language?, metadata?}` objects
   - `delete_missing`: Delete docs not in list (default: false)
 
 ### Shared Context (Team+)
@@ -270,6 +280,11 @@ The current stdio surface includes:
   - `categories`: Filter by priority (MANDATORY, BEST_PRACTICES, GUIDELINES, REFERENCE)
 - **`rlm_list_templates`** - List available prompt templates
 - **`rlm_get_template`** - Get and render a prompt template with variables
+- **`rlm_list_business_collections`** - List Team Business Context collections and missing presets
+- **`rlm_ensure_business_collection`** - Create or return a standard business collection
+- **`rlm_upload_business_document`** - Upload reusable business docs to Team Business Context
+- **`rlm_list_client_projects`** - List client/project business-context workspaces
+- **`rlm_create_client_project`** - Create a client/project workspace for current client files
 
 ### Agent Memory (New in 1.6.0)
 
@@ -554,6 +569,7 @@ export SNIPARA_API_URL="https://api.snipara.com"  # Optional
 
 | Version | Date       | Changes                                                                |
 | ------- | ---------- | ---------------------------------------------------------------------- |
+| 2.8.0   | 2026-04-26 | Business context and client project MCP tools; metadata forwarding fix |
 | 2.7.2   | 2026-04-26 | Binary document sync parity and public mirror automation               |
 | 2.7.0   | 2026-04-24 | Reindex MCP tool, shared context management, current code graph parity |
 | 2.6.1   | 2026-04-16 | Contract parity, package validation, mirror hardening                  |

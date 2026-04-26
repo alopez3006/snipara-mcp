@@ -1075,20 +1075,37 @@ def get_snipara_tools(
     async def upload_document(
         path: str,
         content: str,
+        kind: str | None = None,
+        format: str | None = None,
+        language: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Upload a document.
 
         Args:
             path: Document path
             content: Document content
+            kind: Optional document kind (DOC or BINARY)
+            format: Optional document format
+            language: Optional language hint
+            metadata: Optional structured document metadata
 
         Returns:
             Dictionary with upload status
         """
-        return await client.call_tool("rlm_upload_document", {
+        params: dict[str, Any] = {
             "path": path,
             "content": content,
-        })
+        }
+        if kind:
+            params["kind"] = kind
+        if format:
+            params["format"] = format
+        if language:
+            params["language"] = language
+        if metadata is not None:
+            params["metadata"] = metadata
+        return await client.call_tool("rlm_upload_document", params)
 
     async def sync_documents(
         documents: list[dict[str, str]],
@@ -2267,6 +2284,23 @@ def get_snipara_tools(
                     "content": {
                         "type": "string",
                         "description": "Document content",
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": ["DOC", "BINARY"],
+                        "description": "Optional document kind",
+                    },
+                    "format": {
+                        "type": "string",
+                        "description": "Optional document format",
+                    },
+                    "language": {
+                        "type": "string",
+                        "description": "Optional language hint",
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "description": "Optional structured document metadata",
                     },
                 },
                 "required": ["path", "content"],

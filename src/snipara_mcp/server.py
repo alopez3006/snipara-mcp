@@ -630,10 +630,14 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             return [TextContent(type="text", text="\n".join(lines))]
 
         elif name == "rlm_upload_document":
-            result = await call_api("rlm_upload_document", {
+            payload = {
                 "path": arguments["path"],
                 "content": arguments["content"],
-            })
+            }
+            for optional_key in ("kind", "format", "language", "metadata"):
+                if arguments.get(optional_key) is not None:
+                    payload[optional_key] = arguments[optional_key]
+            result = await call_api("rlm_upload_document", payload)
             if result.get("success"):
                 data = result.get("result", {})
                 return [TextContent(type="text", text=f"**Document {data.get('action', 'processed')}:** {data.get('path', '')} ({data.get('size', 0)} bytes)")]

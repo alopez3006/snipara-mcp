@@ -111,6 +111,48 @@ async def test_list_tools_matches_generated_contract() -> None:
     assert listed_tools == contract_tools
 
 
+async def test_upload_document_forwards_metadata(monkeypatch) -> None:
+    """Single-file stdio uploads should preserve document metadata fields."""
+    calls = []
+
+    async def fake_call_api(tool, params):
+        calls.append((tool, params))
+        return {
+            "success": True,
+            "result": {
+                "action": "metadata_updated",
+                "path": params["path"],
+                "size": len(params["content"]),
+            },
+        }
+
+    monkeypatch.setattr(mcp_server, "call_api", fake_call_api)
+
+    await mcp_server.call_tool(
+        "rlm_upload_document",
+        {
+            "path": "clients/acme/current.md",
+            "content": "# Current",
+            "kind": "DOC",
+            "format": "md",
+            "language": "markdown",
+            "metadata": {"assetClass": "BUSINESS_DOCUMENT", "usageMode": "current_truth"},
+        },
+    )
+
+    assert calls[-1] == (
+        "rlm_upload_document",
+        {
+            "path": "clients/acme/current.md",
+            "content": "# Current",
+            "kind": "DOC",
+            "format": "md",
+            "language": "markdown",
+            "metadata": {"assetClass": "BUSINESS_DOCUMENT", "usageMode": "current_truth"},
+        },
+    )
+
+
 def _clear_auth_env(monkeypatch) -> None:
     for key in (
         "SNIPARA_IGNORE_OAUTH",
