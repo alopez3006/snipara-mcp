@@ -7,17 +7,33 @@ Regenerate with: python3 apps/mcp-server/scripts/sync_snipara_mcp_contract.py
 from __future__ import annotations
 
 TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
-  'description': 'Query optimized context from documentation. Returns ranked sections within token '
-                 'budget.',
+  'description': 'Query project documents, parsed business files, and shared context. Use this '
+                 'first for source truth and narrative documentation. Returns ranked sections '
+                 'within token budget. If a broad query times out, retry once with a narrow 3-8 '
+                 "term query, max_tokens 800-1500, search_mode='keyword', return_references=true, "
+                 'auto_decompose=false, and include_all_tiers=false. For exact text use '
+                 'rlm_search; for structural code context use rlm_code_neighbors, '
+                 'rlm_code_callers, or rlm_code_imports.',
   'inputSchema': {'type': 'object',
-                  'properties': {'query': {'type': 'string', 'description': 'Question or topic'},
+                  'properties': {'query': {'type': 'string',
+                                           'description': 'Documentation, business-context, or '
+                                                          'current-truth question. For timeout '
+                                                          'recovery, narrow this to the key file, '
+                                                          'feature, symbol, or 3-8 terms.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 100,
-                                                'maximum': 100000},
+                                                'maximum': 100000,
+                                                'description': 'Token budget. Use 800-1500 for '
+                                                               'fast recovery retries after a '
+                                                               'timeout.'},
                                  'search_mode': {'type': 'string',
                                                  'enum': ['keyword', 'semantic', 'hybrid'],
-                                                 'default': 'hybrid'},
+                                                 'default': 'hybrid',
+                                                 'description': 'Search strategy. Use keyword for '
+                                                                'fast retry/recovery paths; use '
+                                                                'hybrid for normal documentation '
+                                                                'discovery.'},
                                  'include_metadata': {'type': 'boolean', 'default': True},
                                  'prefer_summaries': {'type': 'boolean', 'default': False},
                                  'return_references': {'type': 'boolean',
@@ -29,7 +45,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                       'full content by ID. Reduces '
                                                                       'hallucination by '
                                                                       'maintaining clear source '
-                                                                      'attribution.'},
+                                                                      'attribution and is the '
+                                                                      'preferred fast retry path '
+                                                                      'after a timeout.'},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '
@@ -38,8 +56,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                    'multiple questions, '
                                                                    'comparisons) are automatically '
                                                                    'broken down and results '
-                                                                   'merged. Set to False to '
-                                                                   'disable.'},
+                                                                   'merged. Set to False for fast '
+                                                                   'timeout recovery retries.'},
                                  'include_all_tiers': {'type': 'boolean',
                                                        'default': False,
                                                        'description': 'Include all context tiers '
@@ -315,8 +333,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'document_path': {'type': 'string'}},
                   'required': []}},
  {'name': 'rlm_shared_context',
-  'description': 'Get merged context from linked shared collections. Returns categorized docs with '
-                 'budget allocation.',
+  'description': 'Load project-linked shared standards, business playbooks, and reusable guidance. '
+                 'Use for linked source documents, not durable memory.',
   'inputSchema': {'type': 'object',
                   'properties': {'max_tokens': {'type': 'integer',
                                                 'default': 4000,
@@ -460,8 +478,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'required': ['collection_id', 'title', 'content']}},
  {'name': 'rlm_list_business_collections',
   'description': 'List Team Business Context collections for the current team, including Business '
-                 'Library, Offer Templates, Company Presentations, and Reference Diagrams. Use '
-                 'this before uploading reusable business knowledge.',
+                 'Response Playbook, Business Library, Offer Templates, Company Presentations, and '
+                 'Reference Diagrams. Use this before uploading reusable business knowledge.',
   'inputSchema': {'type': 'object',
                   'properties': {'include_custom': {'type': 'boolean',
                                                     'default': False,
@@ -483,7 +501,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  'slugs for the standard workspace business library.',
   'inputSchema': {'type': 'object',
                   'properties': {'preset': {'type': 'string',
-                                            'enum': ['business_library',
+                                            'enum': ['business_response_playbook',
+                                                     'business_library',
                                                      'offer_templates',
                                                      'company_presentations',
                                                      'reference_diagrams'],
@@ -507,7 +526,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                   'omitted, provide preset or '
                                                                   'collection_slug.'},
                                  'preset': {'type': 'string',
-                                            'enum': ['business_library',
+                                            'enum': ['business_response_playbook',
+                                                     'business_library',
                                                      'offer_templates',
                                                      'company_presentations',
                                                      'reference_diagrams'],
@@ -575,15 +595,26 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                  'description': 'Optional description. Snipara '
                                                                 'prefixes it as Client business '
                                                                 'context when needed.'},
+                                 'project_mode': {'type': 'string',
+                                                  'enum': ['active_client', 'reference_archive'],
+                                                  'description': 'Optional client project mode. '
+                                                                 'active_client keeps business '
+                                                                 'health enabled; '
+                                                                 'reference_archive is for '
+                                                                 'past-client precedent.'},
                                  'external_client_id': {'type': 'string',
                                                         'description': 'Optional external client '
                                                                        'identifier echoed back for '
                                                                        'integrator workflows.'}},
                   'required': ['name']}},
  {'name': 'rlm_remember',
-  'description': 'Store a memory for later semantic recall. Direct writes support fact, decision, '
-                 'learning, preference, todo, and context. Use rlm_end_of_task_commit for workflow '
-                 'capture.',
+  'description': 'Store a durable Memory V2 record for later semantic recall. Direct writes '
+                 'support fact, decision, learning, preference, todo, and context. Use the '
+                 'narrowest owner scope: agent for one agent role, project for one '
+                 'client/project/RFP, team for reviewed shared standards, and user for one '
+                 "person's preferences. Do not store source truth here; use rlm_context_query, "
+                 'rlm_load_document, or rlm_shared_context for specs, RFPs, diagrams, and raw '
+                 'docs. Use rlm_end_of_task_commit for workflow capture.',
   'inputSchema': {'type': 'object',
                   'properties': {'text': {'type': 'string',
                                           'description': 'The memory text to store'},
@@ -600,7 +631,13 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                           'default': 'fact'},
                                  'scope': {'type': 'string',
                                            'enum': ['agent', 'project', 'team', 'user'],
-                                           'default': 'project'},
+                                           'default': 'project',
+                                           'description': 'Memory owner boundary. scope=agent '
+                                                          'requires agent_id; scope=user is '
+                                                          'personal to the authenticated user or '
+                                                          'integrator external_user_id; scope=team '
+                                                          'requires the current project to belong '
+                                                          'to a team.'},
                                  'agent_id': {'type': 'string',
                                               'description': 'Required when scope=agent; '
                                                              'identifies the agent-owned memory '
@@ -627,10 +664,10 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                            'write'}},
                   'required': []}},
  {'name': 'rlm_remember_if_novel',
-  'description': 'Store a memory only if it is sufficiently novel compared with existing memories. '
-                 'Direct writes support fact, decision, learning, preference, todo, and context. '
-                 'Use rlm_end_of_task_commit for workflow capture. Returns duplicate matches when '
-                 'skipped.',
+  'description': 'Store a durable Memory V2 record only if it is sufficiently novel compared with '
+                 'existing memories. Direct writes support fact, decision, learning, preference, '
+                 'todo, and context. Use context tools for source truth and rlm_end_of_task_commit '
+                 'for workflow capture. Returns duplicate matches when skipped.',
   'inputSchema': {'type': 'object',
                   'properties': {'text': {'type': 'string',
                                           'description': 'The memory text to store'},
@@ -644,7 +681,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                           'default': 'fact'},
                                  'scope': {'type': 'string',
                                            'enum': ['agent', 'project', 'team', 'user'],
-                                           'default': 'project'},
+                                           'default': 'project',
+                                           'description': 'Memory owner boundary. scope=agent '
+                                                          'requires agent_id; scope=user is '
+                                                          'personal to the authenticated user or '
+                                                          'integrator external_user_id.'},
                                  'agent_id': {'type': 'string',
                                               'description': 'Required when scope=agent; '
                                                              'identifies the agent-owned memory '
@@ -678,9 +719,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                     'handling'}},
                   'required': ['text']}},
  {'name': 'rlm_end_of_task_commit',
-  'description': 'Persist durable outcomes from a task summary. This is the workflow entry point '
-                 'via persist_types. Filters out operational noise and stores only novel durable '
-                 'knowledge.',
+  'description': 'Persist durable outcomes from a task summary into memory. Extracts decisions, '
+                 'learnings, preferences, todos, and durable workflow context while filtering '
+                 'operational receipts; not for source documents or specs.',
   'inputSchema': {'type': 'object',
                   'properties': {'summary': {'type': 'string', 'description': 'Task summary'},
                                  'outcome': {'type': 'string',
@@ -696,6 +737,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                              'enum': ['decision',
                                                                       'learning',
                                                                       'preference',
+                                                                      'todo',
+                                                                      'context',
                                                                       'workflow']}},
                                  'category': {'type': 'string'},
                                  'external_user_id': {'type': 'string',
@@ -706,8 +749,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'dry_run': {'type': 'boolean', 'default': False}},
                   'required': ['summary']}},
  {'name': 'rlm_remember_bulk',
-  'description': 'Store multiple memories in a single call. Batch embedding for efficiency. Max 50 '
-                 'memories per call.',
+  'description': 'Store multiple durable Memory V2 records in a single call. Batch embedding for '
+                 'efficiency. Max 50 memories per call. Do not bulk-store source documents; upload '
+                 'or query source truth through context tools instead.',
   'inputSchema': {'type': 'object',
                   'properties': {'memories': {'type': 'array',
                                               'items': {'type': 'object',
@@ -752,10 +796,15 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                      'the call.'}},
                   'required': ['memories']}},
  {'name': 'rlm_recall',
-  'description': 'Semantically recall relevant memories based on a query. Uses embeddings weighted '
-                 'by confidence decay.',
+  'description': 'Semantically recall durable Memory V2 records such as decisions, learnings, '
+                 'preferences, and session carryover. Not for source document retrieval; use '
+                 'rlm_context_query, rlm_load_document, or rlm_shared_context for specs, RFPs, '
+                 'diagrams, and raw docs.',
   'inputSchema': {'type': 'object',
-                  'properties': {'query': {'type': 'string', 'description': 'Search query'},
+                  'properties': {'query': {'type': 'string',
+                                           'description': 'Memory question such as a past '
+                                                          'decision, preference, or validated '
+                                                          'learning'},
                                  'type': {'type': 'string',
                                           'enum': ['fact',
                                                    'decision',
@@ -926,6 +975,81 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                           'all evidence is '
                                                                           'invalid'}},
                   'required': ['memory_id']}},
+ {'name': 'rlm_memory_review_queue',
+  'description': 'Private review surface for candidate, stale, or rejected memories that need '
+                 'human inspection before they become agent memory.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'status': {'type': 'string',
+                                            'enum': ['candidate',
+                                                     'pending',
+                                                     'stale',
+                                                     'rejected',
+                                                     'invalidated',
+                                                     'superseded',
+                                                     'archived',
+                                                     'active',
+                                                     'approved',
+                                                     'all'],
+                                            'default': 'candidate',
+                                            'description': 'Queue lifecycle status to inspect.'},
+                                 'type': {'type': 'string',
+                                          'enum': ['fact',
+                                                   'decision',
+                                                   'learning',
+                                                   'preference',
+                                                   'todo',
+                                                   'context'],
+                                          'description': 'Optional memory type filter.'},
+                                 'scope': {'type': 'string',
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Optional owner scope filter.'},
+                                 'category': {'type': 'string',
+                                              'description': 'Optional category filter.'},
+                                 'search': {'type': 'string',
+                                            'description': 'Optional content search filter.'},
+                                 'limit': {'type': 'integer',
+                                           'default': 50,
+                                           'minimum': 1,
+                                           'maximum': 100,
+                                           'description': 'Maximum queue items to return.'},
+                                 'offset': {'type': 'integer',
+                                            'default': 0,
+                                            'minimum': 0,
+                                            'description': 'Pagination offset.'},
+                                 'include_evidence': {'type': 'boolean',
+                                                      'default': True,
+                                                      'description': 'Include Memory V2 evidence '
+                                                                     'links and legacy document '
+                                                                     'refs.'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Required when scope=agent; limits '
+                                                             'queue reads to one agent namespace.'},
+                                 'external_user_id': {'type': 'string',
+                                                      'description': 'Integrator client keys only: '
+                                                                     'stable end-user ID for '
+                                                                     'scope=user queue reads.'}},
+                  'required': []}},
+ {'name': 'rlm_memory_resolve_queue_item',
+  'description': 'Private review surface to accept, reject, archive, invalidate, merge, or '
+                 'supersede one queued memory item.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'memory_id': {'type': 'string',
+                                               'description': 'Legacy or V2 memory ID to resolve.'},
+                                 'action': {'type': 'string',
+                                            'enum': ['accept',
+                                                     'approve',
+                                                     'reject',
+                                                     'archive',
+                                                     'invalidate',
+                                                     'merge',
+                                                     'supersede'],
+                                            'description': 'Review resolution action.'},
+                                 'target_memory_id': {'type': 'string',
+                                                      'description': 'Required for merge and '
+                                                                     'supersede actions.'},
+                                 'notes': {'type': 'string',
+                                           'description': 'Optional reviewer notes or rationale.'}},
+                  'required': ['memory_id', 'action']}},
  {'name': 'rlm_journal_append',
   'description': "Append an entry to today's journal. Journals are daily logs of operational "
                  'notes, decisions, and context. Auto-loads today + yesterday on session start.',
@@ -956,8 +1080,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                           'description': 'Date to summarize (YYYY-MM-DD)'}},
                   'required': ['date']}},
  {'name': 'rlm_session_memories',
-  'description': 'Get tiered memories for session auto-load. Returns CRITICAL (decisions, facts) '
-                 'and DAILY (context, todos) memories organized by tier with token budgets.',
+  'description': 'Get tiered durable memories for session bootstrap, with optional short-lived '
+                 'carryover. Use at session start to restore memory state, not to retrieve source '
+                 'documents.',
   'inputSchema': {'type': 'object',
                   'properties': {'max_critical_tokens': {'type': 'integer',
                                                          'default': 8000,
@@ -1002,6 +1127,78 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'dry_run': {'type': 'boolean',
                                              'default': False,
                                              'description': 'Preview changes without applying'}},
+                  'required': []}},
+ {'name': 'rlm_session_bootstrap_status',
+  'description': 'Read-only status for the current engine session memory bootstrap. Reports '
+                 'whether bootstrap ran, when it ran, and how many memories/profiles were '
+                 'injected.',
+  'inputSchema': {'type': 'object', 'properties': {}, 'required': []}},
+ {'name': 'rlm_memory_health',
+  'description': 'Read-only memory hygiene diagnostics. Returns active memory counts, top '
+                 'categories, auto-compaction threshold status, and samples of known noise/anomaly '
+                 'patterns without mutating memory.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'scope': {'type': 'string',
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Optional memory scope to inspect. '
+                                                          'Defaults to all visible project-owned '
+                                                          'scopes.'},
+                                 'include_inactive': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Include INVALIDATED and '
+                                                                     'SUPERSEDED memories in the '
+                                                                     'scan.'},
+                                 'sample_limit': {'type': 'integer',
+                                                  'default': 5,
+                                                  'minimum': 0,
+                                                  'maximum': 20,
+                                                  'description': 'Maximum anomaly samples to '
+                                                                 'return.'}},
+                  'required': []}},
+ {'name': 'rlm_memory_duplicate_candidates',
+  'description': 'Read-only duplicate/supersession review candidates. Groups exact and near '
+                 'duplicate memories and suggests which IDs to keep or supersede without mutating '
+                 'memory.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'scope': {'type': 'string',
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Optional memory scope to inspect.'},
+                                 'include_inactive': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Include INVALIDATED and '
+                                                                     'SUPERSEDED memories in '
+                                                                     'duplicate grouping.'},
+                                 'limit': {'type': 'integer',
+                                           'default': 20,
+                                           'minimum': 1,
+                                           'maximum': 100,
+                                           'description': 'Maximum duplicate groups to return.'},
+                                 'min_similarity': {'type': 'number',
+                                                    'default': 0.9,
+                                                    'minimum': 0,
+                                                    'maximum': 1,
+                                                    'description': 'Lexical similarity threshold '
+                                                                   'for near-duplicate groups.'}},
+                  'required': []}},
+ {'name': 'rlm_memory_clean_candidates',
+  'description': 'Read-only grouped memory cleanup candidates. Returns noise, duplicates, possibly '
+                 'stale memories, category anomalies, and review-queue items without mutating '
+                 'memory.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'scope': {'type': 'string',
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Optional memory scope to inspect.'},
+                                 'include_inactive': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Include INVALIDATED and '
+                                                                     'SUPERSEDED memories in the '
+                                                                     'scan.'},
+                                 'limit_per_bucket': {'type': 'integer',
+                                                      'default': 10,
+                                                      'minimum': 1,
+                                                      'maximum': 50,
+                                                      'description': 'Maximum candidates to return '
+                                                                     'per bucket.'}},
                   'required': []}},
  {'name': 'rlm_memory_daily_brief',
   'description': "Generate a 'Top N active constraints' daily brief. Summarizes critical "
@@ -1216,7 +1413,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'description': 'Maximum events to return'}},
                   'required': ['swarm_id']}},
  {'name': 'rlm_task_create',
-  'description': "Create a task in the swarm's distributed task queue.",
+  'description': 'Compatibility alias that creates a canonical HierarchicalTask N3 work item. '
+                 'Prefer rlm_htask_create for explicit hierarchical workflows; use this for simple '
+                 'queue-style task creation.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string'},
                                  'agent_id': {'type': 'string'},
@@ -1240,7 +1439,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                  'string, not the DB id.'}},
                   'required': ['swarm_id', 'agent_id', 'title']}},
  {'name': 'rlm_task_bulk_create',
-  'description': 'Create multiple tasks in a single call. Max 50 tasks per call.',
+  'description': 'Compatibility alias that creates multiple canonical HierarchicalTask N3 work '
+                 'items in one call. Max 50 tasks per call.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string'},
                                  'agent_id': {'type': 'string'},
@@ -1282,8 +1482,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                      'required': ['title']}}},
                   'required': ['swarm_id', 'agent_id', 'tasks']}},
  {'name': 'rlm_task_claim',
-  'description': 'Claim a task from the queue. If task_id not specified, claims highest priority '
-                 'available task.',
+  'description': 'Compatibility alias that claims a canonical HierarchicalTask N3 task. If task_id '
+                 'is omitted, claims the highest-priority available task.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string'},
                                  'agent_id': {'type': 'string'},
@@ -1292,7 +1492,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'timeout_seconds': {'type': 'integer', 'default': 600}},
                   'required': ['swarm_id', 'agent_id']}},
  {'name': 'rlm_task_complete',
-  'description': 'Mark a claimed task as completed or failed.',
+  'description': 'Compatibility alias that completes or fails a canonical HierarchicalTask N3 task '
+                 'with legacy queue-style inputs.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string'},
                                  'agent_id': {'type': 'string'},
@@ -1301,13 +1502,19 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'result': {'description': 'Task result data'}},
                   'required': ['swarm_id', 'agent_id', 'task_id']}},
  {'name': 'rlm_tasks',
-  'description': "List tasks in a swarm's task queue. Filter by status or assigned agent.",
+  'description': 'Compatibility alias that lists canonical HierarchicalTask N3 tasks with legacy '
+                 'queue-style filters.',
   'alias_of': 'rlm_task_list',
   'exposed': False,
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'},
                                  'status': {'type': 'string',
-                                            'enum': ['pending', 'claimed', 'completed', 'failed'],
+                                            'enum': ['pending',
+                                                     'claimed',
+                                                     'completed',
+                                                     'failed',
+                                                     'cancelled',
+                                                     'blocked'],
                                             'description': 'Filter by task status'},
                                  'assigned_to': {'type': 'string',
                                                  'description': 'Filter by assigned agent ID (for '
@@ -1319,14 +1526,16 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'description': 'Maximum tasks to return'}},
                   'required': ['swarm_id']}},
  {'name': 'rlm_task_list',
-  'description': 'List tasks with cursor-based pagination for efficient iteration.\n'
+  'description': 'List canonical HierarchicalTask N3 tasks with cursor-based pagination for '
+                 'efficient iteration.\n'
                  '\n'
                  'Enhanced version of rlm_tasks with:\n'
                  '- Cursor-based pagination for large task queues\n'
                  '- Returns owner (agent who claimed/completed)\n'
                  '- Updated_at timestamp for ordering\n'
                  '\n'
-                 'Use for building dashboards and progress reports.',
+                 'Use rlm_htask_tree for full hierarchy. Use this for queue-style dashboards and '
+                 'progress reports.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'},
                                  'status': {'type': 'string',
@@ -1334,7 +1543,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                      'claimed',
                                                      'completed',
                                                      'failed',
-                                                     'cancelled'],
+                                                     'cancelled',
+                                                     'blocked'],
                                             'description': 'Filter by task status'},
                                  'limit': {'type': 'integer',
                                            'default': 50,
@@ -1346,7 +1556,7 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                            'response)'}},
                   'required': ['swarm_id']}},
  {'name': 'rlm_task_stats',
-  'description': 'Get aggregated task statistics for a swarm.\n'
+  'description': 'Get aggregated statistics for canonical HierarchicalTask N3 tasks in a swarm.\n'
                  '\n'
                  'Returns counts by status:\n'
                  '- done: Completed tasks\n'
@@ -1357,15 +1567,17 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  '- cancelled: Cancelled tasks\n'
                  '- total: Total task count\n'
                  '\n'
-                 'This is the source of truth for swarm progress tracking.',
+                 'This is the queue-style progress view. For full workflow status, use '
+                 'rlm_htask_metrics or rlm_htask_tree.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'}},
                   'required': ['swarm_id']}},
  {'name': 'rlm_task_events',
-  'description': 'Get task status change events for a swarm.\n'
+  'description': 'Get canonical htask status change events for a swarm through the legacy task '
+                 'surface.\n'
                  '\n'
-                 'Filters to task-related events:\n'
-                 '- task_created, task_claimed, task_completed, task_failed, task_cancelled\n'
+                 'Filters to task-related htask events such as create, claim, complete, fail, '
+                 'update, unclaim, reassign, and delete.\n'
                  '\n'
                  "Use with 'since' parameter to get incremental updates for\n"
                  'calculating "tasks closed since last check".',
@@ -1465,14 +1677,15 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                   'seconds'}},
                   'required': ['swarm_id']}},
  {'name': 'rlm_task_reassign',
-  'description': 'Reassign a task to a different agent.\n'
+  'description': 'Reassign a canonical HierarchicalTask N3 task to a different agent through the '
+                 'legacy task surface.\n'
                  '\n'
                  'Use this to:\n'
                  '- Move work from a busy/stuck agent to an available one\n'
                  '- Rebalance workload across agents\n'
                  '- Recover tasks from crashed agents\n'
                  '\n'
-                 'PENDING and CLAIMED tasks can always be reassigned.\n'
+                 'PENDING and queue-claimed tasks can always be reassigned.\n'
                  'IN_PROGRESS tasks require force=true (admin override).\n'
                  'COMPLETED/FAILED tasks cannot be reassigned.',
   'inputSchema': {'type': 'object',
@@ -1488,31 +1701,34 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                           'IN_PROGRESS (admin only)'}},
                   'required': ['swarm_id', 'task_id']}},
  {'name': 'rlm_task_delete',
-  'description': 'Delete a task from a swarm (admin only).\n'
+  'description': 'Archive a canonical HierarchicalTask N3 task from a swarm through the legacy '
+                 'task surface (admin only).\n'
                  '\n'
                  'Use this to:\n'
                  '- Remove cancelled or obsolete tasks\n'
                  '- Clean up test tasks\n'
                  '- Remove erroneously created tasks\n'
                  '\n'
-                 'Only PENDING, FAILED, or CANCELLED tasks can be deleted.\n'
-                 'COMPLETED and IN_PROGRESS tasks cannot be deleted (use force=true to override).',
+                 'Only PENDING, FAILED, or CANCELLED tasks can be archived by default.\n'
+                 'COMPLETED and IN_PROGRESS tasks require force=true.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'},
                                  'task_id': {'type': 'string', 'description': 'Task ID to delete'},
                                  'force': {'type': 'boolean',
                                            'default': False,
-                                           'description': 'Force delete even if task is COMPLETED '
+                                           'description': 'Force archive even if task is COMPLETED '
                                                           'or IN_PROGRESS (admin only)'}},
                   'required': ['swarm_id', 'task_id']}},
  {'name': 'rlm_task_update',
-  'description': 'Update task properties (admin only).\n'
+  'description': 'Update canonical HierarchicalTask N3 properties through the legacy task surface '
+                 '(admin only).\n'
                  '\n'
                  'Modifiable fields:\n'
                  '- title: Task title\n'
                  '- description: Task description\n'
                  '- priority: Task priority (higher = more urgent)\n'
-                 '- status: Task status (PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED)\n'
+                 '- status: Task status (PENDING, CLAIMED, IN_PROGRESS, COMPLETED, FAILED, '
+                 'CANCELLED, BLOCKED)\n'
                  '\n'
                  'Note: Changing status to COMPLETED/FAILED sets completedAt automatically.',
   'inputSchema': {'type': 'object',
@@ -1525,14 +1741,16 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                               'description': 'New priority (higher = more urgent)'},
                                  'status': {'type': 'string',
                                             'enum': ['PENDING',
+                                                     'CLAIMED',
                                                      'IN_PROGRESS',
                                                      'COMPLETED',
                                                      'FAILED',
-                                                     'CANCELLED'],
+                                                     'CANCELLED',
+                                                     'BLOCKED'],
                                             'description': 'New task status'}},
                   'required': ['swarm_id', 'task_id']}},
  {'name': 'rlm_task_unclaim',
-  'description': 'Unclaim a task, returning it to PENDING status.\n'
+  'description': 'Unclaim a canonical HierarchicalTask N3 task, returning it to PENDING status.\n'
                  '\n'
                  'Use this to recover tasks that are stuck (claimed but not progressing).\n'
                  'The task will be available for any agent to claim again.',
@@ -1543,7 +1761,7 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                             'description': 'Reason for unclaiming (optional)'}},
                   'required': ['swarm_id', 'task_id']}},
  {'name': 'rlm_task_recover',
-  'description': 'Find and recover stuck tasks in a swarm.\n'
+  'description': 'Find and recover stuck canonical HierarchicalTask N3 tasks in a swarm.\n'
                  '\n'
                  "A task is considered stuck if it's CLAIMED or IN_PROGRESS but hasn't been\n"
                  'updated within the threshold. Use dry_run=true to preview before recovering.',
@@ -1728,12 +1946,13 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                            'access'}},
                   'required': []}},
  {'name': 'rlm_load_document',
-  'description': 'Load raw document content by file path. Returns the full unprocessed content of '
-                 'a single document for RLM-style exploration where the model navigates raw '
-                 'content directly.',
+  'description': 'Load one exact source document by path. Use when you already know the document '
+                 'path and need direct source truth instead of ranked retrieval or memory recall.',
   'inputSchema': {'type': 'object',
                   'properties': {'path': {'type': 'string',
-                                          'description': "Document path (e.g., 'docs/api.md')"}},
+                                          'description': 'Exact document path (for example '
+                                                         "'docs/api.md' or "
+                                                         "'clients/acme/rfp.md')"}},
                   'required': ['path']}},
  {'name': 'rlm_load_project',
   'description': 'Load structured map of all project documents with content. Returns a '
@@ -2373,11 +2592,17 @@ MCP_TOOL_NAMES = ['rlm_context_query',
  'rlm_memory_attach_source',
  'rlm_memory_supersede',
  'rlm_memory_verify',
+ 'rlm_memory_review_queue',
+ 'rlm_memory_resolve_queue_item',
  'rlm_journal_append',
  'rlm_journal_get',
  'rlm_journal_summarize',
  'rlm_session_memories',
  'rlm_memory_compact',
+ 'rlm_session_bootstrap_status',
+ 'rlm_memory_health',
+ 'rlm_memory_duplicate_candidates',
+ 'rlm_memory_clean_candidates',
  'rlm_memory_daily_brief',
  'rlm_tenant_profile_create',
  'rlm_tenant_profile_get',
