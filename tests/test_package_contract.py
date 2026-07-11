@@ -47,8 +47,11 @@ def test_cli_tools_list_renders_tool_names(monkeypatch) -> None:
         return {
             "result": {
                 "tools": [
-                    {"name": "rlm_help", "description": "Recommend the right tool for a task."},
-                    {"name": "rlm_session_memories", "description": "Load tiered session memories."},
+                    {"name": "snipara_help", "description": "Recommend the right tool for a task."},
+                    {
+                        "name": "snipara_session_memories",
+                        "description": "Load tiered session memories.",
+                    },
                 ]
             }
         }
@@ -60,8 +63,8 @@ def test_cli_tools_list_renders_tool_names(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert "Available MCP tools: 2" in result.stdout
-    assert "rlm_help" in result.stdout
-    assert "rlm_session_memories" in result.stdout
+    assert "snipara_help" in result.stdout
+    assert "snipara_session_memories" in result.stdout
 
 
 def test_cli_tools_call_decodes_json_text_payload(monkeypatch) -> None:
@@ -111,6 +114,22 @@ async def test_list_tools_matches_generated_contract() -> None:
     assert listed_tools == contract_tools
 
 
+def test_generated_contract_exposes_agent_context_surface() -> None:
+    """The static Codex/stdio wrapper contract must track hosted agent context tools."""
+    contract_tools = {tool["name"]: tool for tool in MCP_TOOL_DEFINITIONS}
+
+    context_schema = contract_tools["snipara_context_query"]["inputSchema"]
+    context_props = context_schema["properties"]
+    help_props = contract_tools["snipara_help"]["inputSchema"]["properties"]
+
+    assert "include_answer_pack" in context_props
+    assert context_props["include_answer_pack"]["default"] is True
+    assert "list_all" in help_props
+    assert help_props["list_all"]["default"] is False
+    assert "snipara_code_symbol_card" in contract_tools
+    assert "snipara_code_impact" in contract_tools
+
+
 async def test_upload_document_forwards_metadata(monkeypatch) -> None:
     """Single-file stdio uploads should preserve document metadata fields."""
     calls = []
@@ -150,6 +169,38 @@ async def test_upload_document_forwards_metadata(monkeypatch) -> None:
             "language": "markdown",
             "metadata": {"assetClass": "BUSINESS_DOCUMENT", "usageMode": "current_truth"},
         },
+    )
+
+
+async def test_document_tombstones_forwards_params(monkeypatch) -> None:
+    """The packaged stdio server should forward document tombstone params verbatim."""
+    calls = []
+
+    async def fake_call_api(tool, params):
+        calls.append((tool, params))
+        return {
+            "success": True,
+            "result": {
+                "tombstones": [],
+                "returned": 0,
+                "total": 0,
+                "active": 0,
+                "expired": 0,
+                "retention_days": 30,
+                "message": "No document tombstones found for this project",
+            },
+        }
+
+    monkeypatch.setattr(mcp_server, "call_api", fake_call_api)
+
+    await mcp_server.call_tool(
+        "rlm_document_tombstones",
+        {"limit": 10, "include_expired": True},
+    )
+
+    assert calls[-1] == (
+        "rlm_document_tombstones",
+        {"limit": 10, "include_expired": True},
     )
 
 

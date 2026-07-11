@@ -26,9 +26,9 @@ __all__ = ["main", "get_snipara_tools", "__version__"]
 
 
 def get_snipara_tools(*args, **kwargs):
-    """Get Snipara tools for rlm-runtime integration.
+    """Get Snipara tools for Snipara Sandbox runtime integration.
 
-    This is a lazy import to avoid requiring rlm-runtime
+    This is a lazy import to avoid requiring the runtime package
     when using snipara-mcp as a standalone MCP server.
 
     See rlm_tools.get_snipara_tools for full documentation.

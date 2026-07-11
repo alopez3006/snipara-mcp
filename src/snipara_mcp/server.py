@@ -10,11 +10,11 @@ Usage:
 
 Authentication (in priority order):
     1. OAuth token from ~/.snipara/tokens.json (run: snipara login)
-    2. SNIPARA_API_KEY environment variable (legacy)
+    2. SNIPARA_API_KEY environment variable
 
 Environment variables:
     SNIPARA_PROJECT_ID: Your project ID (required if not using OAuth)
-    SNIPARA_API_KEY: Your Snipara API key (legacy, optional if using OAuth)
+    SNIPARA_API_KEY: Your Snipara API key (optional if using OAuth)
     SNIPARA_API_URL: API URL (default: https://api.snipara.com)
     SNIPARA_IGNORE_OAUTH: Set to "true" to skip OAuth and use API key instead
 """
@@ -638,6 +638,13 @@ async def list_resource_templates() -> list[ResourceTemplate]:
     return []
 
 
+def _canonical_tool_name(name: str) -> str:
+    """Map advertised snipara_* tool IDs to backend handler names."""
+    if name.startswith("snipara_"):
+        return f"rlm_{name.removeprefix('snipara_')}"
+    return name
+
+
 @server.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Handle tool calls."""
@@ -645,6 +652,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
     try:
         await ensure_session_bootstrap()
+        name = _canonical_tool_name(name)
 
         if name == "rlm_context_query":
             settings = await get_project_settings()
@@ -874,6 +882,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     "query": arguments.get("query"),
                     "tool": arguments.get("tool"),
                     "tier": arguments.get("tier"),
+                    "list_all": arguments.get("list_all", False),
                     "limit": arguments.get("limit", 5),
                 },
             )
@@ -891,10 +900,24 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                         lines.append(data["tip"])
                     return [TextContent(type="text", text="\n".join(lines))]
 
+                if data.get("tools") and data.get("mode") == "catalog":
+                    lines = [f"**Tool catalog** ({data.get('count', len(data.get('tools', [])))})\n"]
+                    for item in data.get("tools", []):
+                        lines.append(
+                            f"- `{item.get('tool', '')}` ({item.get('tier', '')}): {item.get('description', '')}"
+                        )
+                    if data.get("tip"):
+                        lines.append("")
+                        lines.append(data["tip"])
+                    return [TextContent(type="text", text="\n".join(lines))]
+
                 if data.get("tools") and data.get("tier"):
                     lines = [f"**{data.get('tier', '').title()} tools**\n"]
                     for item in data.get("tools", []):
                         lines.append(f"- `{item.get('tool', '')}`: {item.get('description', '')}")
+                    if data.get("tip"):
+                        lines.append("")
+                        lines.append(data["tip"])
                     return [TextContent(type="text", text="\n".join(lines))]
 
                 if data.get("tool"):
@@ -1009,6 +1032,29 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     TextContent(
                         type="text",
                         text=f"**Sync complete:** {data.get('created', 0)} created, {data.get('updated', 0)} updated, {data.get('unchanged', 0)} unchanged, {data.get('deleted', 0)} deleted",
+                    )
+                ]
+            return [
+                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
+            ]
+
+        elif name == "rlm_document_tombstones":
+            payload = {
+                "limit": arguments.get("limit", 50),
+                "include_expired": arguments.get("include_expired", False),
+            }
+            result = await call_api("rlm_document_tombstones", payload)
+            if result.get("success"):
+                data = result.get("result", {})
+                return [
+                    TextContent(
+                        type="text",
+                        text=(
+                            "**Document tombstones:** "
+                            f"{data.get('returned', 0)} returned, "
+                            f"{data.get('active', 0)} active, "
+                            f"{data.get('expired', 0)} expired"
+                        ),
                     )
                 ]
             return [

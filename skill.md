@@ -78,7 +78,7 @@ pip install snipara-mcp   # Python
 npm install snipara-mcp   # Node.js
 
 # 2. Get your API key
-# Sign up at https://snipara.com (Free: 100 queries/month)
+# Sign up at https://snipara.com (Free: 1,000 queries/month)
 
 # 3. Set environment variable
 export SNIPARA_API_KEY="your-key-here"

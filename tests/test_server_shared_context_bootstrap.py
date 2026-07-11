@@ -75,4 +75,3 @@ async def test_shared_context_bootstraps_even_when_memory_recall_is_disabled(
     assert "Shared Context:" in server_module._session_context
     assert "MANDATORY: Use typed APIs." in server_module._session_context
     assert "Workspace Profile:" not in server_module._session_context
-

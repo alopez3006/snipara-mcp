@@ -115,30 +115,30 @@ def test_server_e2e_list_tools_and_real_tool_calls(monkeypatch) -> None:
 
     async def run_calls() -> tuple[set[str], Any, Any, Any, Any]:
         tools = {tool.name for tool in await mcp_server.list_tools()}
-        context = await mcp_server.call_tool("rlm_context_query", {"query": "endpoint contract"})
+        context = await mcp_server.call_tool("snipara_context_query", {"query": "endpoint contract"})
         remember = await mcp_server.call_tool(
-            "rlm_remember_if_novel",
+            "snipara_remember_if_novel",
             {"text": "The SDK prefers the hosted MCP endpoint.", "type": "learning"},
         )
-        health = await mcp_server.call_tool("rlm_memory_health", {})
-        htask = await mcp_server.call_tool("rlm_htask_get", {"task_id": "task-e2e"})
+        health = await mcp_server.call_tool("snipara_memory_health", {})
+        htask = await mcp_server.call_tool("snipara_htask_get", {"task_id": "task-e2e"})
         return tools, context, remember, health, htask
 
     tools, context, remember, health, htask = asyncio.run(run_calls())
     assert {
-        "rlm_context_query",
-        "rlm_remember_if_novel",
-        "rlm_memory_health",
-        "rlm_htask_get",
+        "snipara_context_query",
+        "snipara_remember_if_novel",
+        "snipara_memory_health",
+        "snipara_htask_get",
     }.issubset(tools)
+    assert "rlm_context_query" not in tools
 
     assert "SDK Endpoint Contract" in context[0].text
     assert "Context for endpoint contract" in context[0].text
     assert "**Memory stored**" in remember[0].text
     assert "mem_e2e" in remember[0].text
-    assert "**rlm_memory_health**" in health[0].text
+    assert '"status": "healthy"' in health[0].text
     assert '"orphaned_memories": 0' in health[0].text
-    assert "**rlm_htask_get**" in htask[0].text
     assert '"task_id": "task-e2e"' in htask[0].text
 
     assert [request["body"]["tool"] for request in backend.requests] == [

@@ -1,6 +1,6 @@
 [project]
 name = "snipara-mcp"
-version = "2.8.3"
+version = "2.8.17"
 description = "MCP connector for Snipara project memory and context optimization"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -52,7 +52,7 @@ Repository = "https://github.com/alopez3006/snipara-mcp"
 Source = "https://github.com/alopez3006/snipara-webapp/tree/main/apps/mcp-server/snipara-mcp"
 
 [build-system]
-requires = ["hatchling<1.26"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]

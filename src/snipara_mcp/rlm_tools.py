@@ -1,12 +1,12 @@
 """
-RLM Runtime tool plugins for Snipara context optimization.
+Snipara Sandbox tool plugins for Snipara context optimization.
 
-This module provides Snipara tools in a format compatible with rlm-runtime.
-When snipara-mcp is installed alongside rlm-runtime, these tools are
-automatically registered.
+This module provides Snipara tools in the runtime tool format. The current
+compatibility package is rlm-runtime until the Snipara Sandbox package rename is
+published.
 
 Usage:
-    # Automatic (in rlm-runtime)
+    # Automatic (in the Snipara Sandbox compatibility runtime)
     rlm = RLM(snipara_api_key="...", snipara_project_slug="...")
     # Tools are auto-registered
 
@@ -21,7 +21,7 @@ import os
 from typing import Any, TYPE_CHECKING
 
 import httpx
-from .tool_contract import TOOL_DEFINITIONS
+from .tool_contract import MCP_TOOL_DEFINITIONS
 
 if TYPE_CHECKING:
     from rlm.backends.base import Tool
@@ -42,7 +42,7 @@ class SniparaClient:
         """Initialize the Snipara client.
 
         Args:
-            api_key: Snipara API key (starts with 'rlm_')
+            api_key: Snipara API key (starts with 'snp-' or legacy 'rlm_')
             project_slug: Project identifier
             api_url: Optional custom API URL (e.g., https://snipara.com)
         """
@@ -140,11 +140,11 @@ def _build_contract_handler(client: SniparaClient, tool_name: str):
 
 
 def _build_contract_tools(Tool: type["Tool"], client: SniparaClient, legacy_tools: list["Tool"]) -> list["Tool"]:
-    """Expose the full hosted tool contract alongside the legacy alias surface."""
+    """Expose the advertised hosted tool contract alongside the built-in runtime tools."""
     legacy_names = {tool.name for tool in legacy_tools}
     generated_tools: list["Tool"] = []
 
-    for tool_definition in TOOL_DEFINITIONS:
+    for tool_definition in MCP_TOOL_DEFINITIONS:
         tool_name = tool_definition["name"]
         if tool_name in legacy_names:
             continue
@@ -166,10 +166,10 @@ def get_snipara_tools(
     project_slug: str | None = None,
     api_url: str | None = None,
 ) -> list[Tool]:
-    """Get Snipara tools as RLM-compatible Tool objects.
+    """Get Snipara tools as runtime-compatible Tool objects.
 
-    This function is called by rlm-runtime when snipara-mcp is installed
-    and Snipara credentials are configured.
+    This function is called by the runtime when snipara-mcp is installed and
+    Snipara credentials are configured.
 
     Args:
         api_key: Snipara API key (or SNIPARA_API_KEY env var)
@@ -177,19 +177,19 @@ def get_snipara_tools(
         api_url: Optional custom API URL
 
     Returns:
-        List of Tool objects compatible with rlm-runtime
+        List of Tool objects compatible with the runtime
 
     Raises:
-        ImportError: If rlm-runtime is not installed
+        ImportError: If the runtime package is not installed
         ValueError: If credentials are missing
     """
-    # Import Tool from rlm-runtime
+    # Import Tool from the current compatibility runtime package
     try:
         from rlm.backends.base import Tool
     except ImportError:
         raise ImportError(
-            "rlm-runtime is required to use Snipara tools. "
-            "Install with: pip install rlm-runtime"
+            "Snipara Sandbox runtime support is required to use Snipara tools. "
+            "Install the current compatibility package with: pip install rlm-runtime"
         )
 
     # Get credentials from args, .snipara.toml, or environment
@@ -984,91 +984,112 @@ def get_snipara_tools(
             "payload": payload or {},
         })
 
-    async def task_create(
+    async def htask_create(
         swarm_id: str,
-        agent_id: str,
         title: str,
-        description: str | None = None,
-        priority: int = 0,
-        depends_on: list[str] | None = None,
+        description: str,
+        owner: str,
+        level: str = "N3_TASK",
+        parent_id: str | None = None,
+        priority: str = "P1",
+        context_refs: list[str] | None = None,
     ) -> dict[str, Any]:
-        """Create a task in the swarm.
+        """Create a hierarchical task.
 
         Args:
             swarm_id: Swarm ID
-            agent_id: Agent ID creating the task
             title: Task title
             description: Task description
-            priority: Priority (higher = more urgent)
-            depends_on: Task IDs that must complete first
+            owner: Task owner
+            level: Htask level (N0_INITIATIVE, N1_FEATURE, N2_WORKSTREAM, N3_TASK)
+            parent_id: Optional parent htask ID
+            priority: Priority level (P0, P1, P2)
+            context_refs: Optional context references
 
         Returns:
             Dictionary with task_id
         """
         params: dict[str, Any] = {
             "swarm_id": swarm_id,
-            "agent_id": agent_id,
+            "level": level,
             "title": title,
+            "description": description,
+            "owner": owner,
             "priority": priority,
         }
-        if description:
-            params["description"] = description
-        if depends_on:
-            params["depends_on"] = depends_on
-        return await client.call_tool("rlm_task_create", params)
+        if parent_id:
+            params["parent_id"] = parent_id
+        if context_refs:
+            params["context_refs"] = context_refs
+        return await client.call_tool("rlm_htask_create", params)
 
-    async def task_claim(
+    async def htask_recommend_batch(
         swarm_id: str,
-        agent_id: str,
-        task_id: str | None = None,
+        feature_id: str | None = None,
+        workstream_type: str | None = None,
+        limit: int = 5,
+        owner: str | None = None,
+        exclude_blocked: bool = True,
     ) -> dict[str, Any]:
-        """Claim a task from the swarm queue.
+        """Recommend ready N3 htasks.
 
         Args:
             swarm_id: Swarm ID
-            agent_id: Agent ID claiming
-            task_id: Specific task ID (null = get next available)
+            feature_id: Optional feature filter
+            workstream_type: Optional workstream type filter
+            limit: Maximum tasks to return
+            owner: Optional owner filter
+            exclude_blocked: Exclude blocked tasks
 
         Returns:
-            Dictionary with claimed task
+            Dictionary with recommended tasks
         """
         params: dict[str, Any] = {
             "swarm_id": swarm_id,
-            "agent_id": agent_id,
+            "limit": limit,
+            "exclude_blocked": exclude_blocked,
         }
-        if task_id:
-            params["task_id"] = task_id
-        return await client.call_tool("rlm_task_claim", params)
+        if feature_id:
+            params["feature_id"] = feature_id
+        if workstream_type:
+            params["workstream_type"] = workstream_type
+        if owner:
+            params["owner"] = owner
+        return await client.call_tool("rlm_htask_recommend_batch", params)
 
-    async def task_complete(
+    async def htask_complete(
         swarm_id: str,
-        agent_id: str,
         task_id: str,
+        evidence: list[dict[str, Any]] | None = None,
         result: dict[str, Any] | None = None,
-        error: str | None = None,
+        learnings: list[str] | None = None,
+        create_memory: bool = True,
     ) -> dict[str, Any]:
-        """Complete a task.
+        """Complete an N3 htask with evidence.
 
         Args:
             swarm_id: Swarm ID
-            agent_id: Agent ID completing
             task_id: Task ID to complete
+            evidence: Evidence list
             result: Task result data
-            error: Error message if task failed
+            learnings: Optional learnings to persist
+            create_memory: Create linked outcome memory
 
         Returns:
             Dictionary with completion status
         """
         params: dict[str, Any] = {
             "swarm_id": swarm_id,
-            "agent_id": agent_id,
             "task_id": task_id,
+            "create_memory": create_memory,
         }
+        if evidence:
+            params["evidence"] = evidence
         if result:
             params["result"] = result
-        if error:
-            params["error"] = error
-        return await client.call_tool("rlm_task_complete", params)
+        if learnings:
+            params["learnings"] = learnings
+        return await client.call_tool("rlm_htask_complete", params)
 
     # ============ DOCUMENT MANAGEMENT TOOLS ============
 
@@ -1123,6 +1144,24 @@ def get_snipara_tools(
         return await client.call_tool("rlm_sync_documents", {
             "documents": documents,
             "delete_missing": delete_missing,
+        })
+
+    async def document_tombstones(
+        limit: int = 50,
+        include_expired: bool = False,
+    ) -> dict[str, Any]:
+        """List deleted or pruned document tombstones for the current project.
+
+        Args:
+            limit: Maximum number of tombstones to return
+            include_expired: Include tombstones past retention but not yet purged
+
+        Returns:
+            Dictionary with tombstone rows and retention summary
+        """
+        return await client.call_tool("rlm_document_tombstones", {
+            "limit": limit,
+            "include_expired": include_expired,
         })
 
     # ============ INDEX HEALTH & ANALYTICS TOOLS (Sprint 3) ============
@@ -2168,10 +2207,10 @@ def get_snipara_tools(
             handler=broadcast,
         ),
         Tool(
-            name="task_create",
+            name="htask_create",
             description=(
-                "Create a task in the swarm. "
-                "Tasks can be claimed and completed by agents."
+                "Create a canonical hierarchical task. "
+                "Use this instead of legacy queue-style task aliases."
             ),
             parameters={
                 "type": "object",
@@ -2180,9 +2219,11 @@ def get_snipara_tools(
                         "type": "string",
                         "description": "Swarm ID",
                     },
-                    "agent_id": {
+                    "level": {
                         "type": "string",
-                        "description": "Agent ID creating the task",
+                        "enum": ["N0_INITIATIVE", "N1_FEATURE", "N2_WORKSTREAM", "N3_TASK"],
+                        "default": "N3_TASK",
+                        "description": "Task hierarchy level",
                     },
                     "title": {
                         "type": "string",
@@ -2192,26 +2233,35 @@ def get_snipara_tools(
                         "type": "string",
                         "description": "Task description",
                     },
-                    "priority": {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Priority (higher = more urgent)",
+                    "owner": {
+                        "type": "string",
+                        "description": "Task owner",
                     },
-                    "depends_on": {
+                    "priority": {
+                        "type": "string",
+                        "enum": ["P0", "P1", "P2"],
+                        "default": "P1",
+                        "description": "Priority level",
+                    },
+                    "parent_id": {
+                        "type": "string",
+                        "description": "Parent htask ID",
+                    },
+                    "context_refs": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Task IDs that must complete first",
+                        "description": "Context references",
                     },
                 },
-                "required": ["swarm_id", "agent_id", "title"],
+                "required": ["swarm_id", "title", "description", "owner"],
             },
-            handler=task_create,
+            handler=htask_create,
         ),
         Tool(
-            name="task_claim",
+            name="htask_recommend_batch",
             description=(
-                "Claim a task from the swarm queue. "
-                "Returns the next available task or a specific task."
+                "Recommend ready N3 htasks. "
+                "Use this instead of claiming legacy queue-style tasks."
             ),
             parameters={
                 "type": "object",
@@ -2220,24 +2270,38 @@ def get_snipara_tools(
                         "type": "string",
                         "description": "Swarm ID",
                     },
-                    "agent_id": {
+                    "feature_id": {
                         "type": "string",
-                        "description": "Agent ID claiming",
+                        "description": "Filter to tasks under this feature",
                     },
-                    "task_id": {
+                    "workstream_type": {
                         "type": "string",
-                        "description": "Specific task ID (null = get next available)",
+                        "description": "Filter by workstream type",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Maximum tasks to return",
+                    },
+                    "owner": {
+                        "type": "string",
+                        "description": "Filter by owner",
+                    },
+                    "exclude_blocked": {
+                        "type": "boolean",
+                        "default": True,
+                        "description": "Exclude blocked tasks",
                     },
                 },
-                "required": ["swarm_id", "agent_id"],
+                "required": ["swarm_id"],
             },
-            handler=task_claim,
+            handler=htask_recommend_batch,
         ),
         Tool(
-            name="task_complete",
+            name="htask_complete",
             description=(
-                "Complete a task. "
-                "Mark a claimed task as done with optional result or error."
+                "Complete an N3 htask. "
+                "Includes evidence, result payloads, and optional memory creation."
             ),
             parameters={
                 "type": "object",
@@ -2245,27 +2309,34 @@ def get_snipara_tools(
                     "swarm_id": {
                         "type": "string",
                         "description": "Swarm ID",
-                    },
-                    "agent_id": {
-                        "type": "string",
-                        "description": "Agent ID completing",
                     },
                     "task_id": {
                         "type": "string",
                         "description": "Task ID to complete",
                     },
+                    "evidence": {
+                        "type": "array",
+                        "items": {"type": "object"},
+                        "description": "Evidence list",
+                    },
                     "result": {
                         "type": "object",
                         "description": "Task result data",
                     },
-                    "error": {
-                        "type": "string",
-                        "description": "Error message if task failed",
+                    "learnings": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Lessons learned",
+                    },
+                    "create_memory": {
+                        "type": "boolean",
+                        "default": True,
+                        "description": "Create linked outcome memory",
                     },
                 },
-                "required": ["swarm_id", "agent_id", "task_id"],
+                "required": ["swarm_id", "task_id"],
             },
-            handler=task_complete,
+            handler=htask_complete,
         ),
         # ============ DOCUMENT MANAGEMENT TOOLS ============
         Tool(
@@ -2337,6 +2408,29 @@ def get_snipara_tools(
                 "required": ["documents"],
             },
             handler=sync_documents,
+        ),
+        Tool(
+            name="document_tombstones",
+            description=(
+                "List deleted or pruned document tombstones. "
+                "Use this to inspect soft-deleted project context and expiration windows."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Maximum number of tombstones to return",
+                    },
+                    "include_expired": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": "Include tombstones past retention but not yet purged",
+                    },
+                },
+            },
+            handler=document_tombstones,
         ),
         # ============ INDEX HEALTH & ANALYTICS TOOLS (Sprint 3) ============
         Tool(

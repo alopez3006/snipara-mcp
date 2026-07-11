@@ -329,7 +329,7 @@ def update_env_example(dry_run: bool = False) -> bool:
     env_local_path = Path.cwd() / ".env.local.example"
     target_path = env_path if env_path.exists() else env_local_path if env_local_path.exists() else env_path
 
-    line_to_add = "SNIPARA_API_KEY=rlm_your_api_key_here\n"
+    line_to_add = "SNIPARA_API_KEY=snp-your-key\n"
 
     if dry_run:
         print(f"  Would update: {target_path}")

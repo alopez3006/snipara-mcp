@@ -15,10 +15,10 @@ def _tool_by_name(tools: list[Any], name: str) -> Any:
 async def test_list_tools_exposes_graveyard_lite_memory_surface():
     tools = await server_module.list_tools()
 
-    recall = _tool_by_name(tools, "rlm_recall")
-    memories = _tool_by_name(tools, "rlm_memories")
-    invalidate = _tool_by_name(tools, "rlm_memory_invalidate")
-    supersede = _tool_by_name(tools, "rlm_memory_supersede")
+    recall = _tool_by_name(tools, "snipara_recall")
+    memories = _tool_by_name(tools, "snipara_memories")
+    invalidate = _tool_by_name(tools, "snipara_memory_invalidate")
+    supersede = _tool_by_name(tools, "snipara_memory_supersede")
 
     recall_props = recall.inputSchema["properties"]
     assert "include_inactive" in recall_props
