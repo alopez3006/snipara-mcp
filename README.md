@@ -51,6 +51,14 @@ starting cold every session.
 | Inspect structural code relationships     | `rlm_code_callers`, `rlm_code_imports`, `rlm_code_neighbors`   |
 | Plan risky code changes                   | `rlm_code_symbol_card`, `rlm_code_impact` within plan capacity |
 
+### Retrieval outcome controls (2.8.19)
+
+The stdio connector forwards the hosted server's bounded retrieval-outcome
+controls for `context_query` and `recall`: optional task correlation, shadow or
+enabled rerank requests, and the strict context attribution window. The hosted
+server remains authoritative, so a client request can lower or disable the
+configured mode but cannot escalate it.
+
 ## Architecture
 
 ```mermaid
@@ -207,6 +215,8 @@ Common tool groups:
 
 - retrieval: `rlm_context_query`, `rlm_search`, `rlm_get_chunk`, `rlm_load_document`
 - durable memory: `rlm_recall`, `rlm_remember`, `rlm_memory_compact`
+- owner-aware bootstrap: `rlm_session_memories`, `rlm_owner_profile_get`,
+  `rlm_owner_profile_update`
 - shared context: `rlm_shared_context`, collection and template tools
 - document upload: `rlm_upload_document`, `rlm_sync_documents`
 - project setup: client, project, and business-context workspace tools

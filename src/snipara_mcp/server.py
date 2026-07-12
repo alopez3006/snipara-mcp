@@ -321,7 +321,7 @@ def _build_context_query_payload(
         "prefer_summaries",
         settings.get("includeSummaries", True),
     )
-    return {
+    payload = {
         "query": query,
         "max_tokens": max_tokens,
         "search_mode": search_mode,
@@ -331,6 +331,19 @@ def _build_context_query_payload(
         "auto_decompose": arguments.get("auto_decompose", True),
         "include_all_tiers": arguments.get("include_all_tiers", False),
     }
+    return _with_correlation_context(payload, arguments)
+
+
+def _with_correlation_context(
+    payload: dict[str, Any],
+    arguments: dict[str, Any],
+) -> dict[str, Any]:
+    """Forward correlation only when supplied so legacy payloads remain unchanged."""
+
+    correlation_context = arguments.get("correlation_context")
+    if correlation_context is not None:
+        payload["correlation_context"] = correlation_context
+    return payload
 
 
 def _build_fast_context_query_payload(
@@ -339,7 +352,9 @@ def _build_fast_context_query_payload(
     *,
     query: str,
 ) -> dict[str, Any]:
-    payload = _build_context_query_payload(arguments, settings, query=_suggest_fast_context_query(query))
+    payload = _build_context_query_payload(
+        arguments, settings, query=_suggest_fast_context_query(query)
+    )
     requested_max_tokens = int(payload.get("max_tokens") or FAST_CONTEXT_RETRY_MAX_TOKENS)
     payload.update(
         {
@@ -364,7 +379,9 @@ def _is_fast_context_query_payload(payload: dict[str, Any]) -> bool:
     )
 
 
-def _mark_context_query_fallback(data: dict[str, Any], fast_payload: dict[str, Any]) -> dict[str, Any]:
+def _mark_context_query_fallback(
+    data: dict[str, Any], fast_payload: dict[str, Any]
+) -> dict[str, Any]:
     enriched = dict(data)
     guidance = list(enriched.get("recovery_guidance") or [])
     guidance.insert(
@@ -590,7 +607,11 @@ async def ensure_session_bootstrap(force: bool = False) -> None:
                 500,
                 min(
                     2000,
-                    int(settings.get("maxTokensPerQuery", 4000) * shared_context_budget_percent / 100),
+                    int(
+                        settings.get("maxTokensPerQuery", 4000)
+                        * shared_context_budget_percent
+                        / 100
+                    ),
                 ),
             )
             shared_result = await call_api(
@@ -602,7 +623,9 @@ async def ensure_session_bootstrap(force: bool = False) -> None:
             )
             _shared_context_bootstrapped = True
             if shared_result.get("success"):
-                shared_context_text = _format_shared_context_bootstrap(shared_result.get("result", {}))
+                shared_context_text = _format_shared_context_bootstrap(
+                    shared_result.get("result", {})
+                )
         except Exception:
             shared_context_text = None
 
@@ -724,9 +747,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
             result = await call_api(
                 "rlm_ask",
-                {
-                    "query": question,
-                },
+                _with_correlation_context({"query": question}, arguments),
             )
 
             if result.get("success"):
@@ -749,10 +770,13 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         elif name == "rlm_search":
             result = await call_api(
                 "rlm_search",
-                {
-                    "pattern": arguments["pattern"],
-                    "max_results": arguments.get("max_results", 20),
-                },
+                _with_correlation_context(
+                    {
+                        "pattern": arguments["pattern"],
+                        "max_results": arguments.get("max_results", 20),
+                    },
+                    arguments,
+                ),
             )
             if result.get("success"):
                 matches = result.get("result", {}).get("matches", [])
@@ -901,7 +925,9 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     return [TextContent(type="text", text="\n".join(lines))]
 
                 if data.get("tools") and data.get("mode") == "catalog":
-                    lines = [f"**Tool catalog** ({data.get('count', len(data.get('tools', [])))})\n"]
+                    lines = [
+                        f"**Tool catalog** ({data.get('count', len(data.get('tools', [])))})\n"
+                    ]
                     for item in data.get("tools", []):
                         lines.append(
                             f"- `{item.get('tool', '')}` ({item.get('tier', '')}): {item.get('description', '')}"
@@ -1418,16 +1444,19 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         elif name == "rlm_recall":
             result = await call_api(
                 "rlm_recall",
-                {
-                    "query": arguments["query"],
-                    "type": arguments.get("type"),
-                    "scope": arguments.get("scope"),
-                    "category": arguments.get("category"),
-                    "limit": arguments.get("limit", 5),
-                    "min_relevance": arguments.get("min_relevance", 0.5),
-                    "include_inactive": arguments.get("include_inactive", False),
-                    "warning_threshold": arguments.get("warning_threshold", 0.72),
-                },
+                _with_correlation_context(
+                    {
+                        "query": arguments["query"],
+                        "type": arguments.get("type"),
+                        "scope": arguments.get("scope"),
+                        "category": arguments.get("category"),
+                        "limit": arguments.get("limit", 5),
+                        "min_relevance": arguments.get("min_relevance", 0.5),
+                        "include_inactive": arguments.get("include_inactive", False),
+                        "warning_threshold": arguments.get("warning_threshold", 0.72),
+                    },
+                    arguments,
+                ),
             )
             if result.get("success"):
                 data = result.get("result", {})

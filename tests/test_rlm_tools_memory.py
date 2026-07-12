@@ -121,3 +121,92 @@ async def test_ask_uses_query_shape_for_backend(
         "rlm_ask",
         {"query": "How does auth work?"},
     )
+
+
+@pytest.mark.asyncio
+async def test_retrieval_helpers_forward_bounded_correlation_context(
+    monkeypatch: pytest.MonkeyPatch,
+    fake_runtime_module: None,
+):
+    monkeypatch.setattr(rlm_tools, "SniparaClient", FakeSniparaClient)
+    tools = rlm_tools.get_snipara_tools(api_key="rlm_test", project_slug="snipara")
+    tool_map = {tool.name: tool for tool in tools}
+    correlation_context = {
+        "version": "retrieval-correlation-v1",
+        "session_id": "agent-session:shared",
+    }
+
+    await tool_map["context_query"].handler(
+        "How does auth work?",
+        correlation_context=correlation_context,
+    )
+    await tool_map["search"].handler(
+        "auth",
+        correlation_context=correlation_context,
+    )
+    await tool_map["ask"].handler(
+        "How does auth work?",
+        correlation_context=correlation_context,
+    )
+    await tool_map["recall"].handler(
+        "auth decisions",
+        correlation_context=correlation_context,
+    )
+
+    client = FakeSniparaClient.instances[0]
+    assert [tool_name for tool_name, _params in client.calls] == [
+        "rlm_context_query",
+        "rlm_search",
+        "rlm_ask",
+        "rlm_recall",
+    ]
+    for _tool_name, params in client.calls:
+        assert params["correlation_context"] == correlation_context
+
+    for tool_name in ("context_query", "search", "ask", "recall"):
+        schema = tool_map[tool_name].parameters["properties"]["correlation_context"]
+        assert schema["additionalProperties"] is False
+        assert schema["properties"]["session_id"]["maxLength"] == 128
+
+
+@pytest.mark.asyncio
+async def test_retrieval_helpers_forward_task_correlation_and_bounded_outcome_controls(
+    monkeypatch: pytest.MonkeyPatch,
+    fake_runtime_module: None,
+):
+    monkeypatch.setattr(rlm_tools, "SniparaClient", FakeSniparaClient)
+    tools = rlm_tools.get_snipara_tools(api_key="rlm_test", project_slug="snipara")
+    tool_map = {tool.name: tool for tool in tools}
+
+    await tool_map["context_query"].handler(
+        "How does auth work?",
+        task="audit auth",
+        context_chunk_outcome_rerank_mode="shadow",
+        context_chunk_outcome_window_hours=48,
+    )
+    await tool_map["recall"].handler(
+        "auth decisions",
+        task="audit auth",
+        outcome_rerank_mode="disabled",
+    )
+
+    client = FakeSniparaClient.instances[0]
+    context_params = client.calls[0][1]
+    recall_params = client.calls[1][1]
+    assert context_params["task"] == "audit auth"
+    assert context_params["context_chunk_outcome_rerank_mode"] == "shadow"
+    assert context_params["context_chunk_outcome_window_hours"] == 48
+    assert recall_params["task"] == "audit auth"
+    assert recall_params["outcome_rerank_mode"] == "disabled"
+
+    context_props = tool_map["context_query"].parameters["properties"]
+    recall_props = tool_map["recall"].parameters["properties"]
+    assert context_props["context_chunk_outcome_window_hours"]["maximum"] == 336
+    assert recall_props["task"]["description"] == (
+        "Optional task label recorded for retrieval/outcome correlation"
+    )
+    assert recall_props["outcome_rerank_mode"]["enum"] == [
+        "disabled",
+        "shadow",
+        "enabled",
+    ]

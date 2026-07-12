@@ -75,7 +75,112 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                       'By default, searches only '
                                                                       'HOT and WARM tiers for '
                                                                       'faster, more relevant '
-                                                                      'results.'}},
+                                                                      'results.'},
+                                 'task': {'type': 'string',
+                                          'minLength': 1,
+                                          'maxLength': 512,
+                                          'description': 'Optional task label that scopes the '
+                                                         'live-join fallback and retrieval '
+                                                         'correlation; persisted outcome posterior '
+                                                         'statistics remain project-wide'},
+                                 'context_chunk_outcome_rerank_mode': {'type': 'string',
+                                                                       'enum': ['disabled',
+                                                                                'shadow',
+                                                                                'enabled'],
+                                                                       'default': 'disabled',
+                                                                       'description': 'Requested '
+                                                                                      'bounded '
+                                                                                      'chunk-outcome '
+                                                                                      'rerank '
+                                                                                      'mode. This '
+                                                                                      'request can '
+                                                                                      'disable or '
+                                                                                      'lower the '
+                                                                                      'server-configured '
+                                                                                      'mode but '
+                                                                                      'cannot '
+                                                                                      'escalate '
+                                                                                      'beyond it.'},
+                                 'context_chunk_outcome_window_hours': {'type': 'integer',
+                                                                        'default': 72,
+                                                                        'minimum': 1,
+                                                                        'maximum': 336,
+                                                                        'description': 'Strict '
+                                                                                       'attribution '
+                                                                                       'window for '
+                                                                                       'compatible '
+                                                                                       'chunk '
+                                                                                       'outcomes.'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['query']},
   'annotations': {'title': 'Query Snipara context',
                   'readOnlyHint': True,
@@ -91,7 +196,77 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  'results.',
   'alias_of': 'rlm_context_query',
   'inputSchema': {'type': 'object',
-                  'properties': {'query': {'type': 'string', 'description': 'The question to ask'}},
+                  'properties': {'query': {'type': 'string', 'description': 'The question to ask'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['query']},
   '_meta': {'snipara_tool_weight': -6.0,
             'snipara_legacy_tool': True,
@@ -111,8 +286,77 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                  'default': 20,
                                                  'minimum': 1,
                                                  'maximum': 100,
-                                                 'description': 'Maximum regex matches to '
-                                                                'return.'}},
+                                                 'description': 'Maximum regex matches to return.'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': []},
   '_meta': {'snipara_tool_weight': 4.0,
             'snipara_legacy_tool': True,
@@ -1337,7 +1581,90 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'warning_threshold': {'type': 'number',
                                                        'default': 0.72,
                                                        'description': 'Minimum relevance score for '
-                                                                      'inactive-memory warnings'}},
+                                                                      'inactive-memory warnings'},
+                                 'task': {'type': 'string',
+                                          'minLength': 1,
+                                          'maxLength': 512,
+                                          'description': 'Optional task label recorded for '
+                                                         'retrieval/outcome correlation.'},
+                                 'outcome_rerank_mode': {'type': 'string',
+                                                         'enum': ['disabled', 'shadow', 'enabled'],
+                                                         'description': 'Optional bounded '
+                                                                        'memory-outcome rerank '
+                                                                        'mode. Omission uses the '
+                                                                        'server configuration; a '
+                                                                        'request cannot escalate '
+                                                                        'beyond it.'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['query']},
   'annotations': {'title': 'Recall reviewed memory',
                   'readOnlyHint': True,
@@ -2061,9 +2388,18 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  'learnings to CRITICAL tier, and archives old entries.',
   'inputSchema': {'type': 'object',
                   'properties': {'scope': {'type': 'string',
-                                           'enum': ['agent', 'project', 'team'],
+                                           'enum': ['agent', 'project', 'team', 'user'],
                                            'default': 'project',
                                            'description': 'Memory scope to compact'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Required agent namespace when '
+                                                             'scope=agent'},
+                                 'external_user_id': {'type': 'string',
+                                                      'maxLength': 256,
+                                                      'description': 'Integrator client keys only: '
+                                                                     'stable end-user ID whose '
+                                                                     'user-scoped memories should '
+                                                                     'be compacted.'},
                                  'deduplicate': {'type': 'boolean',
                                                  'default': True,
                                                  'description': 'Merge similar memories'},
@@ -2089,6 +2425,146 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_session_bootstrap_status'}},
+ {'name': 'rlm_owner_profile_get',
+  'description': 'Get the canonical personal owner profile for the authenticated user. The profile '
+                 'is user-scoped across projects and is used for deterministic session bootstrap. '
+                 'Integrator client keys must pass external_user_id.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'external_user_id': {'type': 'string',
+                                                      'maxLength': 256,
+                                                      'description': 'Integrator client keys only: '
+                                                                     'stable end-user ID whose '
+                                                                     'personal owner profile '
+                                                                     'should be returned.'}},
+                  'required': [],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Get personal owner profile',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
+  'exposed': False,
+  '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_owner_profile_get'}},
+ {'name': 'rlm_owner_profile_update',
+  'description': "Patch or replace the authenticated user's canonical personal owner profile. "
+                 'Stores durable preferences and operating principles in user-scoped memory; never '
+                 'include secrets. Integrator client keys must pass external_user_id.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'profile': {'type': 'object',
+                                             'description': 'Structured personal profile fields to '
+                                                            'patch or use as the replacement '
+                                                            'profile.',
+                                             'properties': {'preferred_language': {'type': 'string',
+                                                                                   'maxLength': 2048,
+                                                                                   'description': 'Preferred '
+                                                                                                  'language '
+                                                                                                  'for '
+                                                                                                  'agent '
+                                                                                                  'communication.'},
+                                                            'communication_style': {'type': 'string',
+                                                                                    'maxLength': 2048,
+                                                                                    'description': 'Preferred '
+                                                                                                   'tone, '
+                                                                                                   'density, '
+                                                                                                   'and '
+                                                                                                   'communication '
+                                                                                                   'style.'},
+                                                            'decision_style': {'type': 'string',
+                                                                               'maxLength': 2048,
+                                                                               'description': 'How '
+                                                                                              'the '
+                                                                                              'owner '
+                                                                                              'prefers '
+                                                                                              'decisions '
+                                                                                              'and '
+                                                                                              'tradeoffs '
+                                                                                              'to '
+                                                                                              'be '
+                                                                                              'handled.'},
+                                                            'autonomy_preference': {'type': 'string',
+                                                                                    'maxLength': 2048,
+                                                                                    'description': 'Expected '
+                                                                                                   'agent '
+                                                                                                   'autonomy '
+                                                                                                   'and '
+                                                                                                   'approval '
+                                                                                                   'boundaries.'},
+                                                            'risk_tolerance': {'type': 'string',
+                                                                               'maxLength': 2048,
+                                                                               'description': "Owner's "
+                                                                                              'general '
+                                                                                              'risk '
+                                                                                              'tolerance '
+                                                                                              'and '
+                                                                                              'escalation '
+                                                                                              'preference.'},
+                                                            'evidence_preferences': {'type': 'string',
+                                                                                     'maxLength': 2048,
+                                                                                     'description': 'Preferred '
+                                                                                                    'proof, '
+                                                                                                    'verification, '
+                                                                                                    'and '
+                                                                                                    'sourcing '
+                                                                                                    'style.'},
+                                                            'product_principles': {'type': 'array',
+                                                                                   'maxItems': 12,
+                                                                                   'items': {'type': 'string',
+                                                                                             'maxLength': 512},
+                                                                                   'description': 'Durable '
+                                                                                                  'product '
+                                                                                                  'principles '
+                                                                                                  'that '
+                                                                                                  'should '
+                                                                                                  'guide '
+                                                                                                  'work.'},
+                                                            'non_negotiables': {'type': 'array',
+                                                                                'maxItems': 12,
+                                                                                'items': {'type': 'string',
+                                                                                          'maxLength': 512},
+                                                                                'description': 'Boundaries '
+                                                                                               'and '
+                                                                                               'constraints '
+                                                                                               'that '
+                                                                                               'agents '
+                                                                                               'must '
+                                                                                               'preserve.'},
+                                                            'working_preferences': {'type': 'array',
+                                                                                    'maxItems': 12,
+                                                                                    'items': {'type': 'string',
+                                                                                              'maxLength': 512},
+                                                                                    'description': 'Stable '
+                                                                                                   'workflow '
+                                                                                                   'and '
+                                                                                                   'collaboration '
+                                                                                                   'preferences.'}},
+                                             'additionalProperties': False},
+                                 'replace': {'type': 'boolean',
+                                             'default': False,
+                                             'description': 'Replace the canonical profile instead '
+                                                            'of patching the supplied fields into '
+                                                            'it.'},
+                                 'evidence_refs': {'type': 'array',
+                                                   'maxItems': 24,
+                                                   'items': {'type': 'string', 'maxLength': 512},
+                                                   'description': 'Optional source references '
+                                                                  'supporting this profile '
+                                                                  'update.'},
+                                 'external_user_id': {'type': 'string',
+                                                      'maxLength': 256,
+                                                      'description': 'Integrator client keys only: '
+                                                                     'stable end-user ID whose '
+                                                                     'personal owner profile '
+                                                                     'should be updated.'}},
+                  'required': ['profile'],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Update personal owner profile',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
+  'exposed': False,
+  '_meta': {'snipara_legacy_tool': True,
+            'snipara_advertised_tool': 'snipara_owner_profile_update'}},
  {'name': 'rlm_memory_health',
   'description': 'Read-only memory hygiene diagnostics. Returns active memory counts, top '
                  'categories, auto-compaction threshold status, and samples of known noise/anomaly '
@@ -2836,7 +3312,77 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'properties': {'chunk_id': {'type': 'string',
                                               'description': 'The chunk ID from rlm_context_query '
                                                              'results (when '
-                                                             'return_references=True)'}},
+                                                             'return_references=True)'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['chunk_id']},
   'annotations': {'title': 'Load cited context chunk',
                   'readOnlyHint': True,
@@ -3668,7 +4214,112 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                       'By default, searches only '
                                                                       'HOT and WARM tiers for '
                                                                       'faster, more relevant '
-                                                                      'results.'}},
+                                                                      'results.'},
+                                 'task': {'type': 'string',
+                                          'minLength': 1,
+                                          'maxLength': 512,
+                                          'description': 'Optional task label that scopes the '
+                                                         'live-join fallback and retrieval '
+                                                         'correlation; persisted outcome posterior '
+                                                         'statistics remain project-wide'},
+                                 'context_chunk_outcome_rerank_mode': {'type': 'string',
+                                                                       'enum': ['disabled',
+                                                                                'shadow',
+                                                                                'enabled'],
+                                                                       'default': 'disabled',
+                                                                       'description': 'Requested '
+                                                                                      'bounded '
+                                                                                      'chunk-outcome '
+                                                                                      'rerank '
+                                                                                      'mode. This '
+                                                                                      'request can '
+                                                                                      'disable or '
+                                                                                      'lower the '
+                                                                                      'server-configured '
+                                                                                      'mode but '
+                                                                                      'cannot '
+                                                                                      'escalate '
+                                                                                      'beyond it.'},
+                                 'context_chunk_outcome_window_hours': {'type': 'integer',
+                                                                        'default': 72,
+                                                                        'minimum': 1,
+                                                                        'maximum': 336,
+                                                                        'description': 'Strict '
+                                                                                       'attribution '
+                                                                                       'window for '
+                                                                                       'compatible '
+                                                                                       'chunk '
+                                                                                       'outcomes.'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['query']},
   'annotations': {'title': 'Query Snipara context',
                   'readOnlyHint': True,
@@ -3680,7 +4331,77 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'description': 'Query documentation with a question (basic). Use snipara_context_query for '
                  'better results.',
   'inputSchema': {'type': 'object',
-                  'properties': {'query': {'type': 'string', 'description': 'The question to ask'}},
+                  'properties': {'query': {'type': 'string', 'description': 'The question to ask'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['query']},
   '_meta': {'snipara_tool_weight': -6.0}},
  {'name': 'snipara_search',
@@ -3697,8 +4418,77 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                  'default': 20,
                                                  'minimum': 1,
                                                  'maximum': 100,
-                                                 'description': 'Maximum regex matches to '
-                                                                'return.'}},
+                                                 'description': 'Maximum regex matches to return.'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': []},
   '_meta': {'snipara_tool_weight': 4.0}},
  {'name': 'snipara_read',
@@ -4819,7 +5609,90 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'warning_threshold': {'type': 'number',
                                                        'default': 0.72,
                                                        'description': 'Minimum relevance score for '
-                                                                      'inactive-memory warnings'}},
+                                                                      'inactive-memory warnings'},
+                                 'task': {'type': 'string',
+                                          'minLength': 1,
+                                          'maxLength': 512,
+                                          'description': 'Optional task label recorded for '
+                                                         'retrieval/outcome correlation.'},
+                                 'outcome_rerank_mode': {'type': 'string',
+                                                         'enum': ['disabled', 'shadow', 'enabled'],
+                                                         'description': 'Optional bounded '
+                                                                        'memory-outcome rerank '
+                                                                        'mode. Omission uses the '
+                                                                        'server configuration; a '
+                                                                        'request cannot escalate '
+                                                                        'beyond it.'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['query']},
   'annotations': {'title': 'Recall reviewed memory',
                   'readOnlyHint': True,
@@ -5166,9 +6039,18 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  'learnings to CRITICAL tier, and archives old entries.',
   'inputSchema': {'type': 'object',
                   'properties': {'scope': {'type': 'string',
-                                           'enum': ['agent', 'project', 'team'],
+                                           'enum': ['agent', 'project', 'team', 'user'],
                                            'default': 'project',
                                            'description': 'Memory scope to compact'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Required agent namespace when '
+                                                             'scope=agent'},
+                                 'external_user_id': {'type': 'string',
+                                                      'maxLength': 256,
+                                                      'description': 'Integrator client keys only: '
+                                                                     'stable end-user ID whose '
+                                                                     'user-scoped memories should '
+                                                                     'be compacted.'},
                                  'deduplicate': {'type': 'boolean',
                                                  'default': True,
                                                  'description': 'Merge similar memories'},
@@ -5189,6 +6071,141 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  'whether bootstrap ran, when it ran, and how many memories/profiles were '
                  'injected.',
   'inputSchema': {'type': 'object', 'properties': {}, 'required': []}},
+ {'name': 'snipara_owner_profile_get',
+  'description': 'Get the canonical personal owner profile for the authenticated user. The profile '
+                 'is user-scoped across projects and is used for deterministic session bootstrap. '
+                 'Integrator client keys must pass external_user_id.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'external_user_id': {'type': 'string',
+                                                      'maxLength': 256,
+                                                      'description': 'Integrator client keys only: '
+                                                                     'stable end-user ID whose '
+                                                                     'personal owner profile '
+                                                                     'should be returned.'}},
+                  'required': [],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Get personal owner profile',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
+ {'name': 'snipara_owner_profile_update',
+  'description': "Patch or replace the authenticated user's canonical personal owner profile. "
+                 'Stores durable preferences and operating principles in user-scoped memory; never '
+                 'include secrets. Integrator client keys must pass external_user_id.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'profile': {'type': 'object',
+                                             'description': 'Structured personal profile fields to '
+                                                            'patch or use as the replacement '
+                                                            'profile.',
+                                             'properties': {'preferred_language': {'type': 'string',
+                                                                                   'maxLength': 2048,
+                                                                                   'description': 'Preferred '
+                                                                                                  'language '
+                                                                                                  'for '
+                                                                                                  'agent '
+                                                                                                  'communication.'},
+                                                            'communication_style': {'type': 'string',
+                                                                                    'maxLength': 2048,
+                                                                                    'description': 'Preferred '
+                                                                                                   'tone, '
+                                                                                                   'density, '
+                                                                                                   'and '
+                                                                                                   'communication '
+                                                                                                   'style.'},
+                                                            'decision_style': {'type': 'string',
+                                                                               'maxLength': 2048,
+                                                                               'description': 'How '
+                                                                                              'the '
+                                                                                              'owner '
+                                                                                              'prefers '
+                                                                                              'decisions '
+                                                                                              'and '
+                                                                                              'tradeoffs '
+                                                                                              'to '
+                                                                                              'be '
+                                                                                              'handled.'},
+                                                            'autonomy_preference': {'type': 'string',
+                                                                                    'maxLength': 2048,
+                                                                                    'description': 'Expected '
+                                                                                                   'agent '
+                                                                                                   'autonomy '
+                                                                                                   'and '
+                                                                                                   'approval '
+                                                                                                   'boundaries.'},
+                                                            'risk_tolerance': {'type': 'string',
+                                                                               'maxLength': 2048,
+                                                                               'description': "Owner's "
+                                                                                              'general '
+                                                                                              'risk '
+                                                                                              'tolerance '
+                                                                                              'and '
+                                                                                              'escalation '
+                                                                                              'preference.'},
+                                                            'evidence_preferences': {'type': 'string',
+                                                                                     'maxLength': 2048,
+                                                                                     'description': 'Preferred '
+                                                                                                    'proof, '
+                                                                                                    'verification, '
+                                                                                                    'and '
+                                                                                                    'sourcing '
+                                                                                                    'style.'},
+                                                            'product_principles': {'type': 'array',
+                                                                                   'maxItems': 12,
+                                                                                   'items': {'type': 'string',
+                                                                                             'maxLength': 512},
+                                                                                   'description': 'Durable '
+                                                                                                  'product '
+                                                                                                  'principles '
+                                                                                                  'that '
+                                                                                                  'should '
+                                                                                                  'guide '
+                                                                                                  'work.'},
+                                                            'non_negotiables': {'type': 'array',
+                                                                                'maxItems': 12,
+                                                                                'items': {'type': 'string',
+                                                                                          'maxLength': 512},
+                                                                                'description': 'Boundaries '
+                                                                                               'and '
+                                                                                               'constraints '
+                                                                                               'that '
+                                                                                               'agents '
+                                                                                               'must '
+                                                                                               'preserve.'},
+                                                            'working_preferences': {'type': 'array',
+                                                                                    'maxItems': 12,
+                                                                                    'items': {'type': 'string',
+                                                                                              'maxLength': 512},
+                                                                                    'description': 'Stable '
+                                                                                                   'workflow '
+                                                                                                   'and '
+                                                                                                   'collaboration '
+                                                                                                   'preferences.'}},
+                                             'additionalProperties': False},
+                                 'replace': {'type': 'boolean',
+                                             'default': False,
+                                             'description': 'Replace the canonical profile instead '
+                                                            'of patching the supplied fields into '
+                                                            'it.'},
+                                 'evidence_refs': {'type': 'array',
+                                                   'maxItems': 24,
+                                                   'items': {'type': 'string', 'maxLength': 512},
+                                                   'description': 'Optional source references '
+                                                                  'supporting this profile '
+                                                                  'update.'},
+                                 'external_user_id': {'type': 'string',
+                                                      'maxLength': 256,
+                                                      'description': 'Integrator client keys only: '
+                                                                     'stable end-user ID whose '
+                                                                     'personal owner profile '
+                                                                     'should be updated.'}},
+                  'required': ['profile'],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Update personal owner profile',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_memory_health',
   'description': 'Read-only memory hygiene diagnostics. Returns active memory counts, top '
                  'categories, auto-compaction threshold status, and samples of known noise/anomaly '
@@ -5870,7 +6887,77 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'properties': {'chunk_id': {'type': 'string',
                                               'description': 'The chunk ID from '
                                                              'snipara_context_query results (when '
-                                                             'return_references=True)'}},
+                                                             'return_references=True)'},
+                                 'correlation_context': {'type': 'object',
+                                                         'additionalProperties': False,
+                                                         'description': 'Optional '
+                                                                        'retrieval-correlation '
+                                                                        'context. Reuse session_id '
+                                                                        'across retrieval and '
+                                                                        'outcome calls so '
+                                                                        'telemetry can be joined '
+                                                                        'inside the authenticated '
+                                                                        'project. These '
+                                                                        'identifiers never change '
+                                                                        'authorization or project '
+                                                                        'scope; do not include '
+                                                                        'secrets, tenant IDs, or '
+                                                                        'user data.',
+                                                         'properties': {'version': {'type': 'string',
+                                                                                    'enum': ['retrieval-correlation-v1'],
+                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                        'session_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Preferred '
+                                                                                                      'stable '
+                                                                                                      'opaque '
+                                                                                                      'session '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'for '
+                                                                                                      'telemetry '
+                                                                                                      'association.'},
+                                                                        'workflow_session_id': {'type': 'string',
+                                                                                                'minLength': 1,
+                                                                                                'maxLength': 128,
+                                                                                                'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                                'description': 'Opaque '
+                                                                                                               'workflow '
+                                                                                                               'ID '
+                                                                                                               'used '
+                                                                                                               'when '
+                                                                                                               'session_id '
+                                                                                                               'is '
+                                                                                                               'absent.'},
+                                                                        'correlation_id': {'type': 'string',
+                                                                                           'minLength': 1,
+                                                                                           'maxLength': 128,
+                                                                                           'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                           'description': 'Opaque '
+                                                                                                          'request-chain '
+                                                                                                          'ID '
+                                                                                                          'used '
+                                                                                                          'when '
+                                                                                                          'session '
+                                                                                                          'fields '
+                                                                                                          'are '
+                                                                                                          'absent.'},
+                                                                        'request_id': {'type': 'string',
+                                                                                       'minLength': 1,
+                                                                                       'maxLength': 128,
+                                                                                       'pattern': '^[A-Za-z0-9][A-Za-z0-9._~:/@+\\-]{0,127}$',
+                                                                                       'description': 'Opaque '
+                                                                                                      'per-call '
+                                                                                                      'ID '
+                                                                                                      'used '
+                                                                                                      'only '
+                                                                                                      'as '
+                                                                                                      'a '
+                                                                                                      'final '
+                                                                                                      'telemetry '
+                                                                                                      'fallback.'}}}},
                   'required': ['chunk_id']},
   'annotations': {'title': 'Load cited context chunk',
                   'readOnlyHint': True,
@@ -6640,6 +7727,8 @@ MCP_TOOL_NAMES = ['snipara_collaboration_status',
  'snipara_session_memories',
  'snipara_memory_compact',
  'snipara_session_bootstrap_status',
+ 'snipara_owner_profile_get',
+ 'snipara_owner_profile_update',
  'snipara_memory_health',
  'snipara_memory_duplicate_candidates',
  'snipara_memory_clean_candidates',

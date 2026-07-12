@@ -18,7 +18,7 @@ Usage:
 from __future__ import annotations
 
 import os
-from typing import Any, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
 
 import httpx
 from .tool_contract import MCP_TOOL_DEFINITIONS
@@ -28,6 +28,29 @@ if TYPE_CHECKING:
 
 # Default API URL - matches the MCP endpoint format
 DEFAULT_API_URL = "https://api.snipara.com"
+OutcomeRerankMode = Literal["disabled", "shadow", "enabled"]
+
+CORRELATION_CONTEXT_PARAMETER: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "description": "Optional bounded opaque correlation IDs; never changes project access.",
+    "properties": {
+        "version": {
+            "type": "string",
+            "enum": ["retrieval-correlation-v1"],
+            "default": "retrieval-correlation-v1",
+        },
+        **{
+            key: {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": r"^[A-Za-z0-9][A-Za-z0-9._~:/@+\-]{0,127}$",
+            }
+            for key in ("session_id", "workflow_session_id", "correlation_id", "request_id")
+        },
+    },
+}
 
 
 class SniparaClient:
@@ -139,7 +162,9 @@ def _build_contract_handler(client: SniparaClient, tool_name: str):
     return _handler
 
 
-def _build_contract_tools(Tool: type["Tool"], client: SniparaClient, legacy_tools: list["Tool"]) -> list["Tool"]:
+def _build_contract_tools(
+    Tool: type["Tool"], client: SniparaClient, legacy_tools: list["Tool"]
+) -> list["Tool"]:
     """Expose the advertised hosted tool contract alongside the built-in runtime tools."""
     legacy_names = {tool.name for tool in legacy_tools}
     generated_tools: list["Tool"] = []
@@ -198,6 +223,7 @@ def get_snipara_tools(
     if not (api_key and project_slug):
         try:
             from snipara.config import load_config
+
             _snipara_config = load_config()
         except ImportError:
             pass  # snipara SDK not installed — use env vars
@@ -213,9 +239,7 @@ def get_snipara_tools(
             api_url = _snipara_config.project.api_url
 
     if not api_key:
-        raise ValueError(
-            "Snipara API key required. Set SNIPARA_API_KEY or pass api_key parameter."
-        )
+        raise ValueError("Snipara API key required. Set SNIPARA_API_KEY or pass api_key parameter.")
     if not project_slug:
         raise ValueError(
             "Snipara project slug required. Set SNIPARA_PROJECT_SLUG or pass project_slug parameter."
@@ -230,6 +254,10 @@ def get_snipara_tools(
         max_tokens: int = 4000,
         search_mode: str = "hybrid",
         include_metadata: bool = True,
+        task: str | None = None,
+        context_chunk_outcome_rerank_mode: OutcomeRerankMode = "disabled",
+        context_chunk_outcome_window_hours: int = 72,
+        correlation_context: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """Query Snipara for optimized, relevant context.
 
@@ -238,16 +266,27 @@ def get_snipara_tools(
             max_tokens: Maximum tokens to return (default: 4000)
             search_mode: Search mode - keyword, semantic, or hybrid
             include_metadata: Include file paths and relevance scores
+            task: Optional task label that scopes the live-join fallback and retrieval
+                correlation; persisted outcome posterior statistics remain project-wide
+            context_chunk_outcome_rerank_mode: Requested disabled, shadow, or enabled mode
+            context_chunk_outcome_window_hours: Strict attribution window (1-336 hours)
 
         Returns:
             Dictionary with sections, total_tokens, and suggestions
         """
-        return await client.call_tool("rlm_context_query", {
+        params: dict[str, Any] = {
             "query": query,
             "max_tokens": max_tokens,
             "search_mode": search_mode,
             "include_metadata": include_metadata,
-        })
+            "context_chunk_outcome_rerank_mode": context_chunk_outcome_rerank_mode,
+            "context_chunk_outcome_window_hours": context_chunk_outcome_window_hours,
+        }
+        if task is not None:
+            params["task"] = task
+        if correlation_context is not None:
+            params["correlation_context"] = correlation_context
+        return await client.call_tool("rlm_context_query", params)
 
     async def sections() -> dict[str, Any]:
         """List all available documentation sections.
@@ -260,6 +299,7 @@ def get_snipara_tools(
     async def search(
         pattern: str,
         max_results: int = 20,
+        correlation_context: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """Search documentation for a regex pattern.
 
@@ -270,10 +310,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with matches list
         """
-        return await client.call_tool("rlm_search", {
+        params: dict[str, Any] = {
             "pattern": pattern,
             "max_results": max_results,
-        })
+        }
+        if correlation_context is not None:
+            params["correlation_context"] = correlation_context
+        return await client.call_tool("rlm_search", params)
 
     async def read(
         file: str,
@@ -334,10 +377,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with sub_queries and suggested_sequence
         """
-        return await client.call_tool("rlm_decompose", {
-            "query": query,
-            "max_depth": max_depth,
-        })
+        return await client.call_tool(
+            "rlm_decompose",
+            {
+                "query": query,
+                "max_depth": max_depth,
+            },
+        )
 
     async def multi_query(
         queries: list[dict[str, str]],
@@ -352,10 +398,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with results for each query
         """
-        return await client.call_tool("rlm_multi_query", {
-            "queries": queries,
-            "max_tokens": max_tokens,
-        })
+        return await client.call_tool(
+            "rlm_multi_query",
+            {
+                "queries": queries,
+                "max_tokens": max_tokens,
+            },
+        )
 
     async def multi_project_query(
         query: str,
@@ -443,7 +492,10 @@ def get_snipara_tools(
 
     # ============ SESSION MANAGEMENT TOOLS ============
 
-    async def ask(question: str) -> dict[str, Any]:
+    async def ask(
+        question: str,
+        correlation_context: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """Basic documentation query.
 
         Args:
@@ -452,7 +504,10 @@ def get_snipara_tools(
         Returns:
             Dictionary with answer
         """
-        return await client.call_tool("rlm_ask", {"query": question})
+        params: dict[str, Any] = {"query": question}
+        if correlation_context is not None:
+            params["correlation_context"] = correlation_context
+        return await client.call_tool("rlm_ask", params)
 
     async def inject(context: str, append: bool = False) -> dict[str, Any]:
         """Inject context into the session.
@@ -464,10 +519,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with success status
         """
-        return await client.call_tool("rlm_inject", {
-            "context": context,
-            "append": append,
-        })
+        return await client.call_tool(
+            "rlm_inject",
+            {
+                "context": context,
+                "append": append,
+            },
+        )
 
     async def get_context() -> dict[str, Any]:
         """Get the current session context.
@@ -508,11 +566,14 @@ def get_snipara_tools(
         Returns:
             Dictionary with plan steps
         """
-        return await client.call_tool("rlm_plan", {
-            "query": query,
-            "strategy": strategy,
-            "max_tokens": max_tokens,
-        })
+        return await client.call_tool(
+            "rlm_plan",
+            {
+                "query": query,
+                "strategy": strategy,
+                "max_tokens": max_tokens,
+            },
+        )
 
     # ============ SUMMARY STORAGE TOOLS ============
 
@@ -658,6 +719,9 @@ def get_snipara_tools(
         include_expired: bool = False,
         include_inactive: bool = False,
         warning_threshold: float = 0.72,
+        task: str | None = None,
+        outcome_rerank_mode: OutcomeRerankMode | None = None,
+        correlation_context: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """Recall memories semantically.
 
@@ -671,6 +735,8 @@ def get_snipara_tools(
             include_expired: Include expired memories
             include_inactive: Include inactive memories in primary results
             warning_threshold: Minimum relevance for inactive-memory warnings
+            task: Optional task label recorded for retrieval/outcome correlation
+            outcome_rerank_mode: Optional disabled, shadow, or enabled mode bounded by server config
 
         Returns:
             Dictionary with recalled memories and optional warnings
@@ -689,6 +755,12 @@ def get_snipara_tools(
             params["scope"] = scope
         if category:
             params["category"] = category
+        if task is not None:
+            params["task"] = task
+        if outcome_rerank_mode is not None:
+            params["outcome_rerank_mode"] = outcome_rerank_mode
+        if correlation_context is not None:
+            params["correlation_context"] = correlation_context
         return await client.call_tool("rlm_recall", params)
 
     async def memories(
@@ -909,12 +981,15 @@ def get_snipara_tools(
         Returns:
             Dictionary with release status
         """
-        return await client.call_tool("rlm_release", {
-            "swarm_id": swarm_id,
-            "agent_id": agent_id,
-            "resource_type": resource_type,
-            "resource_id": resource_id,
-        })
+        return await client.call_tool(
+            "rlm_release",
+            {
+                "swarm_id": swarm_id,
+                "agent_id": agent_id,
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+            },
+        )
 
     async def state_get(swarm_id: str, key: str) -> dict[str, Any]:
         """Get shared swarm state.
@@ -926,10 +1001,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with state value
         """
-        return await client.call_tool("rlm_state_get", {
-            "swarm_id": swarm_id,
-            "key": key,
-        })
+        return await client.call_tool(
+            "rlm_state_get",
+            {
+                "swarm_id": swarm_id,
+                "key": key,
+            },
+        )
 
     async def state_set(
         swarm_id: str,
@@ -977,12 +1055,15 @@ def get_snipara_tools(
         Returns:
             Dictionary with broadcast status
         """
-        return await client.call_tool("rlm_broadcast", {
-            "swarm_id": swarm_id,
-            "agent_id": agent_id,
-            "event_type": event_type,
-            "payload": payload or {},
-        })
+        return await client.call_tool(
+            "rlm_broadcast",
+            {
+                "swarm_id": swarm_id,
+                "agent_id": agent_id,
+                "event_type": event_type,
+                "payload": payload or {},
+            },
+        )
 
     async def htask_create(
         swarm_id: str,
@@ -1141,10 +1222,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with sync stats
         """
-        return await client.call_tool("rlm_sync_documents", {
-            "documents": documents,
-            "delete_missing": delete_missing,
-        })
+        return await client.call_tool(
+            "rlm_sync_documents",
+            {
+                "documents": documents,
+                "delete_missing": delete_missing,
+            },
+        )
 
     async def document_tombstones(
         limit: int = 50,
@@ -1159,10 +1243,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with tombstone rows and retention summary
         """
-        return await client.call_tool("rlm_document_tombstones", {
-            "limit": limit,
-            "include_expired": include_expired,
-        })
+        return await client.call_tool(
+            "rlm_document_tombstones",
+            {
+                "limit": limit,
+                "include_expired": include_expired,
+            },
+        )
 
     # ============ INDEX HEALTH & ANALYTICS TOOLS (Sprint 3) ============
 
@@ -1177,9 +1264,12 @@ def get_snipara_tools(
         Returns:
             Dictionary with health score, coverage, quality, tier distribution, stale docs
         """
-        return await client.call_tool("rlm_index_health", {
-            "stale_threshold_days": stale_threshold_days,
-        })
+        return await client.call_tool(
+            "rlm_index_health",
+            {
+                "stale_threshold_days": stale_threshold_days,
+            },
+        )
 
     async def index_recommendations() -> dict[str, Any]:
         """Get actionable recommendations to improve index health.
@@ -1223,9 +1313,12 @@ def get_snipara_tools(
         Returns:
             Dictionary with query stats, latency percentiles, tool usage, errors
         """
-        return await client.call_tool("rlm_search_analytics", {
-            "days": days,
-        })
+        return await client.call_tool(
+            "rlm_search_analytics",
+            {
+                "days": days,
+            },
+        )
 
     async def query_trends(
         days: int = 7,
@@ -1240,10 +1333,13 @@ def get_snipara_tools(
         Returns:
             Dictionary with time-bucketed query counts and metrics
         """
-        return await client.call_tool("rlm_query_trends", {
-            "days": days,
-            "granularity": granularity,
-        })
+        return await client.call_tool(
+            "rlm_query_trends",
+            {
+                "days": days,
+                "granularity": granularity,
+            },
+        )
 
     # Build and return tool list
     legacy_tools = [
@@ -1278,6 +1374,29 @@ def get_snipara_tools(
                         "default": True,
                         "description": "Include file paths and relevance scores",
                     },
+                    "task": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512,
+                        "description": (
+                            "Optional task label that scopes the live-join fallback and retrieval "
+                            "correlation; persisted outcome posterior statistics remain project-wide"
+                        ),
+                    },
+                    "context_chunk_outcome_rerank_mode": {
+                        "type": "string",
+                        "enum": ["disabled", "shadow", "enabled"],
+                        "default": "disabled",
+                        "description": "Requested mode cannot escalate beyond the server configuration",
+                    },
+                    "context_chunk_outcome_window_hours": {
+                        "type": "integer",
+                        "default": 72,
+                        "minimum": 1,
+                        "maximum": 336,
+                        "description": "Strict attribution window for compatible chunk outcomes",
+                    },
+                    "correlation_context": CORRELATION_CONTEXT_PARAMETER,
                 },
                 "required": ["query"],
             },
@@ -1313,6 +1432,7 @@ def get_snipara_tools(
                         "default": 20,
                         "description": "Maximum number of results",
                     },
+                    "correlation_context": CORRELATION_CONTEXT_PARAMETER,
                 },
                 "required": ["pattern"],
             },
@@ -1483,8 +1603,7 @@ def get_snipara_tools(
         Tool(
             name="stats",
             description=(
-                "Get documentation statistics. "
-                "Returns file count, line count, and section count."
+                "Get documentation statistics. Returns file count, line count, and section count."
             ),
             parameters={
                 "type": "object",
@@ -1549,6 +1668,7 @@ def get_snipara_tools(
                         "type": "string",
                         "description": "The question to ask about the documentation",
                     },
+                    "correlation_context": CORRELATION_CONTEXT_PARAMETER,
                 },
                 "required": ["question"],
             },
@@ -1580,8 +1700,7 @@ def get_snipara_tools(
         Tool(
             name="context",
             description=(
-                "Get the current session context. "
-                "Returns any context that was previously injected."
+                "Get the current session context. Returns any context that was previously injected."
             ),
             parameters={
                 "type": "object",
@@ -1592,8 +1711,7 @@ def get_snipara_tools(
         Tool(
             name="clear_context",
             description=(
-                "Clear the current session context. "
-                "Removes any previously injected context."
+                "Clear the current session context. Removes any previously injected context."
             ),
             parameters={
                 "type": "object",
@@ -1604,8 +1722,7 @@ def get_snipara_tools(
         Tool(
             name="settings",
             description=(
-                "Get project settings. "
-                "Returns configuration like max tokens, search mode, etc."
+                "Get project settings. Returns configuration like max tokens, search mode, etc."
             ),
             parameters={
                 "type": "object",
@@ -1689,10 +1806,7 @@ def get_snipara_tools(
         ),
         Tool(
             name="get_summaries",
-            description=(
-                "Get stored summaries. "
-                "Filter by document path, type, or section."
-            ),
+            description=("Get stored summaries. Filter by document path, type, or section."),
             parameters={
                 "type": "object",
                 "properties": {
@@ -1720,10 +1834,7 @@ def get_snipara_tools(
         ),
         Tool(
             name="delete_summary",
-            description=(
-                "Delete stored summaries. "
-                "Delete by ID, document path, or type."
-            ),
+            description=("Delete stored summaries. Delete by ID, document path, or type."),
             parameters={
                 "type": "object",
                 "properties": {
@@ -1850,6 +1961,18 @@ def get_snipara_tools(
                         "default": 0.72,
                         "description": "Minimum relevance for inactive-memory warnings",
                     },
+                    "task": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512,
+                        "description": "Optional task label recorded for retrieval/outcome correlation",
+                    },
+                    "outcome_rerank_mode": {
+                        "type": "string",
+                        "enum": ["disabled", "shadow", "enabled"],
+                        "description": "Optional mode bounded by the server configuration",
+                    },
+                    "correlation_context": CORRELATION_CONTEXT_PARAMETER,
                 },
                 "required": ["query"],
             },
@@ -1965,10 +2088,7 @@ def get_snipara_tools(
         ),
         Tool(
             name="forget",
-            description=(
-                "Delete memories. "
-                "Remove memories by ID, type, category, or age."
-            ),
+            description=("Delete memories. Remove memories by ID, type, category, or age."),
             parameters={
                 "type": "object",
                 "properties": {
@@ -2093,10 +2213,7 @@ def get_snipara_tools(
         ),
         Tool(
             name="release",
-            description=(
-                "Release a claimed resource. "
-                "Allows other agents to claim the resource."
-            ),
+            description=("Release a claimed resource. Allows other agents to claim the resource."),
             parameters={
                 "type": "object",
                 "properties": {
@@ -2123,10 +2240,7 @@ def get_snipara_tools(
         ),
         Tool(
             name="state_get",
-            description=(
-                "Get shared swarm state. "
-                "Retrieve a value from the shared state store."
-            ),
+            description=("Get shared swarm state. Retrieve a value from the shared state store."),
             parameters={
                 "type": "object",
                 "properties": {
@@ -2179,8 +2293,7 @@ def get_snipara_tools(
         Tool(
             name="broadcast",
             description=(
-                "Broadcast an event to the swarm. "
-                "Notify other agents about changes or completions."
+                "Broadcast an event to the swarm. Notify other agents about changes or completions."
             ),
             parameters={
                 "type": "object",
@@ -2260,8 +2373,7 @@ def get_snipara_tools(
         Tool(
             name="htask_recommend_batch",
             description=(
-                "Recommend ready N3 htasks. "
-                "Use this instead of claiming legacy queue-style tasks."
+                "Recommend ready N3 htasks. Use this instead of claiming legacy queue-style tasks."
             ),
             parameters={
                 "type": "object",

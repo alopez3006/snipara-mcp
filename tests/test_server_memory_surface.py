@@ -77,12 +77,17 @@ async def test_call_tool_forwards_recall_warning_controls(monkeypatch: pytest.Mo
             "query": "auth flow",
             "include_inactive": True,
             "warning_threshold": 0.8,
+            "correlation_context": {
+                "version": "retrieval-correlation-v1",
+                "session_id": "agent-session:recall",
+            },
         },
     )
 
     assert captured["tool"] == "rlm_recall"
     assert captured["params"]["include_inactive"] is True
     assert captured["params"]["warning_threshold"] == 0.8
+    assert captured["params"]["correlation_context"]["session_id"] == ("agent-session:recall")
     assert "Inactive memory warnings" in contents[0].text
     assert "SUPERSEDED" in contents[0].text
 

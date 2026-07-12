@@ -130,6 +130,24 @@ def test_generated_contract_exposes_agent_context_surface() -> None:
     assert "snipara_code_impact" in contract_tools
 
 
+def test_generated_contract_exposes_bounded_retrieval_correlation() -> None:
+    """The packaged stdio contract must match hosted retrieval correlation inputs."""
+    contract_tools = {tool["name"]: tool for tool in MCP_TOOL_DEFINITIONS}
+
+    for tool_name in (
+        "snipara_context_query",
+        "snipara_ask",
+        "snipara_search",
+        "snipara_recall",
+        "snipara_get_chunk",
+    ):
+        schema = contract_tools[tool_name]["inputSchema"]["properties"]["correlation_context"]
+        assert schema["additionalProperties"] is False
+        assert schema["properties"]["version"]["enum"] == ["retrieval-correlation-v1"]
+        assert schema["properties"]["session_id"]["maxLength"] == 128
+        assert "project_id" not in schema["properties"]
+
+
 async def test_upload_document_forwards_metadata(monkeypatch) -> None:
     """Single-file stdio uploads should preserve document metadata fields."""
     calls = []
@@ -252,7 +270,9 @@ def test_load_auth_uses_matching_workspace_oauth_token(monkeypatch) -> None:
     assert project_id == "snipara"
 
 
-def test_load_auth_does_not_fallback_to_other_project_when_workspace_is_explicit(monkeypatch) -> None:
+def test_load_auth_does_not_fallback_to_other_project_when_workspace_is_explicit(
+    monkeypatch,
+) -> None:
     """An explicit workspace should never silently borrow another project's token."""
     _clear_auth_env(monkeypatch)
     _stub_empty_sdk_config(monkeypatch)
