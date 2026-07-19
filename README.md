@@ -51,6 +51,13 @@ starting cold every session.
 | Inspect structural code relationships     | `rlm_code_callers`, `rlm_code_imports`, `rlm_code_neighbors`   |
 | Plan risky code changes                   | `rlm_code_symbol_card`, `rlm_code_impact` within plan capacity |
 
+### Structured Why Capture task commits (2.8.20)
+
+`snipara_end_of_task_commit` now accepts an atomic `why` block with `decision`,
+`rationale`, `alternatives`, `constraints`, and `observed_outcome`. Structured
+candidates stay pending until human review, and unknown parameters fail closed
+instead of being silently ignored.
+
 ### Retrieval outcome controls (2.8.19)
 
 The stdio connector forwards the hosted server's bounded retrieval-outcome
