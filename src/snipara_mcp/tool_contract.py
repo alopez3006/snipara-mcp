@@ -3501,9 +3501,131 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                         'default': False,
                                                         'description': 'Include superseded '
                                                                        'decisions in results'}},
-                  'required': []},
+                  'required': [],
+                  'additionalProperties': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_decision_query'}},
+ {'name': 'rlm_decision_review_queue',
+  'description': 'List current DRAFT ProjectDecision records awaiting review. Use this when the '
+                 'user asks to list pending decisions or wants help deciding which ones to '
+                 'authorize. Returns the canonical DEC-XXX identifiers, rationale, provenance '
+                 'context, tags, and current status. This tool is read-only; follow with '
+                 'snipara_decision_review_plan before any mutation.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'limit': {'type': 'integer',
+                                           'default': 50,
+                                           'minimum': 1,
+                                           'maximum': 100,
+                                           'description': 'Maximum DRAFT decisions to return.'}},
+                  'required': [],
+                  'additionalProperties': False},
+  'annotations': {'title': 'List pending project decisions',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
+  'exposed': False,
+  '_meta': {'snipara_legacy_tool': True,
+            'snipara_advertised_tool': 'snipara_decision_review_queue'}},
+ {'name': 'rlm_decision_review_plan',
+  'description': 'Validate evidence-backed recommendations for DRAFT ProjectDecisions and create a '
+                 'snapshot-bound review_plan_id. Inspect each decision and its cited evidence '
+                 'first, then recommend approve, reject, or needs_human with a concise rationale. '
+                 'The plan does not mutate decisions. Only approve/reject recommendations are '
+                 'included in the apply snapshot; needs_human remains pending.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'recommendations': {'type': 'array',
+                                                     'minItems': 1,
+                                                     'maxItems': 50,
+                                                     'items': {'type': 'object',
+                                                               'properties': {'decision_id': {'type': 'string',
+                                                                                              'minLength': 1,
+                                                                                              'maxLength': 64,
+                                                                                              'description': 'Canonical '
+                                                                                                             'DEC-XXX '
+                                                                                                             'identifier '
+                                                                                                             'from '
+                                                                                                             'the '
+                                                                                                             'review '
+                                                                                                             'queue.'},
+                                                                              'action': {'type': 'string',
+                                                                                         'enum': ['approve',
+                                                                                                  'reject',
+                                                                                                  'needs_human']},
+                                                                              'rationale': {'type': 'string',
+                                                                                            'minLength': 1,
+                                                                                            'maxLength': 1000,
+                                                                                            'description': 'Evidence-backed '
+                                                                                                           'reason '
+                                                                                                           'for '
+                                                                                                           'the '
+                                                                                                           'recommendation.'},
+                                                                              'evidence_refs': {'type': 'array',
+                                                                                                'maxItems': 10,
+                                                                                                'items': {'type': 'string',
+                                                                                                          'minLength': 1,
+                                                                                                          'maxLength': 500},
+                                                                                                'description': 'Files, '
+                                                                                                               'chunks, '
+                                                                                                               'commits, '
+                                                                                                               'or '
+                                                                                                               'review '
+                                                                                                               'artifacts '
+                                                                                                               'checked.'}},
+                                                               'required': ['decision_id',
+                                                                            'action',
+                                                                            'rationale'],
+                                                               'additionalProperties': False}}},
+                  'required': ['recommendations'],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Plan project decision review',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
+  'exposed': False,
+  '_meta': {'snipara_legacy_tool': True,
+            'snipara_advertised_tool': 'snipara_decision_review_plan'}},
+ {'name': 'rlm_decision_review_apply',
+  'description': 'Apply the exact approve/reject actions from a prior snapshot-bound review plan. '
+                 'Call this only after the user explicitly authorizes the shown actions. Requires '
+                 'ADMIN MCP access and a real human project-admin identity. Never infer a '
+                 'wildcard: repeat the explicit decision IDs and actions returned by the plan. New '
+                 'or changed drafts are excluded and make stale plans fail closed.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'review_plan_id': {'type': 'string',
+                                                    'minLength': 1,
+                                                    'maxLength': 200,
+                                                    'description': 'Snapshot identifier returned '
+                                                                   'by '
+                                                                   'snipara_decision_review_plan.'},
+                                 'reason': {'type': 'string',
+                                            'minLength': 1,
+                                            'maxLength': 500,
+                                            'description': 'Human authorization context recorded '
+                                                           'in the authority audit.'},
+                                 'actions': {'type': 'array',
+                                             'minItems': 1,
+                                             'maxItems': 50,
+                                             'items': {'type': 'object',
+                                                       'properties': {'decision_id': {'type': 'string',
+                                                                                      'minLength': 1,
+                                                                                      'maxLength': 64},
+                                                                      'action': {'type': 'string',
+                                                                                 'enum': ['approve',
+                                                                                          'reject']}},
+                                                       'required': ['decision_id', 'action'],
+                                                       'additionalProperties': False}}},
+                  'required': ['review_plan_id', 'reason', 'actions'],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Apply authorized project decision review',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': False,
+                  'openWorldHint': False},
+  'exposed': False,
+  '_meta': {'snipara_legacy_tool': True,
+            'snipara_advertised_tool': 'snipara_decision_review_apply'}},
  {'name': 'rlm_decision_supersede',
   'description': 'Supersede an existing decision with a new one.\n'
                  '\n'
@@ -7103,7 +7225,120 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                         'default': False,
                                                         'description': 'Include superseded '
                                                                        'decisions in results'}},
-                  'required': []}},
+                  'required': [],
+                  'additionalProperties': False}},
+ {'name': 'snipara_decision_review_queue',
+  'description': 'List current DRAFT ProjectDecision records awaiting review. Use this when the '
+                 'user asks to list pending decisions or wants help deciding which ones to '
+                 'authorize. Returns the canonical DEC-XXX identifiers, rationale, provenance '
+                 'context, tags, and current status. This tool is read-only; follow with '
+                 'snipara_decision_review_plan before any mutation.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'limit': {'type': 'integer',
+                                           'default': 50,
+                                           'minimum': 1,
+                                           'maximum': 100,
+                                           'description': 'Maximum DRAFT decisions to return.'}},
+                  'required': [],
+                  'additionalProperties': False},
+  'annotations': {'title': 'List pending project decisions',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
+ {'name': 'snipara_decision_review_plan',
+  'description': 'Validate evidence-backed recommendations for DRAFT ProjectDecisions and create a '
+                 'snapshot-bound review_plan_id. Inspect each decision and its cited evidence '
+                 'first, then recommend approve, reject, or needs_human with a concise rationale. '
+                 'The plan does not mutate decisions. Only approve/reject recommendations are '
+                 'included in the apply snapshot; needs_human remains pending.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'recommendations': {'type': 'array',
+                                                     'minItems': 1,
+                                                     'maxItems': 50,
+                                                     'items': {'type': 'object',
+                                                               'properties': {'decision_id': {'type': 'string',
+                                                                                              'minLength': 1,
+                                                                                              'maxLength': 64,
+                                                                                              'description': 'Canonical '
+                                                                                                             'DEC-XXX '
+                                                                                                             'identifier '
+                                                                                                             'from '
+                                                                                                             'the '
+                                                                                                             'review '
+                                                                                                             'queue.'},
+                                                                              'action': {'type': 'string',
+                                                                                         'enum': ['approve',
+                                                                                                  'reject',
+                                                                                                  'needs_human']},
+                                                                              'rationale': {'type': 'string',
+                                                                                            'minLength': 1,
+                                                                                            'maxLength': 1000,
+                                                                                            'description': 'Evidence-backed '
+                                                                                                           'reason '
+                                                                                                           'for '
+                                                                                                           'the '
+                                                                                                           'recommendation.'},
+                                                                              'evidence_refs': {'type': 'array',
+                                                                                                'maxItems': 10,
+                                                                                                'items': {'type': 'string',
+                                                                                                          'minLength': 1,
+                                                                                                          'maxLength': 500},
+                                                                                                'description': 'Files, '
+                                                                                                               'chunks, '
+                                                                                                               'commits, '
+                                                                                                               'or '
+                                                                                                               'review '
+                                                                                                               'artifacts '
+                                                                                                               'checked.'}},
+                                                               'required': ['decision_id',
+                                                                            'action',
+                                                                            'rationale'],
+                                                               'additionalProperties': False}}},
+                  'required': ['recommendations'],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Plan project decision review',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
+ {'name': 'snipara_decision_review_apply',
+  'description': 'Apply the exact approve/reject actions from a prior snapshot-bound review plan. '
+                 'Call this only after the user explicitly authorizes the shown actions. Requires '
+                 'ADMIN MCP access and a real human project-admin identity. Never infer a '
+                 'wildcard: repeat the explicit decision IDs and actions returned by the plan. New '
+                 'or changed drafts are excluded and make stale plans fail closed.',
+  'inputSchema': {'type': 'object',
+                  'properties': {'review_plan_id': {'type': 'string',
+                                                    'minLength': 1,
+                                                    'maxLength': 200,
+                                                    'description': 'Snapshot identifier returned '
+                                                                   'by '
+                                                                   'snipara_decision_review_plan.'},
+                                 'reason': {'type': 'string',
+                                            'minLength': 1,
+                                            'maxLength': 500,
+                                            'description': 'Human authorization context recorded '
+                                                           'in the authority audit.'},
+                                 'actions': {'type': 'array',
+                                             'minItems': 1,
+                                             'maxItems': 50,
+                                             'items': {'type': 'object',
+                                                       'properties': {'decision_id': {'type': 'string',
+                                                                                      'minLength': 1,
+                                                                                      'maxLength': 64},
+                                                                      'action': {'type': 'string',
+                                                                                 'enum': ['approve',
+                                                                                          'reject']}},
+                                                       'required': ['decision_id', 'action'],
+                                                       'additionalProperties': False}}},
+                  'required': ['review_plan_id', 'reason', 'actions'],
+                  'additionalProperties': False},
+  'annotations': {'title': 'Apply authorized project decision review',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': False,
+                  'openWorldHint': False}},
  {'name': 'snipara_decision_supersede',
   'description': 'Supersede an existing decision with a new one.\n'
                  '\n'
@@ -7827,6 +8062,9 @@ MCP_TOOL_NAMES = ['snipara_collaboration_status',
  'snipara_get_chunk',
  'snipara_decision_create',
  'snipara_decision_query',
+ 'snipara_decision_review_queue',
+ 'snipara_decision_review_plan',
+ 'snipara_decision_review_apply',
  'snipara_decision_supersede',
  'snipara_index_health',
  'snipara_index_recommendations',

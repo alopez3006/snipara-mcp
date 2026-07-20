@@ -42,14 +42,22 @@ starting cold every session.
 
 ## What It Unlocks
 
-| Need                                      | Snipara MCP tool group                                         |
-| ----------------------------------------- | -------------------------------------------------------------- |
-| Ask project docs a source-backed question | `rlm_context_query`, `rlm_get_chunk`                           |
-| Recall durable decisions and learnings    | `rlm_recall`                                                   |
-| Persist reusable memory after a task      | `rlm_remember`, `rlm_end_of_task_commit`                       |
-| Reuse team standards and shared guidance  | `rlm_shared_context`                                           |
-| Inspect structural code relationships     | `rlm_code_callers`, `rlm_code_imports`, `rlm_code_neighbors`   |
-| Plan risky code changes                   | `rlm_code_symbol_card`, `rlm_code_impact` within plan capacity |
+| Need                                      | Snipara MCP tool group                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ |
+| Ask project docs a source-backed question | `rlm_context_query`, `rlm_get_chunk`                                                 |
+| Recall durable decisions and learnings    | `rlm_recall`                                                                         |
+| Review pending project decisions          | `rlm_decision_review_queue`, `rlm_decision_review_plan`, `rlm_decision_review_apply` |
+| Persist reusable memory after a task      | `rlm_remember`, `rlm_end_of_task_commit`                                             |
+| Reuse team standards and shared guidance  | `rlm_shared_context`                                                                 |
+| Inspect structural code relationships     | `rlm_code_callers`, `rlm_code_imports`, `rlm_code_neighbors`                         |
+| Plan risky code changes                   | `rlm_code_symbol_card`, `rlm_code_impact` within plan capacity                       |
+
+### Conversational decision review (2.8.21)
+
+Agents can list pending `ProjectDecision` drafts, propose evidence-backed
+approve/reject/needs-human recommendations, and apply an explicitly authorized
+snapshot-bound plan. Apply requires a human project admin and fails closed if a
+draft changed after planning; there is no live wildcard approval.
 
 ### Structured Why Capture task commits (2.8.20)
 

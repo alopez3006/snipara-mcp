@@ -128,6 +128,11 @@ def test_generated_contract_exposes_agent_context_surface() -> None:
     assert help_props["list_all"]["default"] is False
     assert "snipara_code_symbol_card" in contract_tools
     assert "snipara_code_impact" in contract_tools
+    assert "snipara_decision_review_queue" in contract_tools
+    assert "snipara_decision_review_plan" in contract_tools
+    review_apply = contract_tools["snipara_decision_review_apply"]
+    assert review_apply["inputSchema"]["required"] == ["review_plan_id", "reason", "actions"]
+    assert review_apply["annotations"]["destructiveHint"] is True
 
 
 def test_generated_contract_exposes_bounded_retrieval_correlation() -> None:
