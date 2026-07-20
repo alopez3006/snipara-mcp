@@ -42,15 +42,26 @@ starting cold every session.
 
 ## What It Unlocks
 
-| Need                                      | Snipara MCP tool group                                                               |
-| ----------------------------------------- | ------------------------------------------------------------------------------------ |
-| Ask project docs a source-backed question | `rlm_context_query`, `rlm_get_chunk`                                                 |
-| Recall durable decisions and learnings    | `rlm_recall`                                                                         |
-| Review pending project decisions          | `rlm_decision_review_queue`, `rlm_decision_review_plan`, `rlm_decision_review_apply` |
-| Persist reusable memory after a task      | `rlm_remember`, `rlm_end_of_task_commit`                                             |
-| Reuse team standards and shared guidance  | `rlm_shared_context`                                                                 |
-| Inspect structural code relationships     | `rlm_code_callers`, `rlm_code_imports`, `rlm_code_neighbors`                         |
-| Plan risky code changes                   | `rlm_code_symbol_card`, `rlm_code_impact` within plan capacity                       |
+| Need                                      | Snipara MCP tool group                                                      |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| Ask project docs a source-backed question | `rlm_context_query`, `rlm_get_chunk`                                        |
+| Recall durable decisions and learnings    | `rlm_recall`                                                                |
+| Review the team Inbox                     | `rlm_inbox_review_queue`, `rlm_inbox_review_plan`, `rlm_inbox_review_apply` |
+| Persist reusable memory after a task      | `rlm_remember`, `rlm_end_of_task_commit`                                    |
+| Reuse team standards and shared guidance  | `rlm_shared_context`                                                        |
+| Inspect structural code relationships     | `rlm_code_callers`, `rlm_code_imports`, `rlm_code_neighbors`                |
+| Plan risky code changes                   | `rlm_code_symbol_card`, `rlm_code_impact` within plan capacity              |
+
+### Unified conversational Inbox review (2.8.22)
+
+Human team admins can list the same memory candidates and `ProjectDecision`
+drafts shown by the multi-project Dashboard Inbox, create evidence-backed
+approve/reject/needs-human recommendations, and atomically apply an explicitly
+authorized snapshot. The service revalidates the human team-admin identity,
+project ownership, current candidate states, and immutable item snapshots before
+recording authority audits. Real credentials remain addressable for rejection
+but are redacted from MCP output. The earlier ProjectDecision-only tools remain
+available as specialist compatibility tools.
 
 ### Conversational decision review (2.8.21)
 
