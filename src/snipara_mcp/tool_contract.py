@@ -363,8 +363,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
             'snipara_advertised_tool': 'snipara_search'},
   'exposed': False},
  {'name': 'rlm_read',
-  'description': 'Read specific lines from indexed documentation. Pass file_path to read a '
-                 'document-local line range; omit file_path to read global indexed lines.',
+  'description': 'Read an exact line range from indexed project documentation. This is a read-only '
+                 'VIEWER operation and changes no project state. Use it after rlm_search or '
+                 'rlm_context_query when exact wording matters; use rlm_get_chunk instead when you '
+                 'already have a cited chunk ID. Returns the resolved range and text, or a '
+                 'validation/not-found error.',
   'inputSchema': {'type': 'object',
                   'properties': {'file_path': {'type': 'string',
                                                'description': 'Indexed document path. Also '
@@ -379,6 +382,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                               'description': 'Ending line number. Defaults to '
                                                              'start_line + 50.'}},
                   'required': []},
+  'annotations': {'title': 'Read exact indexed lines',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_read'}},
  {'name': 'rlm_code_callers',
@@ -467,12 +475,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
             'snipara_advertised_tool': 'snipara_code_imports'},
   'exposed': False},
  {'name': 'rlm_code_neighbors',
-  'description': 'USE WHEN: getting oriented in unfamiliar code before editing; returns nearby '
-                 'callers, callees, imports, and references within N hops. Hosted '
-                 'fallback/canonical indexed graph: if you have shell access and local commits or '
-                 'a dirty working tree may matter, run `snipara-companion code neighbors` first '
-                 'because it auto-selects the local overlay; use this MCP tool when companion is '
-                 'unavailable or after push/reindex.',
+  'description': 'Inspect nearby callers, callees, imports, and references around a code symbol '
+                 'within a bounded number of hops. This is a read-only VIEWER operation against '
+                 'the indexed hosted graph and changes no repository state. Use it to orient '
+                 'before editing; use rlm_code_callers for only incoming calls and '
+                 'rlm_code_shortest_path for connectivity between two symbols. Returns matched '
+                 'targets, graph nodes/edges, coverage, freshness, and budget metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'qualified_name': {'type': 'string',
                                                     'description': 'Repo-qualified symbol name'},
@@ -482,7 +490,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'depth': {'type': 'integer',
                                            'default': 2,
                                            'minimum': 1,
-                                           'maximum': 4},
+                                           'maximum': 4,
+                                           'description': 'Maximum graph hops from each matched '
+                                                          'symbol.'},
                                  'edge_kinds': {'type': 'array',
                                                 'items': {'type': 'string',
                                                           'enum': ['CALLS',
@@ -493,7 +503,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'limit': {'type': 'integer',
                                            'default': 200,
                                            'minimum': 1,
-                                           'maximum': 500},
+                                           'maximum': 500,
+                                           'description': 'Maximum graph nodes or relationships to '
+                                                          'return before token compaction.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -513,11 +525,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
             'snipara_advertised_tool': 'snipara_code_neighbors'},
   'exposed': False},
  {'name': 'rlm_code_shortest_path',
-  'description': 'USE WHEN: how is A connected to B, such as whether a route reaches a service or '
-                 'a handler touches a model. Returns the shortest call/import/reference path from '
-                 'the indexed hosted code graph. If you have shell access and local commits or a '
-                 'dirty working tree may matter, run `snipara-companion code shortest-path` first; '
-                 'use this MCP tool when companion is unavailable or after push/reindex.',
+  'description': 'Find the shortest call, import, contain, or reference path between two code '
+                 'symbols in the indexed hosted graph. This is a read-only VIEWER operation and '
+                 'changes no repository state. Use it for an A-to-B connectivity question; use '
+                 'rlm_code_neighbors for broader orientation. Returns the resolved endpoints, path '
+                 'nodes/edges, coverage, freshness, and budget metadata, or a no-path/not-found '
+                 'result.',
   'inputSchema': {'type': 'object',
                   'properties': {'from': {'type': 'string',
                                           'description': 'Source repo-qualified symbol name'},
@@ -537,7 +550,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'max_hops': {'type': 'integer',
                                               'default': 6,
                                               'minimum': 1,
-                                              'maximum': 12},
+                                              'maximum': 12,
+                                              'description': 'Maximum path length to traverse '
+                                                             'before returning no path.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -731,37 +746,87 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   '_meta': {'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_local_code_overlay_retire'}},
  {'name': 'rlm_decompose',
-  'description': 'Break complex query into sub-queries with execution order.',
+  'description': 'Plan a complex documentation question as ordered sub-queries without executing '
+                 'retrieval. This is a read-only operation and changes no project state. Use it '
+                 'when a question has multiple dependent parts; use rlm_context_query directly for '
+                 'one focused question and rlm_multi_query when the queries are already known. '
+                 'Returns sub-query IDs, dependencies, and suggested execution order.',
   'inputSchema': {'type': 'object',
-                  'properties': {'query': {'type': 'string', 'maxLength': 20480},
+                  'properties': {'query': {'type': 'string',
+                                           'maxLength': 20480,
+                                           'description': 'Complex documentation or '
+                                                          'project-context question to decompose.'},
                                  'max_depth': {'type': 'integer',
                                                'default': 2,
                                                'minimum': 1,
-                                               'maximum': 5},
+                                               'maximum': 5,
+                                               'description': 'Maximum dependency depth for '
+                                                              'generated sub-queries.'},
                                  'hints': {'type': 'array',
                                            'items': {'type': 'string', 'maxLength': 512},
-                                           'maxItems': 10}},
+                                           'maxItems': 10,
+                                           'description': 'Optional constraints, source names, or '
+                                                          'concepts that should guide '
+                                                          'decomposition.'}},
                   'required': ['query']},
+  'annotations': {'title': 'Decompose a complex query',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_decompose'}},
  {'name': 'rlm_multi_query',
-  'description': 'Execute multiple queries in one call with shared token budget.',
+  'description': 'Execute 1 to 10 known project-context queries with one shared response budget. '
+                 'This is a read-only operation and changes no project state. Use it for '
+                 'independent related questions; use rlm_decompose when dependencies must be '
+                 'discovered and rlm_context_query for a single question. Returns one bounded '
+                 'result per query plus aggregate token and error metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'queries': {'type': 'array',
                                              'items': {'type': 'object',
                                                        'properties': {'query': {'type': 'string',
-                                                                                'maxLength': 20480},
+                                                                                'maxLength': 20480,
+                                                                                'description': 'One '
+                                                                                               'source-truth '
+                                                                                               'question '
+                                                                                               'to '
+                                                                                               'execute '
+                                                                                               'in '
+                                                                                               'the '
+                                                                                               'batch.'},
                                                                       'max_tokens': {'type': 'integer',
                                                                                      'minimum': 50,
-                                                                                     'maximum': 20000}},
+                                                                                     'maximum': 20000,
+                                                                                     'description': 'Optional '
+                                                                                                    'response '
+                                                                                                    'budget '
+                                                                                                    'for '
+                                                                                                    'this '
+                                                                                                    'query '
+                                                                                                    'within '
+                                                                                                    'the '
+                                                                                                    'shared '
+                                                                                                    'batch '
+                                                                                                    'budget.'}},
                                                        'required': ['query']},
                                              'minItems': 1,
-                                             'maxItems': 10},
+                                             'maxItems': 10,
+                                             'description': 'One to ten explicit queries to '
+                                                            'execute; order does not imply '
+                                                            'dependency.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 8000,
                                                 'minimum': 500,
-                                                'maximum': 50000}},
+                                                'maximum': 50000,
+                                                'description': 'Shared response budget across all '
+                                                               'query results.'}},
                   'required': ['queries']},
+  'annotations': {'title': 'Run a context query batch',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_multi_query'}},
  {'name': 'rlm_plan',
@@ -784,17 +849,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_plan'}},
  {'name': 'rlm_multi_project_query',
-  'description': 'Query across projects in a team. Requires a service account key.',
+  'description': 'Query source context across projects visible to the authenticated team. This '
+                 'read-only operation requires an ADMIN service-account key and does not broaden '
+                 'project authorization or change state. Use it for explicit cross-project '
+                 'comparison; use rlm_context_query for the current project. Returns per-project '
+                 'matches, metadata, and bounded aggregate results.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string', 'description': 'Question or topic'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 100,
-                                                'maximum': 100000},
+                                                'maximum': 100000,
+                                                'description': 'Shared response budget across all '
+                                                               'accessible project results.'},
                                  'per_project_limit': {'type': 'integer',
                                                        'default': 3,
                                                        'minimum': 1,
-                                                       'maximum': 20},
+                                                       'maximum': 20,
+                                                       'description': 'Maximum matching sections '
+                                                                      'retained per project.'},
                                  'project_ids': {'type': 'array',
                                                  'items': {'type': 'string'},
                                                  'description': 'Optional project IDs/slugs to '
@@ -805,18 +878,47 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'IDs/slugs to exclude'},
                                  'search_mode': {'type': 'string',
                                                  'enum': ['keyword', 'semantic', 'hybrid'],
-                                                 'default': 'keyword'},
-                                 'include_metadata': {'type': 'boolean', 'default': True},
-                                 'prefer_summaries': {'type': 'boolean', 'default': False}},
+                                                 'default': 'keyword',
+                                                 'description': 'Retrieval strategy applied '
+                                                                'consistently to each project.'},
+                                 'include_metadata': {'type': 'boolean',
+                                                      'default': True,
+                                                      'description': 'Include project and source '
+                                                                     'metadata with each match.'},
+                                 'prefer_summaries': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Prefer stored summary '
+                                                                     'content when available '
+                                                                     'without excluding source '
+                                                                     'matches.'}},
                   'required': ['query']},
+  'annotations': {'title': 'Query accessible team projects',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_multi_project_query'}},
  {'name': 'rlm_inject',
-  'description': 'Set session context for subsequent queries.',
+  'description': 'Replace or append ephemeral session context used by later queries. This EDITOR '
+                 'operation mutates only the current session, not indexed documents or durable '
+                 'memory; append=true is non-idempotent. Use rlm_remember for reviewed reusable '
+                 'knowledge and rlm_context to inspect the current session. Returns the resulting '
+                 'session-context size and status.',
   'inputSchema': {'type': 'object',
-                  'properties': {'context': {'type': 'string'},
-                                 'append': {'type': 'boolean', 'default': False}},
+                  'properties': {'context': {'type': 'string',
+                                             'description': 'Session-only context text to replace '
+                                                            'or append. Do not include secrets.'},
+                                 'append': {'type': 'boolean',
+                                            'default': False,
+                                            'description': 'Append to current session context when '
+                                                           'true; replace it when false.'}},
                   'required': ['context']},
+  'annotations': {'title': 'Set ephemeral session context',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': False,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_inject'}},
  {'name': 'rlm_context',
@@ -910,41 +1012,122 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
             'snipara_advertised_tool': 'snipara_help'},
   'exposed': False},
  {'name': 'rlm_store_summary',
-  'description': 'Store an LLM-generated summary for a document.',
+  'description': 'Store or replace a generated summary for an existing indexed project document. '
+                 'This EDITOR operation writes project state and requires a paid summary-storage '
+                 'plan. The identity is document path, summary type, and optional section ID; a '
+                 'matching record is updated, so repeated calls can replace content and refresh '
+                 'timestamps. Use rlm_get_summaries before writing and rlm_delete_summary to '
+                 'remove stored summaries. Do not include credentials, secrets, or unsupported '
+                 'claims. Returns summary_id, document_path, summary_type, token_count, created, '
+                 'and message.',
   'inputSchema': {'type': 'object',
-                  'properties': {'document_path': {'type': 'string'},
-                                 'summary': {'type': 'string'},
+                  'properties': {'document_path': {'type': 'string',
+                                                   'description': 'Exact indexed project-relative '
+                                                                  'path of the source document.'},
+                                 'summary': {'type': 'string',
+                                             'description': 'Generated summary to store. Exclude '
+                                                            'credentials, secrets, and unsupported '
+                                                            'claims.'},
                                  'summary_type': {'type': 'string',
                                                   'enum': ['concise',
                                                            'detailed',
                                                            'technical',
                                                            'keywords',
                                                            'custom'],
-                                                  'default': 'concise'},
-                                 'generated_by': {'type': 'string'}},
+                                                  'default': 'concise',
+                                                  'description': 'Summary purpose: concise for '
+                                                                 'retrieval previews, detailed for '
+                                                                 'broad coverage, technical for '
+                                                                 'implementation detail, keywords '
+                                                                 'for discovery terms, or custom '
+                                                                 'for caller-defined use.'},
+                                 'section_id': {'type': 'string',
+                                                'description': 'Optional stable section identity; '
+                                                               'participates in the upsert key.'},
+                                 'line_start': {'type': 'integer',
+                                                'minimum': 1,
+                                                'description': 'Optional one-based source start '
+                                                               'line for a section summary.'},
+                                 'line_end': {'type': 'integer',
+                                              'minimum': 1,
+                                              'description': 'Optional one-based source end line; '
+                                                             'must not precede line_start.'},
+                                 'generated_by': {'type': 'string',
+                                                  'description': 'Optional model, agent, or '
+                                                                 'pipeline identifier that '
+                                                                 'produced the summary.'}},
                   'required': ['document_path', 'summary']},
+  'annotations': {'title': 'Store or replace a document summary',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': False,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_store_summary'}},
  {'name': 'rlm_get_summaries',
-  'description': 'Retrieve stored summaries.',
+  'description': 'List stored summaries in the authenticated project, optionally filtered by exact '
+                 'document path, summary type, or section ID. This is a read-only VIEWER operation '
+                 'and changes no state. Use it to inspect summaries before rlm_store_summary or '
+                 'rlm_delete_summary; use rlm_context_query for source retrieval rather than '
+                 'cached summary administration. Returns summaries, total_count, and total_tokens.',
   'inputSchema': {'type': 'object',
-                  'properties': {'document_path': {'type': 'string'},
+                  'properties': {'document_path': {'type': 'string',
+                                                   'description': 'Exact project-relative document '
+                                                                  'path to filter, or omit for all '
+                                                                  'documents.'},
                                  'summary_type': {'type': 'string',
                                                   'enum': ['concise',
                                                            'detailed',
                                                            'technical',
                                                            'keywords',
-                                                           'custom']},
-                                 'include_content': {'type': 'boolean', 'default': True}},
+                                                           'custom'],
+                                                  'description': 'Optional summary-purpose '
+                                                                 'filter.'},
+                                 'section_id': {'type': 'string',
+                                                'description': 'Optional exact section identity '
+                                                               'filter.'},
+                                 'include_content': {'type': 'boolean',
+                                                     'default': True,
+                                                     'description': 'Include stored summary text '
+                                                                    'when true; return metadata '
+                                                                    'only when false.'}},
                   'required': []},
+  'annotations': {'title': 'List stored document summaries',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_get_summaries'}},
  {'name': 'rlm_delete_summary',
-  'description': 'Delete stored summaries.',
+  'description': 'Delete stored project summaries selected by summary ID, document path, and/or '
+                 'summary type. This destructive EDITOR operation requires a paid summary-storage '
+                 'plan and at least one filter; omitted filters never mean delete all. Repeating '
+                 'the same deletion is idempotent and returns zero after the records are gone. Use '
+                 'rlm_get_summaries to verify the target first. Returns deleted_count and message.',
   'inputSchema': {'type': 'object',
-                  'properties': {'summary_id': {'type': 'string'},
-                                 'document_path': {'type': 'string'}},
+                  'properties': {'summary_id': {'type': 'string',
+                                                'description': 'Exact stored summary ID to '
+                                                               'delete.'},
+                                 'document_path': {'type': 'string',
+                                                   'description': 'Exact project-relative document '
+                                                                  'path whose matching summaries '
+                                                                  'may be deleted.'},
+                                 'summary_type': {'type': 'string',
+                                                  'enum': ['concise',
+                                                           'detailed',
+                                                           'technical',
+                                                           'keywords',
+                                                           'custom'],
+                                                  'description': 'Optional summary-purpose filter '
+                                                                 'combined with the other '
+                                                                 'selectors.'}},
                   'required': []},
+  'annotations': {'title': 'Delete stored document summaries',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_delete_summary'}},
  {'name': 'rlm_shared_context',
@@ -2112,7 +2295,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'idempotentHint': False,
                   'openWorldHint': False}},
  {'name': 'rlm_memories',
-  'description': 'List memories with optional filters and sorting.',
+  'description': 'List durable memories with exact lifecycle, owner, category, text, and '
+                 'pagination filters. This is a read-only VIEWER operation and changes no memory '
+                 'authority. Use it for inventory and review; use rlm_recall for semantic task '
+                 'relevance and memory review tools for approval workflows. Returns paginated '
+                 'memory records and count metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'type': {'type': 'string',
                                           'enum': ['fact',
@@ -2120,9 +2307,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                    'learning',
                                                    'preference',
                                                    'todo',
-                                                   'context']},
+                                                   'context'],
+                                          'description': 'Optional durable memory type filter.'},
                                  'scope': {'type': 'string',
-                                           'enum': ['agent', 'project', 'team', 'user']},
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Owner boundary to list; scope=agent '
+                                                          'also requires agent_id.'},
                                  'agent_id': {'type': 'string',
                                               'description': 'Required when scope=agent; limits '
                                                              'listing to one agent namespace'},
@@ -2133,14 +2323,22 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                      'Snipara hashes and '
                                                                      'namespaces it per integrator '
                                                                      'client.'},
-                                 'category': {'type': 'string'},
+                                 'category': {'type': 'string',
+                                              'description': 'Optional exact memory category '
+                                                             'filter.'},
                                  'status': {'type': 'string',
                                             'enum': ['ACTIVE', 'INVALIDATED', 'SUPERSEDED'],
                                             'description': 'Filter by lifecycle status'},
                                  'search': {'type': 'string',
                                             'description': 'Text search in content'},
-                                 'limit': {'type': 'integer', 'default': 20},
-                                 'offset': {'type': 'integer', 'default': 0},
+                                 'limit': {'type': 'integer',
+                                           'default': 20,
+                                           'description': 'Maximum records to return in this '
+                                                          'page.'},
+                                 'offset': {'type': 'integer',
+                                            'default': 0,
+                                            'description': 'Zero-based record offset for '
+                                                           'pagination.'},
                                  'include_inactive': {'type': 'boolean',
                                                       'default': False,
                                                       'description': 'Include inactive memories in '
@@ -2158,6 +2356,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                 'default': 'desc',
                                                 'description': 'Sort direction'}},
                   'required': []},
+  'annotations': {'title': 'List durable project memories',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_memories'}},
  {'name': 'rlm_forget',
@@ -2730,11 +2933,21 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_tenant_profile_get'}},
  {'name': 'rlm_swarm_create',
-  'description': 'Create a new agent swarm for multi-agent coordination.',
+  'description': 'Create persisted coordination state for a new agent swarm. This EDITOR operation '
+                 'writes project state and is non-idempotent unless reuse_existing=true returns an '
+                 'active same-name swarm. Use it only when multiple agents need shared claims, '
+                 'state, events, or tasks; do not create a swarm for a single-agent query. Returns '
+                 'the swarm ID, configuration, reuse status, and creation metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'name': {'type': 'string', 'description': 'Swarm name'},
-                                 'description': {'type': 'string'},
-                                 'max_agents': {'type': 'integer', 'default': 10},
+                                 'description': {'type': 'string',
+                                                 'description': 'Human-readable purpose and '
+                                                                'completion boundary for the '
+                                                                'swarm.'},
+                                 'max_agents': {'type': 'integer',
+                                                'default': 10,
+                                                'description': 'Maximum agents allowed to join the '
+                                                               'swarm.'},
                                  'task_timeout': {'type': 'integer',
                                                   'default': 600,
                                                   'description': 'Task lease timeout in seconds'},
@@ -2747,8 +2960,15 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                     'description': 'Return an active same-name '
                                                                    'swarm instead of creating a '
                                                                    'duplicate'},
-                                 'config': {'type': 'object'}},
+                                 'config': {'type': 'object',
+                                            'description': 'Optional JSON coordination '
+                                                           'configuration stored with the swarm.'}},
                   'required': ['name']},
+  'annotations': {'title': 'Create an agent swarm',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': False,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_swarm_create'}},
  {'name': 'rlm_swarm_delete',
@@ -2833,41 +3053,90 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   '_meta': {'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_agent_profile_update'}},
  {'name': 'rlm_claim',
-  'description': 'Claim exclusive access to a resource (file, function, module). Claims '
-                 'auto-expire.',
+  'description': 'Acquire an exclusive, auto-expiring lease on a file, function, module, '
+                 'component, or named resource in a swarm. This EDITOR operation writes '
+                 'coordination state and can fail when another active claim conflicts; repeated '
+                 'calls are not idempotent. Use rlm_release when work ends and use shared state '
+                 'instead when exclusivity is unnecessary. Returns claim ID, lease status, owner, '
+                 'and expiry metadata.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
-                                 'agent_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm in which to acquire the '
+                                                             'exclusive lease.'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Agent identity that will own the '
+                                                             'lease.'},
                                  'resource_type': {'type': 'string',
                                                    'enum': ['file',
                                                             'function',
                                                             'module',
                                                             'component',
-                                                            'other']},
+                                                            'other'],
+                                                   'description': 'Kind of resource being '
+                                                                  'protected from concurrent '
+                                                                  'work.'},
                                  'resource_id': {'type': 'string',
                                                  'description': 'Resource identifier (e.g., file '
                                                                 'path)'},
-                                 'timeout_seconds': {'type': 'integer', 'default': 300}},
+                                 'timeout_seconds': {'type': 'integer',
+                                                     'default': 300,
+                                                     'description': 'Lease duration before '
+                                                                    'automatic expiry.'}},
                   'required': ['swarm_id', 'agent_id', 'resource_type', 'resource_id']},
+  'annotations': {'title': 'Claim an exclusive swarm resource',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': False,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_claim'}},
  {'name': 'rlm_release',
-  'description': 'Release a claimed resource.',
+  'description': 'Release a swarm resource lease owned by the authenticated agent. This EDITOR '
+                 'operation mutates coordination state but not repository content; releasing an '
+                 'already absent lease is safe and idempotent. Identify the lease by claim_id or '
+                 'by resource type and ID. Use rlm_claim to acquire a lease. Returns release '
+                 'status and the resolved claim/resource identity.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
-                                 'agent_id': {'type': 'string'},
-                                 'claim_id': {'type': 'string'},
-                                 'resource_type': {'type': 'string'},
-                                 'resource_id': {'type': 'string'}},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm that owns the lease.'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Agent identity releasing its lease.'},
+                                 'claim_id': {'type': 'string',
+                                              'description': 'Preferred exact claim ID; use '
+                                                             'resource fields only when the ID is '
+                                                             'unavailable.'},
+                                 'resource_type': {'type': 'string',
+                                                   'description': 'Resource kind used with '
+                                                                  'resource_id to resolve a '
+                                                                  'lease.'},
+                                 'resource_id': {'type': 'string',
+                                                 'description': 'Exact resource identity used with '
+                                                                'resource_type to resolve a '
+                                                                'lease.'}},
                   'required': ['swarm_id', 'agent_id']},
+  'annotations': {'title': 'Release a swarm resource claim',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_release'}},
  {'name': 'rlm_state_get',
-  'description': 'Read shared swarm state by key.',
+  'description': 'Read one versioned key from shared swarm state. This is a read-only operation '
+                 'and changes no state. Use it for a current value and version; use rlm_state_poll '
+                 'for multiple changing keys and rlm_state_set to write with optimistic locking. '
+                 'Returns key, value, version, and expiry metadata, or a not-found result.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm whose shared state should be '
+                                                             'read.'},
                                  'key': {'type': 'string', 'description': 'State key to read'}},
                   'required': ['swarm_id', 'key']},
+  'annotations': {'title': 'Read versioned swarm state',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_state_get'}},
  {'name': 'rlm_state_set',
@@ -2907,20 +3176,38 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_state_poll'}},
  {'name': 'rlm_broadcast',
-  'description': 'Send an event to all agents in the swarm.',
+  'description': 'Append a project-scoped coordination event for swarm members. This EDITOR '
+                 'operation writes the swarm event stream, does not send external notifications, '
+                 'and is non-idempotent because each call creates an event. Use it for transient '
+                 'coordination signals; use rlm_state_set for durable versioned state. Returns the '
+                 'event ID and broadcast status.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
-                                 'agent_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm whose event stream receives '
+                                                             'the broadcast.'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Sending agent identity recorded on '
+                                                             'the event.'},
                                  'event_type': {'type': 'string', 'description': 'Event type'},
                                  'payload': {'type': 'object', 'description': 'Event data'}},
                   'required': ['swarm_id', 'agent_id', 'event_type']},
+  'annotations': {'title': 'Broadcast a swarm coordination event',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': False,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_broadcast'}},
  {'name': 'rlm_swarm_events',
-  'description': 'Query and filter broadcast events plus htask audit events in a swarm. Use '
-                 'rlm_htask_audit_trail for task-only polling.',
+  'description': 'List broadcast events and hierarchical-task audit events in one swarm, '
+                 'optionally filtered by type, sender, or time. This is a read-only operation and '
+                 'changes no coordination state. Use it for swarm-wide observation; use '
+                 "rlm_htask_audit_trail for one task's full history. Returns ordered events plus "
+                 'pagination/filter metadata.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm whose broadcast and task '
+                                                             'events should be listed.'},
                                  'event_type': {'type': 'string',
                                                 'description': 'Filter by event type'},
                                  'agent_id': {'type': 'string',
@@ -2933,6 +3220,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'default': 50,
                                            'description': 'Maximum events to return'}},
                   'required': ['swarm_id']},
+  'annotations': {'title': 'List swarm coordination events',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_swarm_events'}},
  {'name': 'rlm_agent_status',
@@ -4141,7 +4433,10 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   '_meta': {'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_htask_create_feature'}},
  {'name': 'rlm_htask_get',
-  'description': 'Get a hierarchical task with its children.',
+  'description': 'Read one hierarchical task and its direct children inside a swarm. This is a '
+                 'read-only operation and changes no task authority or status. Use it for one '
+                 'task; use rlm_htask_tree for a recursive hierarchy and rlm_htask_audit_trail for '
+                 'history. Returns the task, children, and closure or dependency metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'},
                                  'task_id': {'type': 'string', 'description': 'Task ID'},
@@ -4149,6 +4444,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                       'default': True,
                                                       'description': 'Include direct children'}},
                   'required': ['swarm_id', 'task_id']},
+  'annotations': {'title': 'Get one hierarchical task',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_htask_get'}},
  {'name': 'rlm_htask_tree',
@@ -4388,11 +4688,19 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_htask_metrics'}},
  {'name': 'rlm_htask_audit_trail',
-  'description': 'Get complete audit trail for a specific task.',
+  'description': 'Read the complete ordered audit trail for one hierarchical task in a swarm. This '
+                 'is a read-only operation and changes no task state. Use it for task-specific '
+                 'history and proof; use rlm_swarm_events for cross-task event polling. Returns '
+                 'timestamped task events with actor and transition details.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'},
                                  'task_id': {'type': 'string', 'description': 'Task ID'}},
                   'required': ['swarm_id', 'task_id']},
+  'annotations': {'title': 'Read hierarchical task audit trail',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_htask_audit_trail'}},
  {'name': 'rlm_htask_checkpoint_delta',
@@ -4754,8 +5062,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'required': []},
   '_meta': {'snipara_tool_weight': 4.0}},
  {'name': 'snipara_read',
-  'description': 'Read specific lines from indexed documentation. Pass file_path to read a '
-                 'document-local line range; omit file_path to read global indexed lines.',
+  'description': 'Read an exact line range from indexed project documentation. This is a read-only '
+                 'VIEWER operation and changes no project state. Use it after snipara_search or '
+                 'snipara_context_query when exact wording matters; use snipara_get_chunk instead '
+                 'when you already have a cited chunk ID. Returns the resolved range and text, or '
+                 'a validation/not-found error.',
   'inputSchema': {'type': 'object',
                   'properties': {'file_path': {'type': 'string',
                                                'description': 'Indexed document path. Also '
@@ -4769,7 +5080,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'end_line': {'type': 'integer',
                                               'description': 'Ending line number. Defaults to '
                                                              'start_line + 50.'}},
-                  'required': []}},
+                  'required': []},
+  'annotations': {'title': 'Read exact indexed lines',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_code_callers',
   'description': 'USE WHEN: who calls this symbol, especially before renaming, deleting, or '
                  'changing a signature. Hosted fallback/canonical indexed graph: if you have shell '
@@ -4850,12 +5166,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'openWorldHint': False},
   '_meta': {'snipara_tool_weight': 6.0}},
  {'name': 'snipara_code_neighbors',
-  'description': 'USE WHEN: getting oriented in unfamiliar code before editing; returns nearby '
-                 'callers, callees, imports, and references within N hops. Hosted '
-                 'fallback/canonical indexed graph: if you have shell access and local commits or '
-                 'a dirty working tree may matter, run `snipara-companion code neighbors` first '
-                 'because it auto-selects the local overlay; use this MCP tool when companion is '
-                 'unavailable or after push/reindex.',
+  'description': 'Inspect nearby callers, callees, imports, and references around a code symbol '
+                 'within a bounded number of hops. This is a read-only VIEWER operation against '
+                 'the indexed hosted graph and changes no repository state. Use it to orient '
+                 'before editing; use snipara_code_callers for only incoming calls and '
+                 'snipara_code_shortest_path for connectivity between two symbols. Returns matched '
+                 'targets, graph nodes/edges, coverage, freshness, and budget metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'qualified_name': {'type': 'string',
                                                     'description': 'Repo-qualified symbol name'},
@@ -4865,7 +5181,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'depth': {'type': 'integer',
                                            'default': 2,
                                            'minimum': 1,
-                                           'maximum': 4},
+                                           'maximum': 4,
+                                           'description': 'Maximum graph hops from each matched '
+                                                          'symbol.'},
                                  'edge_kinds': {'type': 'array',
                                                 'items': {'type': 'string',
                                                           'enum': ['CALLS',
@@ -4876,7 +5194,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'limit': {'type': 'integer',
                                            'default': 200,
                                            'minimum': 1,
-                                           'maximum': 500},
+                                           'maximum': 500,
+                                           'description': 'Maximum graph nodes or relationships to '
+                                                          'return before token compaction.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -4893,11 +5213,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'openWorldHint': False},
   '_meta': {'snipara_tool_weight': 6.0}},
  {'name': 'snipara_code_shortest_path',
-  'description': 'USE WHEN: how is A connected to B, such as whether a route reaches a service or '
-                 'a handler touches a model. Returns the shortest call/import/reference path from '
-                 'the indexed hosted code graph. If you have shell access and local commits or a '
-                 'dirty working tree may matter, run `snipara-companion code shortest-path` first; '
-                 'use this MCP tool when companion is unavailable or after push/reindex.',
+  'description': 'Find the shortest call, import, contain, or reference path between two code '
+                 'symbols in the indexed hosted graph. This is a read-only VIEWER operation and '
+                 'changes no repository state. Use it for an A-to-B connectivity question; use '
+                 'snipara_code_neighbors for broader orientation. Returns the resolved endpoints, '
+                 'path nodes/edges, coverage, freshness, and budget metadata, or a '
+                 'no-path/not-found result.',
   'inputSchema': {'type': 'object',
                   'properties': {'from': {'type': 'string',
                                           'description': 'Source repo-qualified symbol name'},
@@ -4917,7 +5238,9 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'max_hops': {'type': 'integer',
                                               'default': 6,
                                               'minimum': 1,
-                                              'maximum': 12},
+                                              'maximum': 12,
+                                              'description': 'Maximum path length to traverse '
+                                                             'before returning no path.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -5092,35 +5415,85 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'idempotentHint': False,
                   'openWorldHint': False}},
  {'name': 'snipara_decompose',
-  'description': 'Break complex query into sub-queries with execution order.',
+  'description': 'Plan a complex documentation question as ordered sub-queries without executing '
+                 'retrieval. This is a read-only operation and changes no project state. Use it '
+                 'when a question has multiple dependent parts; use snipara_context_query directly '
+                 'for one focused question and snipara_multi_query when the queries are already '
+                 'known. Returns sub-query IDs, dependencies, and suggested execution order.',
   'inputSchema': {'type': 'object',
-                  'properties': {'query': {'type': 'string', 'maxLength': 20480},
+                  'properties': {'query': {'type': 'string',
+                                           'maxLength': 20480,
+                                           'description': 'Complex documentation or '
+                                                          'project-context question to decompose.'},
                                  'max_depth': {'type': 'integer',
                                                'default': 2,
                                                'minimum': 1,
-                                               'maximum': 5},
+                                               'maximum': 5,
+                                               'description': 'Maximum dependency depth for '
+                                                              'generated sub-queries.'},
                                  'hints': {'type': 'array',
                                            'items': {'type': 'string', 'maxLength': 512},
-                                           'maxItems': 10}},
-                  'required': ['query']}},
+                                           'maxItems': 10,
+                                           'description': 'Optional constraints, source names, or '
+                                                          'concepts that should guide '
+                                                          'decomposition.'}},
+                  'required': ['query']},
+  'annotations': {'title': 'Decompose a complex query',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_multi_query',
-  'description': 'Execute multiple queries in one call with shared token budget.',
+  'description': 'Execute 1 to 10 known project-context queries with one shared response budget. '
+                 'This is a read-only operation and changes no project state. Use it for '
+                 'independent related questions; use snipara_decompose when dependencies must be '
+                 'discovered and snipara_context_query for a single question. Returns one bounded '
+                 'result per query plus aggregate token and error metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'queries': {'type': 'array',
                                              'items': {'type': 'object',
                                                        'properties': {'query': {'type': 'string',
-                                                                                'maxLength': 20480},
+                                                                                'maxLength': 20480,
+                                                                                'description': 'One '
+                                                                                               'source-truth '
+                                                                                               'question '
+                                                                                               'to '
+                                                                                               'execute '
+                                                                                               'in '
+                                                                                               'the '
+                                                                                               'batch.'},
                                                                       'max_tokens': {'type': 'integer',
                                                                                      'minimum': 50,
-                                                                                     'maximum': 20000}},
+                                                                                     'maximum': 20000,
+                                                                                     'description': 'Optional '
+                                                                                                    'response '
+                                                                                                    'budget '
+                                                                                                    'for '
+                                                                                                    'this '
+                                                                                                    'query '
+                                                                                                    'within '
+                                                                                                    'the '
+                                                                                                    'shared '
+                                                                                                    'batch '
+                                                                                                    'budget.'}},
                                                        'required': ['query']},
                                              'minItems': 1,
-                                             'maxItems': 10},
+                                             'maxItems': 10,
+                                             'description': 'One to ten explicit queries to '
+                                                            'execute; order does not imply '
+                                                            'dependency.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 8000,
                                                 'minimum': 500,
-                                                'maximum': 50000}},
-                  'required': ['queries']}},
+                                                'maximum': 50000,
+                                                'description': 'Shared response budget across all '
+                                                               'query results.'}},
+                  'required': ['queries']},
+  'annotations': {'title': 'Run a context query batch',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_plan',
   'description': 'Generate full execution plan for complex questions. Returns steps for '
                  'decomposition, context queries, and synthesis.',
@@ -5139,17 +5512,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                 'maximum': 100000}},
                   'required': ['query']}},
  {'name': 'snipara_multi_project_query',
-  'description': 'Query across projects in a team. Requires a service account key.',
+  'description': 'Query source context across projects visible to the authenticated team. This '
+                 'read-only operation requires an ADMIN service-account key and does not broaden '
+                 'project authorization or change state. Use it for explicit cross-project '
+                 'comparison; use snipara_context_query for the current project. Returns '
+                 'per-project matches, metadata, and bounded aggregate results.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string', 'description': 'Question or topic'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 100,
-                                                'maximum': 100000},
+                                                'maximum': 100000,
+                                                'description': 'Shared response budget across all '
+                                                               'accessible project results.'},
                                  'per_project_limit': {'type': 'integer',
                                                        'default': 3,
                                                        'minimum': 1,
-                                                       'maximum': 20},
+                                                       'maximum': 20,
+                                                       'description': 'Maximum matching sections '
+                                                                      'retained per project.'},
                                  'project_ids': {'type': 'array',
                                                  'items': {'type': 'string'},
                                                  'description': 'Optional project IDs/slugs to '
@@ -5160,16 +5541,45 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'IDs/slugs to exclude'},
                                  'search_mode': {'type': 'string',
                                                  'enum': ['keyword', 'semantic', 'hybrid'],
-                                                 'default': 'keyword'},
-                                 'include_metadata': {'type': 'boolean', 'default': True},
-                                 'prefer_summaries': {'type': 'boolean', 'default': False}},
-                  'required': ['query']}},
+                                                 'default': 'keyword',
+                                                 'description': 'Retrieval strategy applied '
+                                                                'consistently to each project.'},
+                                 'include_metadata': {'type': 'boolean',
+                                                      'default': True,
+                                                      'description': 'Include project and source '
+                                                                     'metadata with each match.'},
+                                 'prefer_summaries': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Prefer stored summary '
+                                                                     'content when available '
+                                                                     'without excluding source '
+                                                                     'matches.'}},
+                  'required': ['query']},
+  'annotations': {'title': 'Query accessible team projects',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_inject',
-  'description': 'Set session context for subsequent queries.',
+  'description': 'Replace or append ephemeral session context used by later queries. This EDITOR '
+                 'operation mutates only the current session, not indexed documents or durable '
+                 'memory; append=true is non-idempotent. Use snipara_remember for reviewed '
+                 'reusable knowledge and snipara_context to inspect the current session. Returns '
+                 'the resulting session-context size and status.',
   'inputSchema': {'type': 'object',
-                  'properties': {'context': {'type': 'string'},
-                                 'append': {'type': 'boolean', 'default': False}},
-                  'required': ['context']}},
+                  'properties': {'context': {'type': 'string',
+                                             'description': 'Session-only context text to replace '
+                                                            'or append. Do not include secrets.'},
+                                 'append': {'type': 'boolean',
+                                            'default': False,
+                                            'description': 'Append to current session context when '
+                                                           'true; replace it when false.'}},
+                  'required': ['context']},
+  'annotations': {'title': 'Set ephemeral session context',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': False,
+                  'openWorldHint': False}},
  {'name': 'snipara_context',
   'description': 'Show current session context.',
   'inputSchema': {'type': 'object', 'properties': {}, 'required': []}},
@@ -5248,37 +5658,120 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'required': []},
   '_meta': {'snipara_tool_weight': 3.0}},
  {'name': 'snipara_store_summary',
-  'description': 'Store an LLM-generated summary for a document.',
+  'description': 'Store or replace a generated summary for an existing indexed project document. '
+                 'This EDITOR operation writes project state and requires a paid summary-storage '
+                 'plan. The identity is document path, summary type, and optional section ID; a '
+                 'matching record is updated, so repeated calls can replace content and refresh '
+                 'timestamps. Use snipara_get_summaries before writing and snipara_delete_summary '
+                 'to remove stored summaries. Do not include credentials, secrets, or unsupported '
+                 'claims. Returns summary_id, document_path, summary_type, token_count, created, '
+                 'and message.',
   'inputSchema': {'type': 'object',
-                  'properties': {'document_path': {'type': 'string'},
-                                 'summary': {'type': 'string'},
+                  'properties': {'document_path': {'type': 'string',
+                                                   'description': 'Exact indexed project-relative '
+                                                                  'path of the source document.'},
+                                 'summary': {'type': 'string',
+                                             'description': 'Generated summary to store. Exclude '
+                                                            'credentials, secrets, and unsupported '
+                                                            'claims.'},
                                  'summary_type': {'type': 'string',
                                                   'enum': ['concise',
                                                            'detailed',
                                                            'technical',
                                                            'keywords',
                                                            'custom'],
-                                                  'default': 'concise'},
-                                 'generated_by': {'type': 'string'}},
-                  'required': ['document_path', 'summary']}},
+                                                  'default': 'concise',
+                                                  'description': 'Summary purpose: concise for '
+                                                                 'retrieval previews, detailed for '
+                                                                 'broad coverage, technical for '
+                                                                 'implementation detail, keywords '
+                                                                 'for discovery terms, or custom '
+                                                                 'for caller-defined use.'},
+                                 'section_id': {'type': 'string',
+                                                'description': 'Optional stable section identity; '
+                                                               'participates in the upsert key.'},
+                                 'line_start': {'type': 'integer',
+                                                'minimum': 1,
+                                                'description': 'Optional one-based source start '
+                                                               'line for a section summary.'},
+                                 'line_end': {'type': 'integer',
+                                              'minimum': 1,
+                                              'description': 'Optional one-based source end line; '
+                                                             'must not precede line_start.'},
+                                 'generated_by': {'type': 'string',
+                                                  'description': 'Optional model, agent, or '
+                                                                 'pipeline identifier that '
+                                                                 'produced the summary.'}},
+                  'required': ['document_path', 'summary']},
+  'annotations': {'title': 'Store or replace a document summary',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': False,
+                  'openWorldHint': False}},
  {'name': 'snipara_get_summaries',
-  'description': 'Retrieve stored summaries.',
+  'description': 'List stored summaries in the authenticated project, optionally filtered by exact '
+                 'document path, summary type, or section ID. This is a read-only VIEWER operation '
+                 'and changes no state. Use it to inspect summaries before snipara_store_summary '
+                 'or snipara_delete_summary; use snipara_context_query for source retrieval rather '
+                 'than cached summary administration. Returns summaries, total_count, and '
+                 'total_tokens.',
   'inputSchema': {'type': 'object',
-                  'properties': {'document_path': {'type': 'string'},
+                  'properties': {'document_path': {'type': 'string',
+                                                   'description': 'Exact project-relative document '
+                                                                  'path to filter, or omit for all '
+                                                                  'documents.'},
                                  'summary_type': {'type': 'string',
                                                   'enum': ['concise',
                                                            'detailed',
                                                            'technical',
                                                            'keywords',
-                                                           'custom']},
-                                 'include_content': {'type': 'boolean', 'default': True}},
-                  'required': []}},
+                                                           'custom'],
+                                                  'description': 'Optional summary-purpose '
+                                                                 'filter.'},
+                                 'section_id': {'type': 'string',
+                                                'description': 'Optional exact section identity '
+                                                               'filter.'},
+                                 'include_content': {'type': 'boolean',
+                                                     'default': True,
+                                                     'description': 'Include stored summary text '
+                                                                    'when true; return metadata '
+                                                                    'only when false.'}},
+                  'required': []},
+  'annotations': {'title': 'List stored document summaries',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_delete_summary',
-  'description': 'Delete stored summaries.',
+  'description': 'Delete stored project summaries selected by summary ID, document path, and/or '
+                 'summary type. This destructive EDITOR operation requires a paid summary-storage '
+                 'plan and at least one filter; omitted filters never mean delete all. Repeating '
+                 'the same deletion is idempotent and returns zero after the records are gone. Use '
+                 'snipara_get_summaries to verify the target first. Returns deleted_count and '
+                 'message.',
   'inputSchema': {'type': 'object',
-                  'properties': {'summary_id': {'type': 'string'},
-                                 'document_path': {'type': 'string'}},
-                  'required': []}},
+                  'properties': {'summary_id': {'type': 'string',
+                                                'description': 'Exact stored summary ID to '
+                                                               'delete.'},
+                                 'document_path': {'type': 'string',
+                                                   'description': 'Exact project-relative document '
+                                                                  'path whose matching summaries '
+                                                                  'may be deleted.'},
+                                 'summary_type': {'type': 'string',
+                                                  'enum': ['concise',
+                                                           'detailed',
+                                                           'technical',
+                                                           'keywords',
+                                                           'custom'],
+                                                  'description': 'Optional summary-purpose filter '
+                                                                 'combined with the other '
+                                                                 'selectors.'}},
+                  'required': []},
+  'annotations': {'title': 'Delete stored document summaries',
+                  'readOnlyHint': False,
+                  'destructiveHint': True,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_shared_context',
   'description': 'Load project-linked shared standards, business playbooks, and reusable guidance. '
                  'Use for linked source documents, not durable memory.',
@@ -6051,7 +6544,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                'continuity bundle.'}},
                   'required': []}},
  {'name': 'snipara_memories',
-  'description': 'List memories with optional filters and sorting.',
+  'description': 'List durable memories with exact lifecycle, owner, category, text, and '
+                 'pagination filters. This is a read-only VIEWER operation and changes no memory '
+                 'authority. Use it for inventory and review; use snipara_recall for semantic task '
+                 'relevance and memory review tools for approval workflows. Returns paginated '
+                 'memory records and count metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'type': {'type': 'string',
                                           'enum': ['fact',
@@ -6059,9 +6556,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                    'learning',
                                                    'preference',
                                                    'todo',
-                                                   'context']},
+                                                   'context'],
+                                          'description': 'Optional durable memory type filter.'},
                                  'scope': {'type': 'string',
-                                           'enum': ['agent', 'project', 'team', 'user']},
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Owner boundary to list; scope=agent '
+                                                          'also requires agent_id.'},
                                  'agent_id': {'type': 'string',
                                               'description': 'Required when scope=agent; limits '
                                                              'listing to one agent namespace'},
@@ -6072,14 +6572,22 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                      'Snipara hashes and '
                                                                      'namespaces it per integrator '
                                                                      'client.'},
-                                 'category': {'type': 'string'},
+                                 'category': {'type': 'string',
+                                              'description': 'Optional exact memory category '
+                                                             'filter.'},
                                  'status': {'type': 'string',
                                             'enum': ['ACTIVE', 'INVALIDATED', 'SUPERSEDED'],
                                             'description': 'Filter by lifecycle status'},
                                  'search': {'type': 'string',
                                             'description': 'Text search in content'},
-                                 'limit': {'type': 'integer', 'default': 20},
-                                 'offset': {'type': 'integer', 'default': 0},
+                                 'limit': {'type': 'integer',
+                                           'default': 20,
+                                           'description': 'Maximum records to return in this '
+                                                          'page.'},
+                                 'offset': {'type': 'integer',
+                                            'default': 0,
+                                            'description': 'Zero-based record offset for '
+                                                           'pagination.'},
                                  'include_inactive': {'type': 'boolean',
                                                       'default': False,
                                                       'description': 'Include inactive memories in '
@@ -6096,7 +6604,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                 'enum': ['asc', 'desc'],
                                                 'default': 'desc',
                                                 'description': 'Sort direction'}},
-                  'required': []}},
+                  'required': []},
+  'annotations': {'title': 'List durable project memories',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_forget',
   'description': 'Delete memories by ID or filter criteria.',
   'inputSchema': {'type': 'object',
@@ -6618,11 +7131,21 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                               'returns all if not specified)'}},
                   'required': []}},
  {'name': 'snipara_swarm_create',
-  'description': 'Create a new agent swarm for multi-agent coordination.',
+  'description': 'Create persisted coordination state for a new agent swarm. This EDITOR operation '
+                 'writes project state and is non-idempotent unless reuse_existing=true returns an '
+                 'active same-name swarm. Use it only when multiple agents need shared claims, '
+                 'state, events, or tasks; do not create a swarm for a single-agent query. Returns '
+                 'the swarm ID, configuration, reuse status, and creation metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'name': {'type': 'string', 'description': 'Swarm name'},
-                                 'description': {'type': 'string'},
-                                 'max_agents': {'type': 'integer', 'default': 10},
+                                 'description': {'type': 'string',
+                                                 'description': 'Human-readable purpose and '
+                                                                'completion boundary for the '
+                                                                'swarm.'},
+                                 'max_agents': {'type': 'integer',
+                                                'default': 10,
+                                                'description': 'Maximum agents allowed to join the '
+                                                               'swarm.'},
                                  'task_timeout': {'type': 'integer',
                                                   'default': 600,
                                                   'description': 'Task lease timeout in seconds'},
@@ -6635,8 +7158,15 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                     'description': 'Return an active same-name '
                                                                    'swarm instead of creating a '
                                                                    'duplicate'},
-                                 'config': {'type': 'object'}},
-                  'required': ['name']}},
+                                 'config': {'type': 'object',
+                                            'description': 'Optional JSON coordination '
+                                                           'configuration stored with the swarm.'}},
+                  'required': ['name']},
+  'annotations': {'title': 'Create an agent swarm',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': False,
+                  'openWorldHint': False}},
  {'name': 'snipara_swarm_delete',
   'description': 'Delete an agent swarm and its related runtime data. Requires ADMIN access.',
   'inputSchema': {'type': 'object',
@@ -6710,37 +7240,87 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                             'scope'}}}},
                   'required': ['swarm_id', 'agent_id', 'profile']}},
  {'name': 'snipara_claim',
-  'description': 'Claim exclusive access to a resource (file, function, module). Claims '
-                 'auto-expire.',
+  'description': 'Acquire an exclusive, auto-expiring lease on a file, function, module, '
+                 'component, or named resource in a swarm. This EDITOR operation writes '
+                 'coordination state and can fail when another active claim conflicts; repeated '
+                 'calls are not idempotent. Use snipara_release when work ends and use shared '
+                 'state instead when exclusivity is unnecessary. Returns claim ID, lease status, '
+                 'owner, and expiry metadata.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
-                                 'agent_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm in which to acquire the '
+                                                             'exclusive lease.'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Agent identity that will own the '
+                                                             'lease.'},
                                  'resource_type': {'type': 'string',
                                                    'enum': ['file',
                                                             'function',
                                                             'module',
                                                             'component',
-                                                            'other']},
+                                                            'other'],
+                                                   'description': 'Kind of resource being '
+                                                                  'protected from concurrent '
+                                                                  'work.'},
                                  'resource_id': {'type': 'string',
                                                  'description': 'Resource identifier (e.g., file '
                                                                 'path)'},
-                                 'timeout_seconds': {'type': 'integer', 'default': 300}},
-                  'required': ['swarm_id', 'agent_id', 'resource_type', 'resource_id']}},
+                                 'timeout_seconds': {'type': 'integer',
+                                                     'default': 300,
+                                                     'description': 'Lease duration before '
+                                                                    'automatic expiry.'}},
+                  'required': ['swarm_id', 'agent_id', 'resource_type', 'resource_id']},
+  'annotations': {'title': 'Claim an exclusive swarm resource',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': False,
+                  'openWorldHint': False}},
  {'name': 'snipara_release',
-  'description': 'Release a claimed resource.',
+  'description': 'Release a swarm resource lease owned by the authenticated agent. This EDITOR '
+                 'operation mutates coordination state but not repository content; releasing an '
+                 'already absent lease is safe and idempotent. Identify the lease by claim_id or '
+                 'by resource type and ID. Use snipara_claim to acquire a lease. Returns release '
+                 'status and the resolved claim/resource identity.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
-                                 'agent_id': {'type': 'string'},
-                                 'claim_id': {'type': 'string'},
-                                 'resource_type': {'type': 'string'},
-                                 'resource_id': {'type': 'string'}},
-                  'required': ['swarm_id', 'agent_id']}},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm that owns the lease.'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Agent identity releasing its lease.'},
+                                 'claim_id': {'type': 'string',
+                                              'description': 'Preferred exact claim ID; use '
+                                                             'resource fields only when the ID is '
+                                                             'unavailable.'},
+                                 'resource_type': {'type': 'string',
+                                                   'description': 'Resource kind used with '
+                                                                  'resource_id to resolve a '
+                                                                  'lease.'},
+                                 'resource_id': {'type': 'string',
+                                                 'description': 'Exact resource identity used with '
+                                                                'resource_type to resolve a '
+                                                                'lease.'}},
+                  'required': ['swarm_id', 'agent_id']},
+  'annotations': {'title': 'Release a swarm resource claim',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_state_get',
-  'description': 'Read shared swarm state by key.',
+  'description': 'Read one versioned key from shared swarm state. This is a read-only operation '
+                 'and changes no state. Use it for a current value and version; use '
+                 'snipara_state_poll for multiple changing keys and snipara_state_set to write '
+                 'with optimistic locking. Returns key, value, version, and expiry metadata, or a '
+                 'not-found result.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm whose shared state should be '
+                                                             'read.'},
                                  'key': {'type': 'string', 'description': 'State key to read'}},
-                  'required': ['swarm_id', 'key']}},
+                  'required': ['swarm_id', 'key']},
+  'annotations': {'title': 'Read versioned swarm state',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_state_set',
   'description': 'Write shared swarm state with optimistic locking and optional TTL.',
   'inputSchema': {'type': 'object',
@@ -6774,18 +7354,36 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                    'default': {}}},
                   'required': ['swarm_id', 'keys']}},
  {'name': 'snipara_broadcast',
-  'description': 'Send an event to all agents in the swarm.',
+  'description': 'Append a project-scoped coordination event for swarm members. This EDITOR '
+                 'operation writes the swarm event stream, does not send external notifications, '
+                 'and is non-idempotent because each call creates an event. Use it for transient '
+                 'coordination signals; use snipara_state_set for durable versioned state. Returns '
+                 'the event ID and broadcast status.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
-                                 'agent_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm whose event stream receives '
+                                                             'the broadcast.'},
+                                 'agent_id': {'type': 'string',
+                                              'description': 'Sending agent identity recorded on '
+                                                             'the event.'},
                                  'event_type': {'type': 'string', 'description': 'Event type'},
                                  'payload': {'type': 'object', 'description': 'Event data'}},
-                  'required': ['swarm_id', 'agent_id', 'event_type']}},
+                  'required': ['swarm_id', 'agent_id', 'event_type']},
+  'annotations': {'title': 'Broadcast a swarm coordination event',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': False,
+                  'openWorldHint': False}},
  {'name': 'snipara_swarm_events',
-  'description': 'Query and filter broadcast events plus htask audit events in a swarm. Use '
-                 'snipara_htask_audit_trail for task-only polling.',
+  'description': 'List broadcast events and hierarchical-task audit events in one swarm, '
+                 'optionally filtered by type, sender, or time. This is a read-only operation and '
+                 'changes no coordination state. Use it for swarm-wide observation; use '
+                 "snipara_htask_audit_trail for one task's full history. Returns ordered events "
+                 'plus pagination/filter metadata.',
   'inputSchema': {'type': 'object',
-                  'properties': {'swarm_id': {'type': 'string'},
+                  'properties': {'swarm_id': {'type': 'string',
+                                              'description': 'Swarm whose broadcast and task '
+                                                             'events should be listed.'},
                                  'event_type': {'type': 'string',
                                                 'description': 'Filter by event type'},
                                  'agent_id': {'type': 'string',
@@ -6797,7 +7395,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'limit': {'type': 'integer',
                                            'default': 50,
                                            'description': 'Maximum events to return'}},
-                  'required': ['swarm_id']}},
+                  'required': ['swarm_id']},
+  'annotations': {'title': 'List swarm coordination events',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_agent_status',
   'description': 'Get swarm agent status with pending tasks and clear instructions.\n'
                  '\n'
@@ -7932,14 +8535,23 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                     'task blueprint overrides'}},
                   'required': ['title', 'description', 'owner']}},
  {'name': 'snipara_htask_get',
-  'description': 'Get a hierarchical task with its children.',
+  'description': 'Read one hierarchical task and its direct children inside a swarm. This is a '
+                 'read-only operation and changes no task authority or status. Use it for one '
+                 'task; use snipara_htask_tree for a recursive hierarchy and '
+                 'snipara_htask_audit_trail for history. Returns the task, children, and closure '
+                 'or dependency metadata.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'},
                                  'task_id': {'type': 'string', 'description': 'Task ID'},
                                  'include_children': {'type': 'boolean',
                                                       'default': True,
                                                       'description': 'Include direct children'}},
-                  'required': ['swarm_id', 'task_id']}},
+                  'required': ['swarm_id', 'task_id']},
+  'annotations': {'title': 'Get one hierarchical task',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_htask_tree',
   'description': 'Get full hierarchical tree from a node.\n'
                  '\n'
@@ -8151,11 +8763,19 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                   'description': 'Period for time-based metrics'}},
                   'required': ['swarm_id']}},
  {'name': 'snipara_htask_audit_trail',
-  'description': 'Get complete audit trail for a specific task.',
+  'description': 'Read the complete ordered audit trail for one hierarchical task in a swarm. This '
+                 'is a read-only operation and changes no task state. Use it for task-specific '
+                 'history and proof; use snipara_swarm_events for cross-task event polling. '
+                 'Returns timestamped task events with actor and transition details.',
   'inputSchema': {'type': 'object',
                   'properties': {'swarm_id': {'type': 'string', 'description': 'Swarm ID'},
                                  'task_id': {'type': 'string', 'description': 'Task ID'}},
-                  'required': ['swarm_id', 'task_id']}},
+                  'required': ['swarm_id', 'task_id']},
+  'annotations': {'title': 'Read hierarchical task audit trail',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_htask_checkpoint_delta',
   'description': 'Get delta report since last checkpoint.\n'
                  '\n'

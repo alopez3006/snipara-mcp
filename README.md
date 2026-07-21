@@ -4,26 +4,29 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`snipara-mcp` is the lightweight stdio MCP connector for Snipara project memory
-and context optimization.
+`snipara-mcp` is the lightweight stdio MCP connector for the Snipara Project
+Brain.
 
-**Memory belongs to the project, not the model.**
+**Snipara is the Project Brain for AI coding agents.**
 
 Use it when an MCP client needs a local stdio process that talks to Snipara's
-hosted project memory and context optimization APIs. If your client supports
-streamable HTTP MCP directly, prefer the hosted endpoint and skip the local
-process.
+hosted Project Intelligence APIs. Snipara gives Claude Code, Cursor, Codex, and
+other MCP clients the decisions, active work, code impact, proof, and handoffs
+they need before they edit. If your client supports streamable HTTP MCP
+directly, prefer the hosted endpoint and skip the local process.
 
 ## What Is Snipara?
 
-Snipara is project-scoped persistent context for AI-assisted work.
+Snipara is the shared Project Intelligence layer for AI-assisted software work.
 
 It gives Claude Code, Cursor, Codex, OpenAI Agents, and other MCP-compatible
-clients shared project intelligence that survives sessions, users, tools, and
+clients project context that survives sessions, users, tools, and
 model switches.
 
 Your agent still uses its own LLM. Snipara gives it the right project context:
-source-backed docs, reviewed memory, shared guidance, and code graph structure.
+source-backed docs, reviewed memory, shared guidance, workflow continuity, and
+code graph structure. In category terms, it is an AI coding agent context,
+memory, and continuity platform.
 
 ## Why MCP?
 
@@ -42,15 +45,28 @@ starting cold every session.
 
 ## What It Unlocks
 
-| Need                                      | Snipara MCP tool group                                                      |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| Ask project docs a source-backed question | `rlm_context_query`, `rlm_get_chunk`                                        |
-| Recall durable decisions and learnings    | `rlm_recall`                                                                |
-| Review the team Inbox                     | `rlm_inbox_review_queue`, `rlm_inbox_review_plan`, `rlm_inbox_review_apply` |
-| Persist reusable memory after a task      | `rlm_remember`, `rlm_end_of_task_commit`                                    |
-| Reuse team standards and shared guidance  | `rlm_shared_context`                                                        |
-| Inspect structural code relationships     | `rlm_code_callers`, `rlm_code_imports`, `rlm_code_neighbors`                |
-| Plan risky code changes                   | `rlm_code_symbol_card`, `rlm_code_impact` within plan capacity              |
+| Need                                      | Snipara MCP tool group                                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| Ask project docs a source-backed question | `snipara_context_query`, `snipara_get_chunk`                                            |
+| Recall durable decisions and learnings    | `snipara_recall`                                                                        |
+| Review the team Inbox                     | `snipara_inbox_review_queue`, `snipara_inbox_review_plan`, `snipara_inbox_review_apply` |
+| Persist reusable memory after a task      | `snipara_remember`, `snipara_end_of_task_commit`                                        |
+| Reuse team standards and shared guidance  | `snipara_shared_context`                                                                |
+| Inspect structural code relationships     | `snipara_code_callers`, `snipara_code_imports`, `snipara_code_neighbors`                |
+| Plan risky code changes                   | `snipara_code_symbol_card`, `snipara_code_impact` within plan capacity                  |
+
+Public MCP clients should use the `snipara_*` names. The generated contract
+retains `rlm_*` aliases for backward compatibility with older clients and
+directory records.
+
+### Agent-readable tool contracts (2.8.23)
+
+The connector now preserves detailed tool descriptions and MCP behavior
+annotations from the hosted source of truth. Summary, coordination, state,
+memory, and code graph tools explain their prerequisites, access rules, side
+effects, idempotence, alternatives, parameters, outputs, and common failure
+modes so agents can choose them safely. Native output schemas remain deferred
+until the transport and structured result format upgrade together.
 
 ### Unified conversational Inbox review (2.8.22)
 
@@ -239,15 +255,17 @@ tool surface is generated from the server source of truth.
 
 Common tool groups:
 
-- retrieval: `rlm_context_query`, `rlm_search`, `rlm_get_chunk`, `rlm_load_document`
-- durable memory: `rlm_recall`, `rlm_remember`, `rlm_memory_compact`
-- owner-aware bootstrap: `rlm_session_memories`, `rlm_owner_profile_get`,
-  `rlm_owner_profile_update`
-- shared context: `rlm_shared_context`, collection and template tools
-- document upload: `rlm_upload_document`, `rlm_sync_documents`
+- retrieval: `snipara_context_query`, `snipara_search`, `snipara_get_chunk`,
+  `snipara_load_document`
+- durable memory: `snipara_recall`, `snipara_remember`,
+  `snipara_memory_compact`
+- owner-aware bootstrap: `snipara_session_memories`,
+  `snipara_owner_profile_get`, `snipara_owner_profile_update`
+- shared context: `snipara_shared_context`, collection and template tools
+- document upload: `snipara_upload_document`, `snipara_sync_documents`
 - project setup: client, project, and business-context workspace tools
-- operations: `rlm_settings`, `rlm_index_health`, `rlm_reindex`
-- code graph: `rlm_code_*` tools when code indexes are available
+- operations: `snipara_settings`, `snipara_index_health`, `snipara_reindex`
+- code graph: `snipara_code_*` tools when code indexes are available
 - coordination: swarm, hierarchical task, and state tools when enabled
 
 Tool availability can vary by plan, hosted deployment, and project index state.
@@ -267,11 +285,11 @@ Legacy aliases such as `snipara-init`, `snipara-mcp-login`,
 
 ## Relationship To Other Repos
 
-| Repo                     | Role                                  |
-| ------------------------ | ------------------------------------- |
-| `Snipara/snipara-server` | Hosted and self-hosted server surface |
-| `alopez3006/snipara-mcp` | This stdio connector package          |
-| `Snipara/snipara-memory` | Open memory primitives and schema     |
+| Repo                        | Role                                                  |
+| --------------------------- | ----------------------------------------------------- |
+| `alopez3006/snipara-mcp`    | Current generated public connector mirror             |
+| `Snipara/snipara-companion` | Local workflow, impact, verification, and handoff CLI |
+| `Snipara/snipara-memory`    | Open memory primitives and schema                     |
 
 `snipara-mcp` is intentionally thin. It should be easy to install, easy to
 audit, and boring to operate. The heavy lifting stays in Snipara's hosted

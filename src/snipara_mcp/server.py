@@ -642,8 +642,12 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name=tool["name"],
+            title=tool.get("title"),
             description=tool["description"],
             inputSchema=tool["inputSchema"],
+            outputSchema=tool.get("outputSchema"),
+            annotations=tool.get("annotations"),
+            meta=tool.get("_meta"),
         )
         for tool in MCP_TOOL_DEFINITIONS
     ]
