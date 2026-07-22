@@ -72,6 +72,13 @@ The default discovery surface contains 13 coherent tools:
 `snipara_inbox_review_queue`, `snipara_inbox_review_plan`, and
 `snipara_inbox_review_apply`.
 
+### Configurable code-impact traversal (2.8.25)
+
+The packaged `snipara_code_impact` contract now exposes `depth` (1-6),
+`direction` (`in`, `out`, or `both`), and optional `edge_kinds`. This keeps the
+connector contract aligned with hosted impact chains and Companion's hybrid
+local/hosted traversal controls.
+
 ### Credential-free discovery and compact contract (2.8.24)
 
 MCP clients and directory inspectors can now complete `initialize` and

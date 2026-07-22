@@ -682,10 +682,10 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'description': 'USE WHEN: what breaks if this changes; run before risky edits, PR reviews, '
                  'routes/services/jobs work, or explicit gap analysis. Primary code surface for '
                  'local work is `snipara-companion code impact`: if you have shell access and '
-                 'local commits or a dirty working tree may matter, run that first because it '
-                 'auto-selects local_overlay. Use this hosted MCP tool as the fallback when '
-                 'companion is unavailable, or after push/reindex for the canonical hosted graph. '
-                 'Pass changed_files for a committed diff or PR file list.',
+                 'local commits or a dirty working tree may matter, run that first because it can '
+                 'merge a local delta with the canonical hosted base. Use this hosted MCP tool as '
+                 'the fallback when companion is unavailable, or after push/reindex for the '
+                 'canonical hosted graph. Pass changed_files for a committed diff or PR file list.',
   'inputSchema': {'type': 'object',
                   'properties': {'qualified_name': {'type': 'string',
                                                     'description': 'Repo-qualified symbol name'},
@@ -703,6 +703,20 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'diff_summary': {'type': 'string',
                                                   'description': 'Optional natural-language '
                                                                  'summary of the change or PR'},
+                                 'depth': {'type': 'integer',
+                                           'default': 3,
+                                           'minimum': 1,
+                                           'maximum': 6,
+                                           'description': 'Maximum transitive impact-chain depth'},
+                                 'direction': {'type': 'string',
+                                               'enum': ['in', 'out', 'both'],
+                                               'default': 'both',
+                                               'description': 'Traverse incoming, outgoing, or '
+                                                              'both edge directions'},
+                                 'edge_kinds': {'type': 'array',
+                                                'items': {'type': 'string'},
+                                                'description': 'Optional structural edge kinds to '
+                                                               'include, such as CALLS or IMPORTS'},
                                  'limit': {'type': 'integer',
                                            'default': 50,
                                            'minimum': 1,
@@ -731,8 +745,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  'separately from the canonical hosted code graph.',
   'inputSchema': {'type': 'object',
                   'properties': {'overlay': {'type': 'object',
-                                             'description': 'The snipara.local_code_overlay.v1 '
-                                                            'manifest to store.'},
+                                             'description': 'The snipara.local_code_overlay.v1 or '
+                                                            'v2 manifest to store.'},
                                  'source_client': {'type': 'string',
                                                    'default': 'snipara-companion',
                                                    'description': 'Client that generated the '
@@ -5737,10 +5751,10 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'description': 'USE WHEN: what breaks if this changes; run before risky edits, PR reviews, '
                  'routes/services/jobs work, or explicit gap analysis. Primary code surface for '
                  'local work is `snipara-companion code impact`: if you have shell access and '
-                 'local commits or a dirty working tree may matter, run that first because it '
-                 'auto-selects local_overlay. Use this hosted MCP tool as the fallback when '
-                 'companion is unavailable, or after push/reindex for the canonical hosted graph. '
-                 'Pass changed_files for a committed diff or PR file list.',
+                 'local commits or a dirty working tree may matter, run that first because it can '
+                 'merge a local delta with the canonical hosted base. Use this hosted MCP tool as '
+                 'the fallback when companion is unavailable, or after push/reindex for the '
+                 'canonical hosted graph. Pass changed_files for a committed diff or PR file list.',
   'inputSchema': {'type': 'object',
                   'properties': {'qualified_name': {'type': 'string',
                                                     'description': 'Repo-qualified symbol name'},
@@ -5758,6 +5772,20 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'diff_summary': {'type': 'string',
                                                   'description': 'Optional natural-language '
                                                                  'summary of the change or PR'},
+                                 'depth': {'type': 'integer',
+                                           'default': 3,
+                                           'minimum': 1,
+                                           'maximum': 6,
+                                           'description': 'Maximum transitive impact-chain depth'},
+                                 'direction': {'type': 'string',
+                                               'enum': ['in', 'out', 'both'],
+                                               'default': 'both',
+                                               'description': 'Traverse incoming, outgoing, or '
+                                                              'both edge directions'},
+                                 'edge_kinds': {'type': 'array',
+                                                'items': {'type': 'string'},
+                                                'description': 'Optional structural edge kinds to '
+                                                               'include, such as CALLS or IMPORTS'},
                                  'limit': {'type': 'integer',
                                            'default': 50,
                                            'minimum': 1,
@@ -5783,8 +5811,8 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                  'separately from the canonical hosted code graph.',
   'inputSchema': {'type': 'object',
                   'properties': {'overlay': {'type': 'object',
-                                             'description': 'The snipara.local_code_overlay.v1 '
-                                                            'manifest to store.'},
+                                             'description': 'The snipara.local_code_overlay.v1 or '
+                                                            'v2 manifest to store.'},
                                  'source_client': {'type': 'string',
                                                    'default': 'snipara-companion',
                                                    'description': 'Client that generated the '
