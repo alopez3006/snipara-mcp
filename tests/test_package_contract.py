@@ -17,7 +17,10 @@ from snipara_mcp.tool_contract import DEFAULT_AGENT_TOOL_DEFINITIONS, MCP_TOOL_D
 
 
 def _package_version_from_pyproject() -> str:
-    import tomllib
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
 
     pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
     data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
