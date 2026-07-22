@@ -112,6 +112,7 @@ def test_server_e2e_list_tools_and_real_tool_calls(monkeypatch) -> None:
     monkeypatch.setattr(mcp_server, "_auth_type", "api_key")
     monkeypatch.setattr(mcp_server, "_auth_token", "rlm_e2e_key")
     monkeypatch.setattr(mcp_server, "API_KEY", "")
+    monkeypatch.setenv("SNIPARA_TOOL_PROFILE", "full")
 
     async def run_calls() -> tuple[set[str], Any, Any, Any, Any]:
         tools = {tool.name for tool in await mcp_server.list_tools()}

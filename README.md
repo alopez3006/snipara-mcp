@@ -3,6 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/snipara-mcp.svg)](https://pypi.org/project/snipara-mcp/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/alopez3006/snipara-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/alopez3006/snipara-mcp/actions/workflows/ci.yml)
 
 `snipara-mcp` is the lightweight stdio MCP connector for the Snipara Project
 Brain.
@@ -50,7 +51,7 @@ starting cold every session.
 | Ask project docs a source-backed question | `snipara_context_query`, `snipara_get_chunk`                                            |
 | Recall durable decisions and learnings    | `snipara_recall`                                                                        |
 | Review the team Inbox                     | `snipara_inbox_review_queue`, `snipara_inbox_review_plan`, `snipara_inbox_review_apply` |
-| Persist reusable memory after a task      | `snipara_remember`, `snipara_end_of_task_commit`                                        |
+| Persist reusable memory after a task      | `snipara_remember_if_novel`, `snipara_end_of_task_commit`                               |
 | Reuse team standards and shared guidance  | `snipara_shared_context`                                                                |
 | Inspect structural code relationships     | `snipara_code_callers`, `snipara_code_imports`, `snipara_code_neighbors`                |
 | Plan risky code changes                   | `snipara_code_symbol_card`, `snipara_code_impact` within plan capacity                  |
@@ -58,6 +59,28 @@ starting cold every session.
 Public MCP clients should use the `snipara_*` names. The generated contract
 retains `rlm_*` aliases for backward compatibility with older clients and
 directory records.
+
+The stdio server advertises the same compact default agent contract as the
+hosted MCP endpoint. Set `SNIPARA_TOOL_PROFILE=full` only for clients that need
+direct discovery of every specialist compatibility tool; hidden tools remain
+callable by explicit name and discoverable through `snipara_help`.
+
+The default discovery surface contains 13 coherent tools:
+`snipara_context_query`, `snipara_ask`, `snipara_search`, `snipara_read`,
+`snipara_stats`, `snipara_help`, `snipara_get_chunk`, `snipara_recall`,
+`snipara_remember_if_novel`, `snipara_end_of_task_commit`,
+`snipara_inbox_review_queue`, `snipara_inbox_review_plan`, and
+`snipara_inbox_review_apply`.
+
+### Credential-free discovery and compact contract (2.8.24)
+
+MCP clients and directory inspectors can now complete `initialize` and
+`tools/list` before credentials are configured. Every actual tool call still
+fails closed until authentication and project selection are present. The
+default `tools/list` response exposes the same 13-tool core as hosted Snipara,
+while `SNIPARA_TOOL_PROFILE=full` retains direct discovery of all specialist
+compatibility tools. Core tools now include complete selection guidance,
+behavior annotations, and nested parameter documentation for safer agent use.
 
 ### Agent-readable tool contracts (2.8.23)
 
@@ -237,12 +260,13 @@ Add to `~/.cursor/mcp.json`:
 
 ## Environment
 
-| Variable               | Required                                 | Description                           |
-| ---------------------- | ---------------------------------------- | ------------------------------------- |
-| `SNIPARA_API_KEY`      | Yes, unless using `snipara login`        | Snipara API key                       |
-| `SNIPARA_PROJECT_ID`   | Yes, unless using `SNIPARA_PROJECT_SLUG` | Project identifier                    |
-| `SNIPARA_PROJECT_SLUG` | Yes, unless using `SNIPARA_PROJECT_ID`   | Project slug                          |
-| `SNIPARA_API_URL`      | No                                       | Defaults to `https://api.snipara.com` |
+| Variable               | Required                                 | Description                                               |
+| ---------------------- | ---------------------------------------- | --------------------------------------------------------- |
+| `SNIPARA_API_KEY`      | Yes, unless using `snipara login`        | Snipara API key                                           |
+| `SNIPARA_PROJECT_ID`   | Yes, unless using `SNIPARA_PROJECT_SLUG` | Project identifier                                        |
+| `SNIPARA_PROJECT_SLUG` | Yes, unless using `SNIPARA_PROJECT_ID`   | Project slug                                              |
+| `SNIPARA_API_URL`      | No                                       | Defaults to `https://api.snipara.com`                     |
+| `SNIPARA_TOOL_PROFILE` | No                                       | `core` by default; `full` exposes specialist tool schemas |
 
 OAuth tokens created by `snipara login` are stored in `~/.snipara/tokens.json`.
 If a project id or slug is set, the connector selects the matching token and
@@ -250,8 +274,9 @@ does not silently fall back to another project.
 
 ## What You Get
 
-The connector exposes the same MCP contract as the hosted backend. The packaged
-tool surface is generated from the server source of truth.
+The connector exposes the same compact default MCP contract as the hosted
+backend. The packaged full compatibility surface is generated from the server
+source of truth and is available with `SNIPARA_TOOL_PROFILE=full`.
 
 Common tool groups:
 

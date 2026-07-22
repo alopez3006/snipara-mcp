@@ -33,7 +33,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Resource, ResourceTemplate, TextContent, Tool
 
-from .tool_contract import MCP_TOOL_DEFINITIONS, TOOL_NAMES
+from .tool_contract import DEFAULT_AGENT_TOOL_DEFINITIONS, MCP_TOOL_DEFINITIONS, TOOL_NAMES
 
 # Configuration
 API_URL = os.environ.get("SNIPARA_API_URL", "https://api.snipara.com")
@@ -223,6 +223,21 @@ def get_headers() -> dict[str, str]:
         headers["X-API-Key"] = API_KEY
 
     return headers
+
+
+def _tool_call_auth_error() -> str | None:
+    """Return a fail-closed runtime error while keeping MCP discovery public."""
+    if not _auth_token and not API_KEY:
+        return (
+            "Authentication required. Run `snipara login` or set "
+            "SNIPARA_API_KEY before calling Snipara tools."
+        )
+    if not PROJECT_ID:
+        return (
+            "Project selection required. Set SNIPARA_PROJECT_ID or "
+            "SNIPARA_PROJECT_SLUG before calling Snipara tools."
+        )
+    return None
 
 
 async def call_api(
@@ -639,6 +654,10 @@ async def ensure_session_bootstrap(force: bool = False) -> None:
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     """List available Snipara tools."""
+    profile = os.environ.get("SNIPARA_TOOL_PROFILE", "core").strip().lower()
+    tool_definitions = (
+        MCP_TOOL_DEFINITIONS if profile == "full" else DEFAULT_AGENT_TOOL_DEFINITIONS
+    )
     return [
         Tool(
             name=tool["name"],
@@ -649,7 +668,7 @@ async def list_tools() -> list[Tool]:
             annotations=tool.get("annotations"),
             meta=tool.get("_meta"),
         )
-        for tool in MCP_TOOL_DEFINITIONS
+        for tool in tool_definitions
     ]
 
 
@@ -678,6 +697,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     global _session_context
 
     try:
+        auth_error = _tool_call_auth_error()
+        if auth_error:
+            return [TextContent(type="text", text=f"**Error:** {auth_error}")]
+
         await ensure_session_bootstrap()
         name = _canonical_tool_name(name)
 
@@ -2137,27 +2160,22 @@ async def run_server():
     )
     PROJECT_ID = _project_id or (_requested_project()[2] or "")
 
+    # Discovery is intentionally public so registries and inspectors can call
+    # initialize/tools/list without receiving project credentials. Every
+    # tools/call remains fail-closed through _tool_call_auth_error().
     if not _auth_token and not API_KEY:
-        print("Error: No authentication found.", file=sys.stderr)
-        print("", file=sys.stderr)
-        print("Options:", file=sys.stderr)
-        print("  1. Run 'snipara login' to authenticate via browser (recommended)", file=sys.stderr)
-        print("  2. Set SNIPARA_API_KEY environment variable", file=sys.stderr)
-        sys.exit(1)
-
-    if not PROJECT_ID:
-        print("Error: No project ID found.", file=sys.stderr)
-        if _auth_type == "oauth":
-            print(
-                "Your OAuth token should include a project ID. Try logging in again.",
-                file=sys.stderr,
-            )
-        else:
-            print("Set SNIPARA_PROJECT_ID environment variable.", file=sys.stderr)
-        sys.exit(1)
-
-    # Log auth method for debugging
-    if _auth_type == "oauth":
+        print(
+            "Starting in unauthenticated discovery mode; tool calls require `snipara login` "
+            "or SNIPARA_API_KEY.",
+            file=sys.stderr,
+        )
+    elif not PROJECT_ID:
+        print(
+            "Starting in discovery mode without a selected project; tool calls require "
+            "SNIPARA_PROJECT_ID or SNIPARA_PROJECT_SLUG.",
+            file=sys.stderr,
+        )
+    elif _auth_type == "oauth":
         print(f"Authenticated via OAuth (project: {PROJECT_ID})", file=sys.stderr)
     else:
         print(f"Authenticated via API key (project: {PROJECT_ID})", file=sys.stderr)

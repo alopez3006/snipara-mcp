@@ -12,7 +12,10 @@ def _tool_by_name(tools: list[Any], name: str) -> Any:
 
 
 @pytest.mark.asyncio
-async def test_list_tools_exposes_graveyard_lite_memory_surface():
+async def test_full_profile_exposes_graveyard_lite_memory_surface(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setenv("SNIPARA_TOOL_PROFILE", "full")
     tools = await server_module.list_tools()
 
     recall = _tool_by_name(tools, "snipara_recall")

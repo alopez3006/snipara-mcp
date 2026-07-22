@@ -1,16 +1,19 @@
 """Package-local regression tests for snipara-mcp."""
 
+from contextlib import asynccontextmanager
+import json
 from pathlib import Path
 import sys
 import types
 
+import pytest
 from typer.testing import CliRunner
 
 import snipara_mcp
 import snipara_mcp.auth as mcp_auth
 import snipara_mcp.server as mcp_server
 from snipara_mcp.cli import app
-from snipara_mcp.tool_contract import MCP_TOOL_DEFINITIONS
+from snipara_mcp.tool_contract import DEFAULT_AGENT_TOOL_DEFINITIONS, MCP_TOOL_DEFINITIONS
 
 
 def _package_version_from_pyproject() -> str:
@@ -24,6 +27,17 @@ def _package_version_from_pyproject() -> str:
 def test_package_version_matches_pyproject() -> None:
     """The installed package should report the same version as pyproject.toml."""
     assert snipara_mcp.__version__ == _package_version_from_pyproject()
+
+
+def test_glama_metadata_claims_public_repository() -> None:
+    """The generated public mirror should carry valid Glama ownership metadata."""
+    glama_path = Path(__file__).resolve().parents[1] / "glama.json"
+    metadata = json.loads(glama_path.read_text(encoding="utf-8"))
+
+    assert metadata == {
+        "$schema": "https://glama.ai/mcp/schemas/server.json",
+        "maintainers": ["alopez3006"],
+    }
 
 
 def test_cli_version_reports_package_version() -> None:
@@ -106,12 +120,93 @@ def test_cli_tools_call_decodes_json_text_payload(monkeypatch) -> None:
     assert "rlm_session_memories" in result.stdout
 
 
-async def test_list_tools_matches_generated_contract() -> None:
-    """The packaged MCP server should expose the generated tool contract verbatim."""
+async def test_list_tools_defaults_to_generated_agent_contract(monkeypatch) -> None:
+    """Default stdio discovery should match the hosted lean agent contract."""
+    monkeypatch.delenv("SNIPARA_TOOL_PROFILE", raising=False)
+    listed_tools = {tool.name: tool.inputSchema for tool in await mcp_server.list_tools()}
+    contract_tools = {
+        tool["name"]: tool["inputSchema"] for tool in DEFAULT_AGENT_TOOL_DEFINITIONS
+    }
+
+    assert listed_tools == contract_tools
+    assert len(listed_tools) <= 13
+    assert all(name.startswith("snipara_") for name in listed_tools)
+
+
+async def test_list_tools_supports_explicit_full_compatibility_profile(monkeypatch) -> None:
+    """Advanced clients may opt into every generated public tool definition."""
+    monkeypatch.setenv("SNIPARA_TOOL_PROFILE", "full")
+
     listed_tools = {tool.name: tool.inputSchema for tool in await mcp_server.list_tools()}
     contract_tools = {tool["name"]: tool["inputSchema"] for tool in MCP_TOOL_DEFINITIONS}
 
     assert listed_tools == contract_tools
+    assert len(listed_tools) > len(DEFAULT_AGENT_TOOL_DEFINITIONS)
+
+
+@pytest.mark.asyncio
+async def test_run_server_allows_unauthenticated_mcp_discovery(monkeypatch) -> None:
+    """Registries must reach initialize/tools/list without project credentials."""
+    run_calls = []
+
+    monkeypatch.setattr(mcp_server, "_load_auth", lambda: (None, "none", None))
+    monkeypatch.delenv("SNIPARA_API_KEY", raising=False)
+    monkeypatch.delenv("SNIPARA_PROJECT_ID", raising=False)
+    monkeypatch.delenv("SNIPARA_PROJECT_SLUG", raising=False)
+
+    @asynccontextmanager
+    async def fake_stdio_server():
+        yield "read-stream", "write-stream"
+
+    async def fake_run(read_stream, write_stream, initialization_options):
+        run_calls.append((read_stream, write_stream, initialization_options))
+
+    monkeypatch.setattr(mcp_server, "stdio_server", fake_stdio_server)
+    monkeypatch.setattr(mcp_server.server, "run", fake_run)
+
+    await mcp_server.run_server()
+
+    assert len(run_calls) == 1
+    assert run_calls[0][:2] == ("read-stream", "write-stream")
+
+
+@pytest.mark.asyncio
+async def test_tool_calls_fail_closed_without_authentication(monkeypatch) -> None:
+    """Public schema discovery must never make unauthenticated tools callable."""
+    bootstrap_called = False
+
+    async def unexpected_bootstrap():
+        nonlocal bootstrap_called
+        bootstrap_called = True
+
+    monkeypatch.setattr(mcp_server, "_auth_token", None)
+    monkeypatch.setattr(mcp_server, "_auth_type", "none")
+    monkeypatch.setattr(mcp_server, "API_KEY", "")
+    monkeypatch.setattr(mcp_server, "PROJECT_ID", "")
+    monkeypatch.setattr(mcp_server, "ensure_session_bootstrap", unexpected_bootstrap)
+
+    result = await mcp_server.call_tool(
+        "snipara_context_query",
+        {"query": "authentication contract"},
+    )
+
+    assert bootstrap_called is False
+    assert "Authentication required" in result[0].text
+    assert "SNIPARA_API_KEY" in result[0].text
+
+
+@pytest.mark.asyncio
+async def test_tool_calls_require_project_after_authentication(monkeypatch) -> None:
+    """A credential without a project may inspect schemas but may not execute tools."""
+    monkeypatch.setattr(mcp_server, "_auth_token", "rlm_test_key")
+    monkeypatch.setattr(mcp_server, "_auth_type", "api_key")
+    monkeypatch.setattr(mcp_server, "API_KEY", "")
+    monkeypatch.setattr(mcp_server, "PROJECT_ID", "")
+
+    result = await mcp_server.call_tool("snipara_stats", {})
+
+    assert "Project selection required" in result[0].text
+    assert "SNIPARA_PROJECT_SLUG" in result[0].text
 
 
 def test_generated_contract_exposes_agent_context_surface() -> None:

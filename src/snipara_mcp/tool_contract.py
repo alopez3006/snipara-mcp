@@ -35,8 +35,17 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                 'fast retry/recovery paths; use '
                                                                 'hybrid for normal documentation '
                                                                 'discovery.'},
-                                 'include_metadata': {'type': 'boolean', 'default': True},
-                                 'prefer_summaries': {'type': 'boolean', 'default': False},
+                                 'include_metadata': {'type': 'boolean',
+                                                      'default': True,
+                                                      'description': 'Include document, section, '
+                                                                     'tier, and retrieval metadata '
+                                                                     'with returned context.'},
+                                 'prefer_summaries': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Prefer stored summaries when '
+                                                                     'available without excluding '
+                                                                     'authoritative source '
+                                                                     'matches.'},
                                  'return_references': {'type': 'boolean',
                                                        'default': False,
                                                        'description': 'Return chunk references '
@@ -128,7 +137,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -192,8 +219,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
             'snipara_advertised_tool': 'snipara_context_query'},
   'exposed': False},
  {'name': 'rlm_ask',
-  'description': 'Query documentation with a question (basic). Use rlm_context_query for better '
-                 'results.',
+  'description': 'Answer one simple question from indexed project documentation with server-side '
+                 'synthesis. This is a read-only VIEWER operation and changes no project state. '
+                 'Use rlm_context_query when citations, answer packs, retrieval controls, or '
+                 'source sections matter; use rlm_search for an exact regex. Returns a concise '
+                 'answer or a bounded no-match/error result.',
   'alias_of': 'rlm_context_query',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string', 'description': 'The question to ask'},
@@ -214,7 +244,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -268,14 +316,21 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                                       'telemetry '
                                                                                                       'fallback.'}}}},
                   'required': ['query']},
+  'annotations': {'title': 'Answer a simple documentation question',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   '_meta': {'snipara_tool_weight': -6.0,
             'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_ask'},
   'exposed': False},
  {'name': 'rlm_search',
-  'description': 'Search indexed documentation with an exact regex pattern. This is a grep-like '
-                 'text search, not semantic retrieval; use rlm_context_query(query=...) for '
-                 'source-truth semantic/context search.',
+  'description': 'Search indexed project documentation with an exact regular expression. This is a '
+                 'read-only VIEWER operation and changes no project state. Use it for identifiers, '
+                 'paths, or literal wording; use rlm_context_query for semantic source retrieval '
+                 'and rlm_read after locating a relevant range. Returns capped matches with '
+                 'document and line context, or a validation/no-match result.',
   'inputSchema': {'type': 'object',
                   'properties': {'pattern': {'type': 'string',
                                              'description': 'Regex text pattern to search for.'},
@@ -304,7 +359,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -358,6 +431,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                                       'telemetry '
                                                                                                       'fallback.'}}}},
                   'required': []},
+  'annotations': {'title': 'Search exact indexed text',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   '_meta': {'snipara_tool_weight': 4.0,
             'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_search'},
@@ -932,8 +1010,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_clear_context'}},
  {'name': 'rlm_stats',
-  'description': 'Show compact documentation statistics. File lists and DB-backed index health are '
-                 'opt-in so interactive stats calls stay small and fast.',
+  'description': 'Read compact project documentation and retrieval statistics without changing '
+                 'project state. File samples and database-backed index health are opt-in to keep '
+                 'the response small. Use rlm_index_health for operational diagnosis rather than '
+                 'this overview. Returns counts, token/index summaries, and only the optional '
+                 'sections requested.',
   'inputSchema': {'type': 'object',
                   'properties': {'include_files': {'type': 'boolean',
                                                    'default': False,
@@ -953,6 +1034,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                          'health, call '
                                                                          'rlm_index_health.'}},
                   'required': []},
+  'annotations': {'title': 'Read compact project statistics',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_stats'}},
  {'name': 'rlm_sections',
@@ -980,8 +1066,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_settings'}},
  {'name': 'rlm_help',
-  'description': 'Get intelligent tool recommendations based on what you want to do. Helps '
-                 'discover the right tool for your task.',
+  'description': 'Discover the correct Snipara tool without executing that tool or changing '
+                 'project state. Use query for ranked recommendations, tool for one detailed '
+                 'contract, tier for a bounded category, or list_all for the deterministic catalog '
+                 'including specialists hidden from tools/list. Returns selection guidance, '
+                 'examples, access requirements, surface metadata, and related tools.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string',
                                            'description': 'Describe what you want to do (e.g., '
@@ -1007,6 +1096,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'maximum': 20,
                                            'description': 'Maximum recommendations to return'}},
                   'required': []},
+  'annotations': {'title': 'Discover the right Snipara tool',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   '_meta': {'snipara_tool_weight': 3.0,
             'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_help'},
@@ -1528,10 +1622,13 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_remember'}},
  {'name': 'rlm_remember_if_novel',
-  'description': 'Store a durable Memory V2 record only if it is sufficiently novel compared with '
-                 'existing memories. Direct writes support fact, decision, learning, preference, '
-                 'todo, and context. Use context tools for source truth and rlm_end_of_task_commit '
-                 'for workflow capture. Returns duplicate matches when skipped.',
+  'description': 'Store one durable Memory V2 record only when it is sufficiently different from '
+                 'existing reviewed memory. This EDITOR operation may write project, team, user, '
+                 'or agent state; duplicate calls normally skip the write, while auto_safe '
+                 'reconciliation may supersede high-confidence same-owner matches without deleting '
+                 'them. Use rlm_end_of_task_commit for multi-outcome workflow capture and context '
+                 'tools for source documents. Returns whether storage occurred, duplicate '
+                 'evidence, the memory ID, and reconciliation actions.',
   'inputSchema': {'type': 'object',
                   'properties': {'text': {'type': 'string',
                                           'maxLength': 65536,
@@ -1543,7 +1640,10 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                    'preference',
                                                    'todo',
                                                    'context'],
-                                          'default': 'fact'},
+                                          'default': 'fact',
+                                          'description': 'Durable knowledge type used for '
+                                                         'authority, retention, and later recall '
+                                                         'filtering.'},
                                  'scope': {'type': 'string',
                                            'enum': ['agent', 'project', 'team', 'user'],
                                            'default': 'project',
@@ -1561,14 +1661,28 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                      'scope=user memory. Snipara '
                                                                      'hashes and namespaces it per '
                                                                      'integrator client.'},
-                                 'category': {'type': 'string', 'maxLength': 200},
-                                 'ttl_days': {'type': 'integer'},
+                                 'category': {'type': 'string',
+                                              'maxLength': 200,
+                                              'description': 'Optional stable category used to '
+                                                             'group and deduplicate related '
+                                                             'memories.'},
+                                 'ttl_days': {'type': 'integer',
+                                              'description': 'Optional retention period in days; '
+                                                             'omit only for knowledge that should '
+                                                             'not expire automatically.'},
                                  'related_to': {'type': 'array',
                                                 'items': {'type': 'string', 'maxLength': 256},
-                                                'maxItems': 50},
+                                                'maxItems': 50,
+                                                'description': 'Existing memory IDs that provide '
+                                                               'an explicit relationship, not '
+                                                               'duplicate candidates.'},
                                  'document_refs': {'type': 'array',
                                                    'items': {'type': 'string', 'maxLength': 512},
-                                                   'maxItems': 100},
+                                                   'maxItems': 100,
+                                                   'description': 'Project-relative source '
+                                                                  'document paths supporting this '
+                                                                  'memory; never place secrets '
+                                                                  'here.'},
                                  'source': {'type': 'string',
                                             'maxLength': 200,
                                             'description': 'Optional source label for the memory '
@@ -1582,7 +1696,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'dedupe_limit': {'type': 'integer',
                                                   'default': 5,
                                                   'minimum': 1,
-                                                  'maximum': 20},
+                                                  'maximum': 20,
+                                                  'description': 'Maximum nearest existing '
+                                                                 'memories examined before '
+                                                                 'deciding whether this write is '
+                                                                 'novel.'},
                                  'allow_supersede': {'type': 'boolean',
                                                      'default': True,
                                                      'description': 'Reserved for future conflict '
@@ -1606,12 +1724,21 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                'physical '
                                                                                'deletion.'}},
                   'required': ['text']},
+  'annotations': {'title': 'Store memory only when novel',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_remember_if_novel'}},
  {'name': 'rlm_end_of_task_commit',
-  'description': 'Persist durable outcomes from a task. A structured why block is captured '
-                 'atomically as a pending Why Capture candidate; summary remains the heuristic '
-                 'fallback. Unknown parameters are rejected before any write.',
+  'description': 'Persist a bounded end-of-task summary, optional structured Why Capture, and '
+                 'selected durable outcomes so another agent can resume the work. This EDITOR '
+                 'operation writes memory and workflow state and is non-idempotent; dry_run '
+                 'validates without writing. Use rlm_remember_if_novel for one reusable memory and '
+                 'document upload tools for source material. Unknown fields fail closed. Returns '
+                 'created or skipped records, review candidates, handoff metadata, and validation '
+                 'warnings.',
   'inputSchema': {'type': 'object',
                   'additionalProperties': False,
                   'properties': {'summary': {'type': 'string',
@@ -1628,32 +1755,93 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                         'by summary heuristics',
                                          'properties': {'decision': {'type': 'string',
                                                                      'minLength': 1,
-                                                                     'maxLength': 20000},
+                                                                     'maxLength': 20000,
+                                                                     'description': 'Durable '
+                                                                                    'decision or '
+                                                                                    'conclusion '
+                                                                                    'that future '
+                                                                                    'agents should '
+                                                                                    'retain.'},
                                                         'rationale': {'type': 'string',
                                                                       'minLength': 1,
-                                                                      'maxLength': 50000},
+                                                                      'maxLength': 50000,
+                                                                      'description': 'Reasoning '
+                                                                                     'and evidence '
+                                                                                     'that explain '
+                                                                                     'why the '
+                                                                                     'decision was '
+                                                                                     'made.'},
                                                         'alternatives': {'type': 'array',
                                                                          'maxItems': 8,
+                                                                         'description': 'Meaningful '
+                                                                                        'alternatives '
+                                                                                        'considered '
+                                                                                        'before '
+                                                                                        'the final '
+                                                                                        'decision.',
                                                                          'items': {'type': 'string',
                                                                                    'minLength': 1,
-                                                                                   'maxLength': 900}},
+                                                                                   'maxLength': 900,
+                                                                                   'description': 'One '
+                                                                                                  'alternative '
+                                                                                                  'approach '
+                                                                                                  'that '
+                                                                                                  'was '
+                                                                                                  'considered.'}},
                                                         'constraints': {'type': 'array',
                                                                         'maxItems': 12,
+                                                                        'description': 'Technical, '
+                                                                                       'product, '
+                                                                                       'security, '
+                                                                                       'or '
+                                                                                       'operational '
+                                                                                       'constraints '
+                                                                                       'that '
+                                                                                       'shaped the '
+                                                                                       'outcome.',
                                                                         'items': {'type': 'string',
                                                                                   'minLength': 1,
-                                                                                  'maxLength': 900}},
+                                                                                  'maxLength': 900,
+                                                                                  'description': 'One '
+                                                                                                 'constraint '
+                                                                                                 'that '
+                                                                                                 'influenced '
+                                                                                                 'the '
+                                                                                                 'decision.'}},
                                                         'observed_outcome': {'type': 'string',
                                                                              'minLength': 1,
-                                                                             'maxLength': 20000}},
+                                                                             'maxLength': 20000,
+                                                                             'description': 'Verified '
+                                                                                            'result '
+                                                                                            'observed '
+                                                                                            'after '
+                                                                                            'applying '
+                                                                                            'the '
+                                                                                            'decision, '
+                                                                                            'including '
+                                                                                            'the '
+                                                                                            'validation '
+                                                                                            'signal '
+                                                                                            'when '
+                                                                                            'available.'}},
                                          'minProperties': 1},
                                  'outcome': {'type': 'string',
                                              'enum': ['completed',
                                                       'partial',
                                                       'blocked',
                                                       'abandoned'],
-                                             'default': 'completed'},
-                                 'files_touched': {'type': 'array', 'items': {'type': 'string'}},
-                                 'artifacts': {'type': 'array', 'items': {'type': 'string'}},
+                                             'default': 'completed',
+                                             'description': 'Final task state used to frame the '
+                                                            'handoff and durable extraction.'},
+                                 'files_touched': {'type': 'array',
+                                                   'items': {'type': 'string'},
+                                                   'description': 'Project-relative files '
+                                                                  'materially changed or inspected '
+                                                                  'during the task.'},
+                                 'artifacts': {'type': 'array',
+                                               'items': {'type': 'string'},
+                                               'description': 'Durable artifact identifiers or '
+                                                              'paths produced by the task.'},
                                  'persist_types': {'type': 'array',
                                                    'items': {'type': 'string',
                                                              'enum': ['decision',
@@ -1661,8 +1849,14 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                       'preference',
                                                                       'todo',
                                                                       'context',
-                                                                      'workflow']}},
-                                 'category': {'type': 'string'},
+                                                                      'workflow']},
+                                                   'description': 'Memory categories that may be '
+                                                                  'extracted from the task '
+                                                                  'summary; omit unwanted '
+                                                                  'categories.'},
+                                 'category': {'type': 'string',
+                                              'description': 'Optional stable category shared by '
+                                                             'memories produced from this commit.'},
                                  'external_user_id': {'type': 'string',
                                                       'description': 'Integrator client keys only: '
                                                                      'stable end-user ID for '
@@ -1689,7 +1883,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                'high-confidence '
                                                                                'same-scope/type/category '
                                                                                'matches.'},
-                                 'dry_run': {'type': 'boolean', 'default': False}},
+                                 'dry_run': {'type': 'boolean',
+                                             'default': False,
+                                             'description': 'Validate extraction and return the '
+                                                            'proposed receipt without writing '
+                                                            'memory or workflow state.'}},
                   'anyOf': [{'required': ['summary']}, {'required': ['why']}]},
   'annotations': {'title': 'Commit durable task memory',
                   'readOnlyHint': False,
@@ -1754,10 +1952,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_remember_bulk'}},
  {'name': 'rlm_recall',
-  'description': 'Semantically recall durable Memory V2 records such as decisions, learnings, '
-                 'preferences, and session carryover. Not for source document retrieval; use '
-                 'rlm_context_query, rlm_load_document, or rlm_shared_context for specs, RFPs, '
-                 'diagrams, and raw docs.',
+  'description': 'Semantically recall durable Memory V2 decisions, learnings, preferences, and '
+                 'session carryover within the requested owner boundary. This is a read-only '
+                 'VIEWER operation and changes no memory authority. Use rlm_context_query for '
+                 'source documents and rlm_memories for lifecycle inventory. Returns ranked active '
+                 'memories, optional inactive warnings, authority metadata, and bounded retrieval '
+                 'diagnostics.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string',
                                            'description': 'Memory question such as a past '
@@ -1769,9 +1969,14 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                    'learning',
                                                    'preference',
                                                    'todo',
-                                                   'context']},
+                                                   'context'],
+                                          'description': 'Optional durable memory type filter '
+                                                         'applied before semantic ranking.'},
                                  'scope': {'type': 'string',
-                                           'enum': ['agent', 'project', 'team', 'user']},
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Owner boundary to search; scope=agent '
+                                                          'requires agent_id and scope=user may '
+                                                          'use external_user_id.'},
                                  'agent_id': {'type': 'string',
                                               'description': 'Required when scope=agent; limits '
                                                              'recall to one agent namespace'},
@@ -1827,7 +2032,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -3628,10 +3851,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'exposed': False,
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_repl_context'}},
  {'name': 'rlm_get_chunk',
-  'description': 'Retrieve full content by chunk ID. Use with '
-                 'rlm_context_query(return_references=True) to fetch full content of specific '
-                 'sections. This pass-by-reference pattern reduces hallucination by maintaining '
-                 'clear source attribution.',
+  'description': 'Fetch one complete indexed source chunk by the stable chunk ID returned from a '
+                 'reference-based context query. This is a read-only VIEWER operation and changes '
+                 'no project state. Use rlm_context_query first to discover relevant references; '
+                 'use rlm_read for an exact document line range instead. Returns the chunk text, '
+                 'source identity, position metadata, and a bounded not-found/error result.',
   'inputSchema': {'type': 'object',
                   'properties': {'chunk_id': {'type': 'string',
                                               'description': 'The chunk ID from rlm_context_query '
@@ -3654,7 +3878,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -3919,11 +4161,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   '_meta': {'snipara_legacy_tool': True,
             'snipara_advertised_tool': 'snipara_decision_review_apply'}},
  {'name': 'rlm_inbox_review_queue',
-  'description': 'List the human-reviewable memory candidates and ProjectDecision drafts from the '
-                 "current user's team Dashboard Inbox. This ADMIN-only, human-owned surface is "
-                 'read-only and mirrors every reviewable multi-project Inbox item ID while '
-                 'redacting true credential material. Follow with snipara_inbox_review_plan before '
-                 'any mutation.',
+  'description': 'List human-reviewable memory candidates and ProjectDecision drafts from the '
+                 "current user's team Dashboard Inbox. This is a read-only ADMIN operation and "
+                 'changes no authority or review state; credential-like material is redacted. Use '
+                 'rlm_inbox_review_plan to validate recommendations before any authorized '
+                 'mutation. Returns stable item IDs, project ownership, evidence, and current '
+                 'review status.',
   'inputSchema': {'type': 'object',
                   'properties': {'limit': {'type': 'integer',
                                            'default': 50,
@@ -3941,9 +4184,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_inbox_review_queue'}},
  {'name': 'rlm_inbox_review_plan',
   'description': 'Validate evidence-backed recommendations for team Inbox memory candidates and '
-                 'ProjectDecision drafts. Returns a snapshot-bound review_plan_id without mutating '
-                 'authority. Only approve/reject recommendations enter the apply snapshot; '
-                 'needs_human items remain pending.',
+                 'ProjectDecision drafts without changing authority. This read-only ADMIN '
+                 'operation creates a snapshot-bound review_plan_id; approve/reject items enter '
+                 'the snapshot while needs_human items remain pending. Use rlm_inbox_review_queue '
+                 'first and never call apply without explicit human authorization. Returns the '
+                 'immutable plan, exclusions, and validation findings.',
   'inputSchema': {'type': 'object',
                   'properties': {'recommendations': {'type': 'array',
                                                      'minItems': 1,
@@ -3951,31 +4196,110 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                      'items': {'type': 'object',
                                                                'properties': {'kind': {'type': 'string',
                                                                                        'enum': ['memory_candidate',
-                                                                                                'decision_draft']},
+                                                                                                'decision_draft'],
+                                                                                       'description': 'Inbox '
+                                                                                                      'entity '
+                                                                                                      'type '
+                                                                                                      'so '
+                                                                                                      'validation '
+                                                                                                      'can '
+                                                                                                      'route '
+                                                                                                      'the '
+                                                                                                      'recommendation '
+                                                                                                      'to '
+                                                                                                      'the '
+                                                                                                      'correct '
+                                                                                                      'review '
+                                                                                                      'workflow.'},
                                                                               'item_id': {'type': 'string',
                                                                                           'minLength': 1,
-                                                                                          'maxLength': 200},
+                                                                                          'maxLength': 200,
+                                                                                          'description': 'Exact '
+                                                                                                         'candidate '
+                                                                                                         'or '
+                                                                                                         'draft '
+                                                                                                         'ID '
+                                                                                                         'returned '
+                                                                                                         'by '
+                                                                                                         'snipara_inbox_review_queue.'},
                                                                               'project_id': {'type': 'string',
                                                                                              'minLength': 1,
-                                                                                             'maxLength': 200},
+                                                                                             'maxLength': 200,
+                                                                                             'description': 'Owning '
+                                                                                                            'project '
+                                                                                                            'ID '
+                                                                                                            'returned '
+                                                                                                            'with '
+                                                                                                            'the '
+                                                                                                            'Inbox '
+                                                                                                            'item; '
+                                                                                                            'it '
+                                                                                                            'is '
+                                                                                                            'checked '
+                                                                                                            'again '
+                                                                                                            'during '
+                                                                                                            'planning '
+                                                                                                            'and '
+                                                                                                            'apply.'},
                                                                               'action': {'type': 'string',
                                                                                          'enum': ['approve',
                                                                                                   'reject',
-                                                                                                  'needs_human']},
+                                                                                                  'needs_human'],
+                                                                                         'description': 'Recommended '
+                                                                                                        'review '
+                                                                                                        'disposition. '
+                                                                                                        'needs_human '
+                                                                                                        'is '
+                                                                                                        'reported '
+                                                                                                        'but '
+                                                                                                        'is '
+                                                                                                        'never '
+                                                                                                        'included '
+                                                                                                        'in '
+                                                                                                        'the '
+                                                                                                        'mutable '
+                                                                                                        'apply '
+                                                                                                        'snapshot.'},
                                                                               'rationale': {'type': 'string',
                                                                                             'minLength': 1,
-                                                                                            'maxLength': 1000},
+                                                                                            'maxLength': 1000,
+                                                                                            'description': 'Concise '
+                                                                                                           'evidence-backed '
+                                                                                                           'explanation '
+                                                                                                           'for '
+                                                                                                           'the '
+                                                                                                           'recommendation.'},
                                                                               'evidence_refs': {'type': 'array',
                                                                                                 'maxItems': 10,
+                                                                                                'description': 'Optional '
+                                                                                                               'document, '
+                                                                                                               'memory, '
+                                                                                                               'decision, '
+                                                                                                               'or '
+                                                                                                               'repository '
+                                                                                                               'references '
+                                                                                                               'supporting '
+                                                                                                               'the '
+                                                                                                               'recommendation.',
                                                                                                 'items': {'type': 'string',
                                                                                                           'minLength': 1,
-                                                                                                          'maxLength': 500}}},
+                                                                                                          'maxLength': 500,
+                                                                                                          'description': 'One '
+                                                                                                                         'stable '
+                                                                                                                         'reference '
+                                                                                                                         'supporting '
+                                                                                                                         'the '
+                                                                                                                         'rationale.'}}},
                                                                'required': ['kind',
                                                                             'item_id',
                                                                             'project_id',
                                                                             'action',
                                                                             'rationale'],
-                                                               'additionalProperties': False}}},
+                                                               'additionalProperties': False},
+                                                     'description': 'One evidence-backed '
+                                                                    'recommendation per Inbox '
+                                                                    'item; needs_human items stay '
+                                                                    'outside the apply snapshot.'}},
                   'required': ['recommendations'],
                   'additionalProperties': False},
   'annotations': {'title': 'Plan a team Inbox review',
@@ -3987,31 +4311,78 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   '_meta': {'snipara_legacy_tool': True, 'snipara_advertised_tool': 'snipara_inbox_review_plan'}},
  {'name': 'rlm_inbox_review_apply',
   'description': 'Atomically apply the exact memory-candidate and decision-draft actions from a '
-                 'prior team Inbox review plan. Call only after explicit user authorization. '
-                 'Requires ADMIN MCP access plus a real human team-admin identity, repeats every '
-                 'item/project/action, records authority audits, and fails closed when any '
-                 'snapshot is stale.',
+                 'prior team Inbox review plan. This destructive ADMIN operation requires explicit '
+                 'user authorization plus a real human team-admin identity, records authority '
+                 'audits, and fails closed if any item or snapshot changed. It is not idempotent '
+                 'and must follow rlm_inbox_review_plan. Returns per-item outcomes and the atomic '
+                 'apply receipt.',
   'inputSchema': {'type': 'object',
                   'properties': {'review_plan_id': {'type': 'string',
                                                     'minLength': 1,
-                                                    'maxLength': 200},
-                                 'reason': {'type': 'string', 'minLength': 1, 'maxLength': 500},
+                                                    'maxLength': 200,
+                                                    'description': 'Exact immutable plan ID '
+                                                                   'returned by '
+                                                                   'rlm_inbox_review_plan after '
+                                                                   'evidence validation.'},
+                                 'reason': {'type': 'string',
+                                            'minLength': 1,
+                                            'maxLength': 500,
+                                            'description': 'Human authorization rationale recorded '
+                                                           'in the authority audit.'},
                                  'actions': {'type': 'array',
                                              'minItems': 1,
                                              'maxItems': 50,
+                                             'description': 'Exact approve/reject action snapshot '
+                                                            'from the plan; additions or mutations '
+                                                            'fail closed.',
                                              'items': {'type': 'object',
                                                        'properties': {'kind': {'type': 'string',
                                                                                'enum': ['memory_candidate',
-                                                                                        'decision_draft']},
+                                                                                        'decision_draft'],
+                                                                               'description': 'Inbox '
+                                                                                              'entity '
+                                                                                              'type '
+                                                                                              'copied '
+                                                                                              'unchanged '
+                                                                                              'from '
+                                                                                              'the '
+                                                                                              'review '
+                                                                                              'plan.'},
                                                                       'item_id': {'type': 'string',
                                                                                   'minLength': 1,
-                                                                                  'maxLength': 200},
+                                                                                  'maxLength': 200,
+                                                                                  'description': 'Exact '
+                                                                                                 'candidate '
+                                                                                                 'or '
+                                                                                                 'decision-draft '
+                                                                                                 'ID '
+                                                                                                 'from '
+                                                                                                 'the '
+                                                                                                 'review '
+                                                                                                 'plan.'},
                                                                       'project_id': {'type': 'string',
                                                                                      'minLength': 1,
-                                                                                     'maxLength': 200},
+                                                                                     'maxLength': 200,
+                                                                                     'description': 'Owning '
+                                                                                                    'project '
+                                                                                                    'ID '
+                                                                                                    'copied '
+                                                                                                    'unchanged '
+                                                                                                    'from '
+                                                                                                    'the '
+                                                                                                    'review '
+                                                                                                    'plan.'},
                                                                       'action': {'type': 'string',
                                                                                  'enum': ['approve',
-                                                                                          'reject']}},
+                                                                                          'reject'],
+                                                                                 'description': 'Authorized '
+                                                                                                'mutation '
+                                                                                                'copied '
+                                                                                                'unchanged '
+                                                                                                'from '
+                                                                                                'the '
+                                                                                                'review '
+                                                                                                'plan.'}},
                                                        'required': ['kind',
                                                                     'item_id',
                                                                     'project_id',
@@ -4744,8 +5115,17 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                 'fast retry/recovery paths; use '
                                                                 'hybrid for normal documentation '
                                                                 'discovery.'},
-                                 'include_metadata': {'type': 'boolean', 'default': True},
-                                 'prefer_summaries': {'type': 'boolean', 'default': False},
+                                 'include_metadata': {'type': 'boolean',
+                                                      'default': True,
+                                                      'description': 'Include document, section, '
+                                                                     'tier, and retrieval metadata '
+                                                                     'with returned context.'},
+                                 'prefer_summaries': {'type': 'boolean',
+                                                      'default': False,
+                                                      'description': 'Prefer stored summaries when '
+                                                                     'available without excluding '
+                                                                     'authoritative source '
+                                                                     'matches.'},
                                  'return_references': {'type': 'boolean',
                                                        'default': False,
                                                        'description': 'Return chunk references '
@@ -4837,7 +5217,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -4898,8 +5296,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'openWorldHint': False},
   '_meta': {'snipara_tool_weight': 24.0}},
  {'name': 'snipara_ask',
-  'description': 'Query documentation with a question (basic). Use snipara_context_query for '
-                 'better results.',
+  'description': 'Answer one simple question from indexed project documentation with server-side '
+                 'synthesis. This is a read-only VIEWER operation and changes no project state. '
+                 'Use snipara_context_query when citations, answer packs, retrieval controls, or '
+                 'source sections matter; use snipara_search for an exact regex. Returns a concise '
+                 'answer or a bounded no-match/error result.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string', 'description': 'The question to ask'},
                                  'correlation_context': {'type': 'object',
@@ -4919,7 +5320,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -4973,11 +5392,18 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                                       'telemetry '
                                                                                                       'fallback.'}}}},
                   'required': ['query']},
+  'annotations': {'title': 'Answer a simple documentation question',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   '_meta': {'snipara_tool_weight': -6.0}},
  {'name': 'snipara_search',
-  'description': 'Search indexed documentation with an exact regex pattern. This is a grep-like '
-                 'text search, not semantic retrieval; use snipara_context_query(query=...) for '
-                 'source-truth semantic/context search.',
+  'description': 'Search indexed project documentation with an exact regular expression. This is a '
+                 'read-only VIEWER operation and changes no project state. Use it for identifiers, '
+                 'paths, or literal wording; use snipara_context_query for semantic source '
+                 'retrieval and snipara_read after locating a relevant range. Returns capped '
+                 'matches with document and line context, or a validation/no-match result.',
   'inputSchema': {'type': 'object',
                   'properties': {'pattern': {'type': 'string',
                                              'description': 'Regex text pattern to search for.'},
@@ -5006,7 +5432,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -5060,6 +5504,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                                       'telemetry '
                                                                                                       'fallback.'}}}},
                   'required': []},
+  'annotations': {'title': 'Search exact indexed text',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   '_meta': {'snipara_tool_weight': 4.0}},
  {'name': 'snipara_read',
   'description': 'Read an exact line range from indexed project documentation. This is a read-only '
@@ -5587,8 +6036,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
   'description': 'Clear session context.',
   'inputSchema': {'type': 'object', 'properties': {}, 'required': []}},
  {'name': 'snipara_stats',
-  'description': 'Show compact documentation statistics. File lists and DB-backed index health are '
-                 'opt-in so interactive stats calls stay small and fast.',
+  'description': 'Read compact project documentation and retrieval statistics without changing '
+                 'project state. File samples and database-backed index health are opt-in to keep '
+                 'the response small. Use snipara_index_health for operational diagnosis rather '
+                 'than this overview. Returns counts, token/index summaries, and only the optional '
+                 'sections requested.',
   'inputSchema': {'type': 'object',
                   'properties': {'include_files': {'type': 'boolean',
                                                    'default': False,
@@ -5607,7 +6059,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                          'snapshot. For full '
                                                                          'health, call '
                                                                          'snipara_index_health.'}},
-                  'required': []}},
+                  'required': []},
+  'annotations': {'title': 'Read compact project statistics',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_sections',
   'description': 'List indexed document sections with optional pagination and filtering.',
   'inputSchema': {'type': 'object',
@@ -5629,8 +6086,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                              'description': 'Force refresh from API'}},
                   'required': []}},
  {'name': 'snipara_help',
-  'description': 'Get intelligent tool recommendations based on what you want to do. Helps '
-                 'discover the right tool for your task.',
+  'description': 'Discover the correct Snipara tool without executing that tool or changing '
+                 'project state. Use query for ranked recommendations, tool for one detailed '
+                 'contract, tier for a bounded category, or list_all for the deterministic catalog '
+                 'including specialists hidden from tools/list. Returns selection guidance, '
+                 'examples, access requirements, surface metadata, and related tools.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string',
                                            'description': 'Describe what you want to do (e.g., '
@@ -5656,6 +6116,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'maximum': 20,
                                            'description': 'Maximum recommendations to return'}},
                   'required': []},
+  'annotations': {'title': 'Discover the right Snipara tool',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
   '_meta': {'snipara_tool_weight': 3.0}},
  {'name': 'snipara_store_summary',
   'description': 'Store or replace a generated summary for an existing indexed project document. '
@@ -6133,11 +6598,13 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'idempotentHint': False,
                   'openWorldHint': False}},
  {'name': 'snipara_remember_if_novel',
-  'description': 'Store a durable Memory V2 record only if it is sufficiently novel compared with '
-                 'existing memories. Direct writes support fact, decision, learning, preference, '
-                 'todo, and context. Use context tools for source truth and '
-                 'snipara_end_of_task_commit for workflow capture. Returns duplicate matches when '
-                 'skipped.',
+  'description': 'Store one durable Memory V2 record only when it is sufficiently different from '
+                 'existing reviewed memory. This EDITOR operation may write project, team, user, '
+                 'or agent state; duplicate calls normally skip the write, while auto_safe '
+                 'reconciliation may supersede high-confidence same-owner matches without deleting '
+                 'them. Use snipara_end_of_task_commit for multi-outcome workflow capture and '
+                 'context tools for source documents. Returns whether storage occurred, duplicate '
+                 'evidence, the memory ID, and reconciliation actions.',
   'inputSchema': {'type': 'object',
                   'properties': {'text': {'type': 'string',
                                           'maxLength': 65536,
@@ -6149,7 +6616,10 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                    'preference',
                                                    'todo',
                                                    'context'],
-                                          'default': 'fact'},
+                                          'default': 'fact',
+                                          'description': 'Durable knowledge type used for '
+                                                         'authority, retention, and later recall '
+                                                         'filtering.'},
                                  'scope': {'type': 'string',
                                            'enum': ['agent', 'project', 'team', 'user'],
                                            'default': 'project',
@@ -6167,14 +6637,28 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                      'scope=user memory. Snipara '
                                                                      'hashes and namespaces it per '
                                                                      'integrator client.'},
-                                 'category': {'type': 'string', 'maxLength': 200},
-                                 'ttl_days': {'type': 'integer'},
+                                 'category': {'type': 'string',
+                                              'maxLength': 200,
+                                              'description': 'Optional stable category used to '
+                                                             'group and deduplicate related '
+                                                             'memories.'},
+                                 'ttl_days': {'type': 'integer',
+                                              'description': 'Optional retention period in days; '
+                                                             'omit only for knowledge that should '
+                                                             'not expire automatically.'},
                                  'related_to': {'type': 'array',
                                                 'items': {'type': 'string', 'maxLength': 256},
-                                                'maxItems': 50},
+                                                'maxItems': 50,
+                                                'description': 'Existing memory IDs that provide '
+                                                               'an explicit relationship, not '
+                                                               'duplicate candidates.'},
                                  'document_refs': {'type': 'array',
                                                    'items': {'type': 'string', 'maxLength': 512},
-                                                   'maxItems': 100},
+                                                   'maxItems': 100,
+                                                   'description': 'Project-relative source '
+                                                                  'document paths supporting this '
+                                                                  'memory; never place secrets '
+                                                                  'here.'},
                                  'source': {'type': 'string',
                                             'maxLength': 200,
                                             'description': 'Optional source label for the memory '
@@ -6188,7 +6672,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                  'dedupe_limit': {'type': 'integer',
                                                   'default': 5,
                                                   'minimum': 1,
-                                                  'maximum': 20},
+                                                  'maximum': 20,
+                                                  'description': 'Maximum nearest existing '
+                                                                 'memories examined before '
+                                                                 'deciding whether this write is '
+                                                                 'novel.'},
                                  'allow_supersede': {'type': 'boolean',
                                                      'default': True,
                                                      'description': 'Reserved for future conflict '
@@ -6211,11 +6699,20 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                'matches. No '
                                                                                'physical '
                                                                                'deletion.'}},
-                  'required': ['text']}},
+                  'required': ['text']},
+  'annotations': {'title': 'Store memory only when novel',
+                  'readOnlyHint': False,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_end_of_task_commit',
-  'description': 'Persist durable outcomes from a task. A structured why block is captured '
-                 'atomically as a pending Why Capture candidate; summary remains the heuristic '
-                 'fallback. Unknown parameters are rejected before any write.',
+  'description': 'Persist a bounded end-of-task summary, optional structured Why Capture, and '
+                 'selected durable outcomes so another agent can resume the work. This EDITOR '
+                 'operation writes memory and workflow state and is non-idempotent; dry_run '
+                 'validates without writing. Use snipara_remember_if_novel for one reusable memory '
+                 'and document upload tools for source material. Unknown fields fail closed. '
+                 'Returns created or skipped records, review candidates, handoff metadata, and '
+                 'validation warnings.',
   'inputSchema': {'type': 'object',
                   'additionalProperties': False,
                   'properties': {'summary': {'type': 'string',
@@ -6232,32 +6729,93 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                         'by summary heuristics',
                                          'properties': {'decision': {'type': 'string',
                                                                      'minLength': 1,
-                                                                     'maxLength': 20000},
+                                                                     'maxLength': 20000,
+                                                                     'description': 'Durable '
+                                                                                    'decision or '
+                                                                                    'conclusion '
+                                                                                    'that future '
+                                                                                    'agents should '
+                                                                                    'retain.'},
                                                         'rationale': {'type': 'string',
                                                                       'minLength': 1,
-                                                                      'maxLength': 50000},
+                                                                      'maxLength': 50000,
+                                                                      'description': 'Reasoning '
+                                                                                     'and evidence '
+                                                                                     'that explain '
+                                                                                     'why the '
+                                                                                     'decision was '
+                                                                                     'made.'},
                                                         'alternatives': {'type': 'array',
                                                                          'maxItems': 8,
+                                                                         'description': 'Meaningful '
+                                                                                        'alternatives '
+                                                                                        'considered '
+                                                                                        'before '
+                                                                                        'the final '
+                                                                                        'decision.',
                                                                          'items': {'type': 'string',
                                                                                    'minLength': 1,
-                                                                                   'maxLength': 900}},
+                                                                                   'maxLength': 900,
+                                                                                   'description': 'One '
+                                                                                                  'alternative '
+                                                                                                  'approach '
+                                                                                                  'that '
+                                                                                                  'was '
+                                                                                                  'considered.'}},
                                                         'constraints': {'type': 'array',
                                                                         'maxItems': 12,
+                                                                        'description': 'Technical, '
+                                                                                       'product, '
+                                                                                       'security, '
+                                                                                       'or '
+                                                                                       'operational '
+                                                                                       'constraints '
+                                                                                       'that '
+                                                                                       'shaped the '
+                                                                                       'outcome.',
                                                                         'items': {'type': 'string',
                                                                                   'minLength': 1,
-                                                                                  'maxLength': 900}},
+                                                                                  'maxLength': 900,
+                                                                                  'description': 'One '
+                                                                                                 'constraint '
+                                                                                                 'that '
+                                                                                                 'influenced '
+                                                                                                 'the '
+                                                                                                 'decision.'}},
                                                         'observed_outcome': {'type': 'string',
                                                                              'minLength': 1,
-                                                                             'maxLength': 20000}},
+                                                                             'maxLength': 20000,
+                                                                             'description': 'Verified '
+                                                                                            'result '
+                                                                                            'observed '
+                                                                                            'after '
+                                                                                            'applying '
+                                                                                            'the '
+                                                                                            'decision, '
+                                                                                            'including '
+                                                                                            'the '
+                                                                                            'validation '
+                                                                                            'signal '
+                                                                                            'when '
+                                                                                            'available.'}},
                                          'minProperties': 1},
                                  'outcome': {'type': 'string',
                                              'enum': ['completed',
                                                       'partial',
                                                       'blocked',
                                                       'abandoned'],
-                                             'default': 'completed'},
-                                 'files_touched': {'type': 'array', 'items': {'type': 'string'}},
-                                 'artifacts': {'type': 'array', 'items': {'type': 'string'}},
+                                             'default': 'completed',
+                                             'description': 'Final task state used to frame the '
+                                                            'handoff and durable extraction.'},
+                                 'files_touched': {'type': 'array',
+                                                   'items': {'type': 'string'},
+                                                   'description': 'Project-relative files '
+                                                                  'materially changed or inspected '
+                                                                  'during the task.'},
+                                 'artifacts': {'type': 'array',
+                                               'items': {'type': 'string'},
+                                               'description': 'Durable artifact identifiers or '
+                                                              'paths produced by the task.'},
                                  'persist_types': {'type': 'array',
                                                    'items': {'type': 'string',
                                                              'enum': ['decision',
@@ -6265,8 +6823,14 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                       'preference',
                                                                       'todo',
                                                                       'context',
-                                                                      'workflow']}},
-                                 'category': {'type': 'string'},
+                                                                      'workflow']},
+                                                   'description': 'Memory categories that may be '
+                                                                  'extracted from the task '
+                                                                  'summary; omit unwanted '
+                                                                  'categories.'},
+                                 'category': {'type': 'string',
+                                              'description': 'Optional stable category shared by '
+                                                             'memories produced from this commit.'},
                                  'external_user_id': {'type': 'string',
                                                       'description': 'Integrator client keys only: '
                                                                      'stable end-user ID for '
@@ -6293,7 +6857,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                'high-confidence '
                                                                                'same-scope/type/category '
                                                                                'matches.'},
-                                 'dry_run': {'type': 'boolean', 'default': False}},
+                                 'dry_run': {'type': 'boolean',
+                                             'default': False,
+                                             'description': 'Validate extraction and return the '
+                                                            'proposed receipt without writing '
+                                                            'memory or workflow state.'}},
                   'anyOf': [{'required': ['summary']}, {'required': ['why']}]},
   'annotations': {'title': 'Commit durable task memory',
                   'readOnlyHint': False,
@@ -6354,10 +6922,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                      'the call.'}},
                   'required': ['memories']}},
  {'name': 'snipara_recall',
-  'description': 'Semantically recall durable Memory V2 records such as decisions, learnings, '
-                 'preferences, and session carryover. Not for source document retrieval; use '
-                 'snipara_context_query, snipara_load_document, or snipara_shared_context for '
-                 'specs, RFPs, diagrams, and raw docs.',
+  'description': 'Semantically recall durable Memory V2 decisions, learnings, preferences, and '
+                 'session carryover within the requested owner boundary. This is a read-only '
+                 'VIEWER operation and changes no memory authority. Use snipara_context_query for '
+                 'source documents and snipara_memories for lifecycle inventory. Returns ranked '
+                 'active memories, optional inactive warnings, authority metadata, and bounded '
+                 'retrieval diagnostics.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string',
                                            'description': 'Memory question such as a past '
@@ -6369,9 +6939,14 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                    'learning',
                                                    'preference',
                                                    'todo',
-                                                   'context']},
+                                                   'context'],
+                                          'description': 'Optional durable memory type filter '
+                                                         'applied before semantic ranking.'},
                                  'scope': {'type': 'string',
-                                           'enum': ['agent', 'project', 'team', 'user']},
+                                           'enum': ['agent', 'project', 'team', 'user'],
+                                           'description': 'Owner boundary to search; scope=agent '
+                                                          'requires agent_id and scope=user may '
+                                                          'use external_user_id.'},
                                  'agent_id': {'type': 'string',
                                               'description': 'Required when scope=agent; limits '
                                                              'recall to one agent namespace'},
@@ -6427,7 +7002,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -7776,10 +8369,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                 'provided'}},
                   'required': []}},
  {'name': 'snipara_get_chunk',
-  'description': 'Retrieve full content by chunk ID. Use with '
-                 'snipara_context_query(return_references=True) to fetch full content of specific '
-                 'sections. This pass-by-reference pattern reduces hallucination by maintaining '
-                 'clear source attribution.',
+  'description': 'Fetch one complete indexed source chunk by the stable chunk ID returned from a '
+                 'reference-based context query. This is a read-only VIEWER operation and changes '
+                 'no project state. Use snipara_context_query first to discover relevant '
+                 'references; use snipara_read for an exact document line range instead. Returns '
+                 'the chunk text, source identity, position metadata, and a bounded '
+                 'not-found/error result.',
   'inputSchema': {'type': 'object',
                   'properties': {'chunk_id': {'type': 'string',
                                               'description': 'The chunk ID from '
@@ -7802,7 +8397,25 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'user data.',
                                                          'properties': {'version': {'type': 'string',
                                                                                     'enum': ['retrieval-correlation-v1'],
-                                                                                    'default': 'retrieval-correlation-v1'},
+                                                                                    'default': 'retrieval-correlation-v1',
+                                                                                    'description': 'Schema '
+                                                                                                   'version '
+                                                                                                   'for '
+                                                                                                   'this '
+                                                                                                   'correlation '
+                                                                                                   'envelope. '
+                                                                                                   'Keep '
+                                                                                                   'the '
+                                                                                                   'default '
+                                                                                                   'unless '
+                                                                                                   'a '
+                                                                                                   'future '
+                                                                                                   'Snipara '
+                                                                                                   'contract '
+                                                                                                   'explicitly '
+                                                                                                   'documents '
+                                                                                                   'another '
+                                                                                                   'version.'},
                                                                         'session_id': {'type': 'string',
                                                                                        'minLength': 1,
                                                                                        'maxLength': 128,
@@ -8051,11 +8664,12 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'idempotentHint': False,
                   'openWorldHint': False}},
  {'name': 'snipara_inbox_review_queue',
-  'description': 'List the human-reviewable memory candidates and ProjectDecision drafts from the '
-                 "current user's team Dashboard Inbox. This ADMIN-only, human-owned surface is "
-                 'read-only and mirrors every reviewable multi-project Inbox item ID while '
-                 'redacting true credential material. Follow with snipara_inbox_review_plan before '
-                 'any mutation.',
+  'description': 'List human-reviewable memory candidates and ProjectDecision drafts from the '
+                 "current user's team Dashboard Inbox. This is a read-only ADMIN operation and "
+                 'changes no authority or review state; credential-like material is redacted. Use '
+                 'snipara_inbox_review_plan to validate recommendations before any authorized '
+                 'mutation. Returns stable item IDs, project ownership, evidence, and current '
+                 'review status.',
   'inputSchema': {'type': 'object',
                   'properties': {'limit': {'type': 'integer',
                                            'default': 50,
@@ -8071,9 +8685,11 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'openWorldHint': False}},
  {'name': 'snipara_inbox_review_plan',
   'description': 'Validate evidence-backed recommendations for team Inbox memory candidates and '
-                 'ProjectDecision drafts. Returns a snapshot-bound review_plan_id without mutating '
-                 'authority. Only approve/reject recommendations enter the apply snapshot; '
-                 'needs_human items remain pending.',
+                 'ProjectDecision drafts without changing authority. This read-only ADMIN '
+                 'operation creates a snapshot-bound review_plan_id; approve/reject items enter '
+                 'the snapshot while needs_human items remain pending. Use '
+                 'snipara_inbox_review_queue first and never call apply without explicit human '
+                 'authorization. Returns the immutable plan, exclusions, and validation findings.',
   'inputSchema': {'type': 'object',
                   'properties': {'recommendations': {'type': 'array',
                                                      'minItems': 1,
@@ -8081,31 +8697,110 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                      'items': {'type': 'object',
                                                                'properties': {'kind': {'type': 'string',
                                                                                        'enum': ['memory_candidate',
-                                                                                                'decision_draft']},
+                                                                                                'decision_draft'],
+                                                                                       'description': 'Inbox '
+                                                                                                      'entity '
+                                                                                                      'type '
+                                                                                                      'so '
+                                                                                                      'validation '
+                                                                                                      'can '
+                                                                                                      'route '
+                                                                                                      'the '
+                                                                                                      'recommendation '
+                                                                                                      'to '
+                                                                                                      'the '
+                                                                                                      'correct '
+                                                                                                      'review '
+                                                                                                      'workflow.'},
                                                                               'item_id': {'type': 'string',
                                                                                           'minLength': 1,
-                                                                                          'maxLength': 200},
+                                                                                          'maxLength': 200,
+                                                                                          'description': 'Exact '
+                                                                                                         'candidate '
+                                                                                                         'or '
+                                                                                                         'draft '
+                                                                                                         'ID '
+                                                                                                         'returned '
+                                                                                                         'by '
+                                                                                                         'snipara_inbox_review_queue.'},
                                                                               'project_id': {'type': 'string',
                                                                                              'minLength': 1,
-                                                                                             'maxLength': 200},
+                                                                                             'maxLength': 200,
+                                                                                             'description': 'Owning '
+                                                                                                            'project '
+                                                                                                            'ID '
+                                                                                                            'returned '
+                                                                                                            'with '
+                                                                                                            'the '
+                                                                                                            'Inbox '
+                                                                                                            'item; '
+                                                                                                            'it '
+                                                                                                            'is '
+                                                                                                            'checked '
+                                                                                                            'again '
+                                                                                                            'during '
+                                                                                                            'planning '
+                                                                                                            'and '
+                                                                                                            'apply.'},
                                                                               'action': {'type': 'string',
                                                                                          'enum': ['approve',
                                                                                                   'reject',
-                                                                                                  'needs_human']},
+                                                                                                  'needs_human'],
+                                                                                         'description': 'Recommended '
+                                                                                                        'review '
+                                                                                                        'disposition. '
+                                                                                                        'needs_human '
+                                                                                                        'is '
+                                                                                                        'reported '
+                                                                                                        'but '
+                                                                                                        'is '
+                                                                                                        'never '
+                                                                                                        'included '
+                                                                                                        'in '
+                                                                                                        'the '
+                                                                                                        'mutable '
+                                                                                                        'apply '
+                                                                                                        'snapshot.'},
                                                                               'rationale': {'type': 'string',
                                                                                             'minLength': 1,
-                                                                                            'maxLength': 1000},
+                                                                                            'maxLength': 1000,
+                                                                                            'description': 'Concise '
+                                                                                                           'evidence-backed '
+                                                                                                           'explanation '
+                                                                                                           'for '
+                                                                                                           'the '
+                                                                                                           'recommendation.'},
                                                                               'evidence_refs': {'type': 'array',
                                                                                                 'maxItems': 10,
+                                                                                                'description': 'Optional '
+                                                                                                               'document, '
+                                                                                                               'memory, '
+                                                                                                               'decision, '
+                                                                                                               'or '
+                                                                                                               'repository '
+                                                                                                               'references '
+                                                                                                               'supporting '
+                                                                                                               'the '
+                                                                                                               'recommendation.',
                                                                                                 'items': {'type': 'string',
                                                                                                           'minLength': 1,
-                                                                                                          'maxLength': 500}}},
+                                                                                                          'maxLength': 500,
+                                                                                                          'description': 'One '
+                                                                                                                         'stable '
+                                                                                                                         'reference '
+                                                                                                                         'supporting '
+                                                                                                                         'the '
+                                                                                                                         'rationale.'}}},
                                                                'required': ['kind',
                                                                             'item_id',
                                                                             'project_id',
                                                                             'action',
                                                                             'rationale'],
-                                                               'additionalProperties': False}}},
+                                                               'additionalProperties': False},
+                                                     'description': 'One evidence-backed '
+                                                                    'recommendation per Inbox '
+                                                                    'item; needs_human items stay '
+                                                                    'outside the apply snapshot.'}},
                   'required': ['recommendations'],
                   'additionalProperties': False},
   'annotations': {'title': 'Plan a team Inbox review',
@@ -8115,31 +8810,78 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                   'openWorldHint': False}},
  {'name': 'snipara_inbox_review_apply',
   'description': 'Atomically apply the exact memory-candidate and decision-draft actions from a '
-                 'prior team Inbox review plan. Call only after explicit user authorization. '
-                 'Requires ADMIN MCP access plus a real human team-admin identity, repeats every '
-                 'item/project/action, records authority audits, and fails closed when any '
-                 'snapshot is stale.',
+                 'prior team Inbox review plan. This destructive ADMIN operation requires explicit '
+                 'user authorization plus a real human team-admin identity, records authority '
+                 'audits, and fails closed if any item or snapshot changed. It is not idempotent '
+                 'and must follow snipara_inbox_review_plan. Returns per-item outcomes and the '
+                 'atomic apply receipt.',
   'inputSchema': {'type': 'object',
                   'properties': {'review_plan_id': {'type': 'string',
                                                     'minLength': 1,
-                                                    'maxLength': 200},
-                                 'reason': {'type': 'string', 'minLength': 1, 'maxLength': 500},
+                                                    'maxLength': 200,
+                                                    'description': 'Exact immutable plan ID '
+                                                                   'returned by '
+                                                                   'snipara_inbox_review_plan '
+                                                                   'after evidence validation.'},
+                                 'reason': {'type': 'string',
+                                            'minLength': 1,
+                                            'maxLength': 500,
+                                            'description': 'Human authorization rationale recorded '
+                                                           'in the authority audit.'},
                                  'actions': {'type': 'array',
                                              'minItems': 1,
                                              'maxItems': 50,
+                                             'description': 'Exact approve/reject action snapshot '
+                                                            'from the plan; additions or mutations '
+                                                            'fail closed.',
                                              'items': {'type': 'object',
                                                        'properties': {'kind': {'type': 'string',
                                                                                'enum': ['memory_candidate',
-                                                                                        'decision_draft']},
+                                                                                        'decision_draft'],
+                                                                               'description': 'Inbox '
+                                                                                              'entity '
+                                                                                              'type '
+                                                                                              'copied '
+                                                                                              'unchanged '
+                                                                                              'from '
+                                                                                              'the '
+                                                                                              'review '
+                                                                                              'plan.'},
                                                                       'item_id': {'type': 'string',
                                                                                   'minLength': 1,
-                                                                                  'maxLength': 200},
+                                                                                  'maxLength': 200,
+                                                                                  'description': 'Exact '
+                                                                                                 'candidate '
+                                                                                                 'or '
+                                                                                                 'decision-draft '
+                                                                                                 'ID '
+                                                                                                 'from '
+                                                                                                 'the '
+                                                                                                 'review '
+                                                                                                 'plan.'},
                                                                       'project_id': {'type': 'string',
                                                                                      'minLength': 1,
-                                                                                     'maxLength': 200},
+                                                                                     'maxLength': 200,
+                                                                                     'description': 'Owning '
+                                                                                                    'project '
+                                                                                                    'ID '
+                                                                                                    'copied '
+                                                                                                    'unchanged '
+                                                                                                    'from '
+                                                                                                    'the '
+                                                                                                    'review '
+                                                                                                    'plan.'},
                                                                       'action': {'type': 'string',
                                                                                  'enum': ['approve',
-                                                                                          'reject']}},
+                                                                                          'reject'],
+                                                                                 'description': 'Authorized '
+                                                                                                'mutation '
+                                                                                                'copied '
+                                                                                                'unchanged '
+                                                                                                'from '
+                                                                                                'the '
+                                                                                                'review '
+                                                                                                'plan.'}},
                                                        'required': ['kind',
                                                                     'item_id',
                                                                     'project_id',
@@ -8927,6 +9669,24 @@ MCP_TOOL_NAMES = ['snipara_collaboration_status',
 MCP_TOOL_NAME_SET = set(MCP_TOOL_NAMES)
 
 MCP_TOOL_DEFINITIONS = [TOOL_DEFINITION_BY_NAME[name] for name in MCP_TOOL_NAMES if name in TOOL_DEFINITION_BY_NAME]
+
+DEFAULT_AGENT_TOOL_NAMES = ['snipara_context_query',
+ 'snipara_ask',
+ 'snipara_search',
+ 'snipara_read',
+ 'snipara_stats',
+ 'snipara_help',
+ 'snipara_remember_if_novel',
+ 'snipara_end_of_task_commit',
+ 'snipara_recall',
+ 'snipara_get_chunk',
+ 'snipara_inbox_review_queue',
+ 'snipara_inbox_review_plan',
+ 'snipara_inbox_review_apply']
+
+DEFAULT_AGENT_TOOL_NAME_SET = set(DEFAULT_AGENT_TOOL_NAMES)
+
+DEFAULT_AGENT_TOOL_DEFINITIONS = [TOOL_DEFINITION_BY_NAME[name] for name in DEFAULT_AGENT_TOOL_NAMES if name in TOOL_DEFINITION_BY_NAME]
 
 EXPOSED_TOOL_DEFINITIONS = [tool for tool in TOOL_DEFINITION_BY_NAME.values() if tool.get("exposed", True)]
 

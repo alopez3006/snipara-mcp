@@ -1,11 +1,16 @@
+"""Shared package-test fixtures."""
+
 from __future__ import annotations
 
-import sys
-from pathlib import Path
+import pytest
+
+from snipara_mcp import server as mcp_server
 
 
-ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
-
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
+@pytest.fixture(autouse=True)
+def authenticated_stdio_server(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep existing handler tests authenticated unless they test discovery mode."""
+    monkeypatch.setattr(mcp_server, "_auth_token", "rlm_package_test")
+    monkeypatch.setattr(mcp_server, "_auth_type", "api_key")
+    monkeypatch.setattr(mcp_server, "API_KEY", "")
+    monkeypatch.setattr(mcp_server, "PROJECT_ID", "package-test-project")
