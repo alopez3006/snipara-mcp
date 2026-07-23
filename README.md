@@ -72,6 +72,12 @@ The default discovery surface contains 13 coherent tools:
 `snipara_inbox_review_queue`, `snipara_inbox_review_plan`, and
 `snipara_inbox_review_apply`.
 
+### MCP transport security floor (2.8.26)
+
+The connector now requires MCP Python SDK 1.28.1 or newer. This incorporates
+the upstream fixes for authenticated-principal session isolation, experimental
+task ownership, and WebSocket Host/Origin validation.
+
 ### Configurable code-impact traversal (2.8.25)
 
 The packaged `snipara_code_impact` contract now exposes `depth` (1-6),
