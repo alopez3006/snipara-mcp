@@ -662,6 +662,43 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'default': 20,
                                            'minimum': 1,
                                            'maximum': 100},
+                                 'semantic_rules': {'type': 'object',
+                                                    'description': 'Optional per-project literal '
+                                                                   'term overrides for '
+                                                                   'snipara.semantic.v1. Terms are '
+                                                                   'bounded plain strings, not '
+                                                                   'regular expressions.',
+                                                    'properties': {'replace_defaults': {'type': 'boolean',
+                                                                                        'default': False,
+                                                                                        'description': 'Use '
+                                                                                                       'only '
+                                                                                                       'configured '
+                                                                                                       'naming '
+                                                                                                       'terms '
+                                                                                                       'instead '
+                                                                                                       'of '
+                                                                                                       'built-in '
+                                                                                                       'naming '
+                                                                                                       'conventions.'},
+                                                                   'sensitive_path_terms': {'type': 'array',
+                                                                                            'maxItems': 64,
+                                                                                            'items': {'type': 'string',
+                                                                                                      'maxLength': 80}},
+                                                                   'contract_path_terms': {'type': 'array',
+                                                                                           'maxItems': 64,
+                                                                                           'items': {'type': 'string',
+                                                                                                     'maxLength': 80}},
+                                                                   'test_path_terms': {'type': 'array',
+                                                                                       'maxItems': 64,
+                                                                                       'items': {'type': 'string',
+                                                                                                 'maxLength': 80}},
+                                                                   'architecture_role_terms': {'type': 'object',
+                                                                                               'maxProperties': 24,
+                                                                                               'additionalProperties': {'type': 'array',
+                                                                                                                        'maxItems': 64,
+                                                                                                                        'items': {'type': 'string',
+                                                                                                                                  'maxLength': 80}}}},
+                                                    'additionalProperties': False},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -721,6 +758,43 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'default': 50,
                                            'minimum': 1,
                                            'maximum': 200},
+                                 'semantic_rules': {'type': 'object',
+                                                    'description': 'Optional per-project literal '
+                                                                   'term overrides for '
+                                                                   'snipara.semantic.v1. Terms are '
+                                                                   'bounded plain strings, not '
+                                                                   'regular expressions.',
+                                                    'properties': {'replace_defaults': {'type': 'boolean',
+                                                                                        'default': False,
+                                                                                        'description': 'Use '
+                                                                                                       'only '
+                                                                                                       'configured '
+                                                                                                       'naming '
+                                                                                                       'terms '
+                                                                                                       'instead '
+                                                                                                       'of '
+                                                                                                       'built-in '
+                                                                                                       'naming '
+                                                                                                       'conventions.'},
+                                                                   'sensitive_path_terms': {'type': 'array',
+                                                                                            'maxItems': 64,
+                                                                                            'items': {'type': 'string',
+                                                                                                      'maxLength': 80}},
+                                                                   'contract_path_terms': {'type': 'array',
+                                                                                           'maxItems': 64,
+                                                                                           'items': {'type': 'string',
+                                                                                                     'maxLength': 80}},
+                                                                   'test_path_terms': {'type': 'array',
+                                                                                       'maxItems': 64,
+                                                                                       'items': {'type': 'string',
+                                                                                                 'maxLength': 80}},
+                                                                   'architecture_role_terms': {'type': 'object',
+                                                                                               'maxProperties': 24,
+                                                                                               'additionalProperties': {'type': 'array',
+                                                                                                                        'maxItems': 64,
+                                                                                                                        'items': {'type': 'string',
+                                                                                                                                  'maxLength': 80}}}},
+                                                    'additionalProperties': False},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -5733,6 +5807,43 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'default': 20,
                                            'minimum': 1,
                                            'maximum': 100},
+                                 'semantic_rules': {'type': 'object',
+                                                    'description': 'Optional per-project literal '
+                                                                   'term overrides for '
+                                                                   'snipara.semantic.v1. Terms are '
+                                                                   'bounded plain strings, not '
+                                                                   'regular expressions.',
+                                                    'properties': {'replace_defaults': {'type': 'boolean',
+                                                                                        'default': False,
+                                                                                        'description': 'Use '
+                                                                                                       'only '
+                                                                                                       'configured '
+                                                                                                       'naming '
+                                                                                                       'terms '
+                                                                                                       'instead '
+                                                                                                       'of '
+                                                                                                       'built-in '
+                                                                                                       'naming '
+                                                                                                       'conventions.'},
+                                                                   'sensitive_path_terms': {'type': 'array',
+                                                                                            'maxItems': 64,
+                                                                                            'items': {'type': 'string',
+                                                                                                      'maxLength': 80}},
+                                                                   'contract_path_terms': {'type': 'array',
+                                                                                           'maxItems': 64,
+                                                                                           'items': {'type': 'string',
+                                                                                                     'maxLength': 80}},
+                                                                   'test_path_terms': {'type': 'array',
+                                                                                       'maxItems': 64,
+                                                                                       'items': {'type': 'string',
+                                                                                                 'maxLength': 80}},
+                                                                   'architecture_role_terms': {'type': 'object',
+                                                                                               'maxProperties': 24,
+                                                                                               'additionalProperties': {'type': 'array',
+                                                                                                                        'maxItems': 64,
+                                                                                                                        'items': {'type': 'string',
+                                                                                                                                  'maxLength': 80}}}},
+                                                    'additionalProperties': False},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -5790,6 +5901,43 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                            'default': 50,
                                            'minimum': 1,
                                            'maximum': 200},
+                                 'semantic_rules': {'type': 'object',
+                                                    'description': 'Optional per-project literal '
+                                                                   'term overrides for '
+                                                                   'snipara.semantic.v1. Terms are '
+                                                                   'bounded plain strings, not '
+                                                                   'regular expressions.',
+                                                    'properties': {'replace_defaults': {'type': 'boolean',
+                                                                                        'default': False,
+                                                                                        'description': 'Use '
+                                                                                                       'only '
+                                                                                                       'configured '
+                                                                                                       'naming '
+                                                                                                       'terms '
+                                                                                                       'instead '
+                                                                                                       'of '
+                                                                                                       'built-in '
+                                                                                                       'naming '
+                                                                                                       'conventions.'},
+                                                                   'sensitive_path_terms': {'type': 'array',
+                                                                                            'maxItems': 64,
+                                                                                            'items': {'type': 'string',
+                                                                                                      'maxLength': 80}},
+                                                                   'contract_path_terms': {'type': 'array',
+                                                                                           'maxItems': 64,
+                                                                                           'items': {'type': 'string',
+                                                                                                     'maxLength': 80}},
+                                                                   'test_path_terms': {'type': 'array',
+                                                                                       'maxItems': 64,
+                                                                                       'items': {'type': 'string',
+                                                                                                 'maxLength': 80}},
+                                                                   'architecture_role_terms': {'type': 'object',
+                                                                                               'maxProperties': 24,
+                                                                                               'additionalProperties': {'type': 'array',
+                                                                                                                        'maxItems': 64,
+                                                                                                                        'items': {'type': 'string',
+                                                                                                                                  'maxLength': 80}}}},
+                                                    'additionalProperties': False},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,

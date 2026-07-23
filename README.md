@@ -72,6 +72,12 @@ The default discovery surface contains 13 coherent tools:
 `snipara_inbox_review_queue`, `snipara_inbox_review_plan`, and
 `snipara_inbox_review_apply`.
 
+### Semantic rule contract (2.8.27)
+
+The generated `snipara_code_symbol_card` and `snipara_code_impact` schemas now
+forward bounded `semantic_rules` project overrides to the hosted service. Terms
+are literal strings rather than executable regular expressions.
+
 ### MCP transport security floor (2.8.26)
 
 The connector now requires MCP Python SDK 1.28.1 or newer. This incorporates
