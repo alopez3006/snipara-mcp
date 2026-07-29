@@ -27,9 +27,25 @@ def _package_version_from_pyproject() -> str:
     return data["project"]["version"]
 
 
+def _package_dependencies_from_pyproject() -> list[str]:
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # Python 3.10
+        import tomli as tomllib
+
+    pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+    return data["project"]["dependencies"]
+
+
 def test_package_version_matches_pyproject() -> None:
     """The installed package should report the same version as pyproject.toml."""
     assert snipara_mcp.__version__ == _package_version_from_pyproject()
+
+
+def test_mcp_dependency_excludes_incompatible_major_version() -> None:
+    """The connector still uses the MCP v1 Server decorator contract."""
+    assert "mcp>=1.28.1,<2" in _package_dependencies_from_pyproject()
 
 
 def test_glama_metadata_claims_public_repository() -> None:
