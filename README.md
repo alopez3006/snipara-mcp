@@ -72,6 +72,15 @@ The default discovery surface contains 13 coherent tools:
 `snipara_inbox_review_queue`, `snipara_inbox_review_plan`, and
 `snipara_inbox_review_apply`.
 
+### Minimum-safe-change review (2.8.29)
+
+The packaged `snipara_context_query` and `snipara_code_impact` contracts now
+accept `minimum_change_mode="review"`. When enabled, answer packs and impact
+responses carry a non-blocking, evidence-first receipt covering existing
+capabilities, stdlib/native options, installed dependencies, the smallest safe
+diff, and validation-surface preservation. The policy is advisory and remains
+opt-in until project evidence calibrates stronger enforcement.
+
 ### Semantic rule contract (2.8.27)
 
 The generated `snipara_code_symbol_card` and `snipara_code_impact` schemas now

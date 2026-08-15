@@ -67,6 +67,18 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'and code/context hints '
                                                                         'before the ranked context '
                                                                         'sections.'},
+                                 'minimum_change_mode': {'type': 'string',
+                                                         'enum': ['off', 'review'],
+                                                         'default': 'off',
+                                                         'description': 'Opt-in non-blocking '
+                                                                        'minimum-safe-change '
+                                                                        'review. Checks existing '
+                                                                        'capability, stdlib/native '
+                                                                        'support, installed '
+                                                                        'dependencies, smallest '
+                                                                        'safe diff, and validation '
+                                                                        'evidence without blocking '
+                                                                        'the response.'},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '
@@ -795,6 +807,15 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                                                         'items': {'type': 'string',
                                                                                                                                   'maxLength': 80}}}},
                                                     'additionalProperties': False},
+                                 'minimum_change_mode': {'type': 'string',
+                                                         'enum': ['off', 'review'],
+                                                         'default': 'off',
+                                                         'description': 'Opt-in non-blocking '
+                                                                        'minimum-safe-change '
+                                                                        'review for the requested '
+                                                                        'impact. Unknown '
+                                                                        'runtime/package evidence '
+                                                                        'remains explicit.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -5235,6 +5256,18 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'and code/context hints '
                                                                         'before the ranked context '
                                                                         'sections.'},
+                                 'minimum_change_mode': {'type': 'string',
+                                                         'enum': ['off', 'review'],
+                                                         'default': 'off',
+                                                         'description': 'Opt-in non-blocking '
+                                                                        'minimum-safe-change '
+                                                                        'review. Checks existing '
+                                                                        'capability, stdlib/native '
+                                                                        'support, installed '
+                                                                        'dependencies, smallest '
+                                                                        'safe diff, and validation '
+                                                                        'evidence without blocking '
+                                                                        'the response.'},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '
@@ -5938,6 +5971,15 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                                                                         'items': {'type': 'string',
                                                                                                                                   'maxLength': 80}}}},
                                                     'additionalProperties': False},
+                                 'minimum_change_mode': {'type': 'string',
+                                                         'enum': ['off', 'review'],
+                                                         'default': 'off',
+                                                         'description': 'Opt-in non-blocking '
+                                                                        'minimum-safe-change '
+                                                                        'review for the requested '
+                                                                        'impact. Unknown '
+                                                                        'runtime/package evidence '
+                                                                        'remains explicit.'},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,

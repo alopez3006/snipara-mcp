@@ -238,10 +238,13 @@ def test_generated_contract_exposes_agent_context_surface() -> None:
 
     assert "include_answer_pack" in context_props
     assert context_props["include_answer_pack"]["default"] is True
+    assert context_props["minimum_change_mode"]["enum"] == ["off", "review"]
     assert "list_all" in help_props
     assert help_props["list_all"]["default"] is False
     assert "snipara_code_symbol_card" in contract_tools
     assert "snipara_code_impact" in contract_tools
+    impact_props = contract_tools["snipara_code_impact"]["inputSchema"]["properties"]
+    assert impact_props["minimum_change_mode"]["default"] == "off"
     assert "snipara_decision_review_queue" in contract_tools
     assert "snipara_decision_review_plan" in contract_tools
     review_apply = contract_tools["snipara_decision_review_apply"]
