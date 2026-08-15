@@ -79,6 +79,1252 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'safe diff, and validation '
                                                                         'evidence without blocking '
                                                                         'the response.'},
+                                 'minimum_change_evidence': {'type': 'object',
+                                                             'additionalProperties': False,
+                                                             'maxProperties': 6,
+                                                             'description': 'Optional bounded '
+                                                                            'evidence receipt for '
+                                                                            'minimum_change_mode=review. '
+                                                                            'Use named sources and '
+                                                                            'concise proof '
+                                                                            'references; missing '
+                                                                            'evidence remains '
+                                                                            'unknown.',
+                                                             'properties': {'existing_capability': {'type': 'object',
+                                                                                                    'additionalProperties': False,
+                                                                                                    'maxProperties': 6,
+                                                                                                    'description': 'One '
+                                                                                                                   'bounded, '
+                                                                                                                   'attributable '
+                                                                                                                   'evidence '
+                                                                                                                   'check '
+                                                                                                                   'for '
+                                                                                                                   'the '
+                                                                                                                   'requested '
+                                                                                                                   'policy '
+                                                                                                                   'question.',
+                                                                                                    'properties': {'status': {'type': 'string',
+                                                                                                                              'enum': ['confirmed',
+                                                                                                                                       'candidate',
+                                                                                                                                       'unknown',
+                                                                                                                                       'not_applicable',
+                                                                                                                                       'needs_review'],
+                                                                                                                              'description': 'Evidence '
+                                                                                                                                             'state. '
+                                                                                                                                             'Use '
+                                                                                                                                             'unknown '
+                                                                                                                                             'when '
+                                                                                                                                             'the '
+                                                                                                                                             'source '
+                                                                                                                                             'was '
+                                                                                                                                             'not '
+                                                                                                                                             'verified.'},
+                                                                                                                   'source': {'type': 'string',
+                                                                                                                              'enum': ['code_impact',
+                                                                                                                                       'git_diff',
+                                                                                                                                       'lockfile',
+                                                                                                                                       'manifest',
+                                                                                                                                       'runtime',
+                                                                                                                                       'test_runner',
+                                                                                                                                       'caller_assertion'],
+                                                                                                                              'description': 'Named '
+                                                                                                                                             'evidence '
+                                                                                                                                             'adapter '
+                                                                                                                                             'or '
+                                                                                                                                             'provenance '
+                                                                                                                                             'source '
+                                                                                                                                             'for '
+                                                                                                                                             'this '
+                                                                                                                                             'check.'},
+                                                                                                                   'evidence': {'type': 'array',
+                                                                                                                                'maxItems': 10,
+                                                                                                                                'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                     'maxLength': 256},
+                                                                                                                                                    {'type': 'object',
+                                                                                                                                                     'additionalProperties': False,
+                                                                                                                                                     'maxProperties': 5,
+                                                                                                                                                     'properties': {'source': {'type': 'string',
+                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                    'kind': {'type': 'string',
+                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                    'path': {'type': 'string',
+                                                                                                                                                                             'maxLength': 256},
+                                                                                                                                                                    'detail': {'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                    'lines': {'type': 'array',
+                                                                                                                                                                              'maxItems': 2,
+                                                                                                                                                                              'items': {'type': 'integer',
+                                                                                                                                                                                        'minimum': 0}}}}]},
+                                                                                                                                'description': 'At '
+                                                                                                                                               'most '
+                                                                                                                                               'ten '
+                                                                                                                                               'concise '
+                                                                                                                                               'proof '
+                                                                                                                                               'references; '
+                                                                                                                                               'do '
+                                                                                                                                               'not '
+                                                                                                                                               'include '
+                                                                                                                                               'secrets '
+                                                                                                                                               'or '
+                                                                                                                                               'raw '
+                                                                                                                                               'logs.'},
+                                                                                                                   'scope': {'type': 'string',
+                                                                                                                             'maxLength': 128,
+                                                                                                                             'description': 'Optional '
+                                                                                                                                            'bounded '
+                                                                                                                                            'file, '
+                                                                                                                                            'package, '
+                                                                                                                                            'runtime, '
+                                                                                                                                            'or '
+                                                                                                                                            'test '
+                                                                                                                                            'scope.'},
+                                                                                                                   'observed_at': {'type': 'string',
+                                                                                                                                   'maxLength': 64,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'timestamp '
+                                                                                                                                                  'or '
+                                                                                                                                                  'revision '
+                                                                                                                                                  'associated '
+                                                                                                                                                  'with '
+                                                                                                                                                  'the '
+                                                                                                                                                  'proof.'},
+                                                                                                                   'confidence': {'type': 'number',
+                                                                                                                                  'minimum': 0,
+                                                                                                                                  'maximum': 1,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'confidence '
+                                                                                                                                                 'from '
+                                                                                                                                                 'the '
+                                                                                                                                                 'evidence '
+                                                                                                                                                 'adapter, '
+                                                                                                                                                 'between '
+                                                                                                                                                 'zero '
+                                                                                                                                                 'and '
+                                                                                                                                                 'one.'}}},
+                                                                            'stdlib_or_native': {'type': 'object',
+                                                                                                 'additionalProperties': False,
+                                                                                                 'maxProperties': 6,
+                                                                                                 'description': 'One '
+                                                                                                                'bounded, '
+                                                                                                                'attributable '
+                                                                                                                'evidence '
+                                                                                                                'check '
+                                                                                                                'for '
+                                                                                                                'the '
+                                                                                                                'requested '
+                                                                                                                'policy '
+                                                                                                                'question.',
+                                                                                                 'properties': {'status': {'type': 'string',
+                                                                                                                           'enum': ['confirmed',
+                                                                                                                                    'candidate',
+                                                                                                                                    'unknown',
+                                                                                                                                    'not_applicable',
+                                                                                                                                    'needs_review'],
+                                                                                                                           'description': 'Evidence '
+                                                                                                                                          'state. '
+                                                                                                                                          'Use '
+                                                                                                                                          'unknown '
+                                                                                                                                          'when '
+                                                                                                                                          'the '
+                                                                                                                                          'source '
+                                                                                                                                          'was '
+                                                                                                                                          'not '
+                                                                                                                                          'verified.'},
+                                                                                                                'source': {'type': 'string',
+                                                                                                                           'enum': ['code_impact',
+                                                                                                                                    'git_diff',
+                                                                                                                                    'lockfile',
+                                                                                                                                    'manifest',
+                                                                                                                                    'runtime',
+                                                                                                                                    'test_runner',
+                                                                                                                                    'caller_assertion'],
+                                                                                                                           'description': 'Named '
+                                                                                                                                          'evidence '
+                                                                                                                                          'adapter '
+                                                                                                                                          'or '
+                                                                                                                                          'provenance '
+                                                                                                                                          'source '
+                                                                                                                                          'for '
+                                                                                                                                          'this '
+                                                                                                                                          'check.'},
+                                                                                                                'evidence': {'type': 'array',
+                                                                                                                             'maxItems': 10,
+                                                                                                                             'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                  'maxLength': 256},
+                                                                                                                                                 {'type': 'object',
+                                                                                                                                                  'additionalProperties': False,
+                                                                                                                                                  'maxProperties': 5,
+                                                                                                                                                  'properties': {'source': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                 'kind': {'type': 'string',
+                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                 'path': {'type': 'string',
+                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                 'detail': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                 'lines': {'type': 'array',
+                                                                                                                                                                           'maxItems': 2,
+                                                                                                                                                                           'items': {'type': 'integer',
+                                                                                                                                                                                     'minimum': 0}}}}]},
+                                                                                                                             'description': 'At '
+                                                                                                                                            'most '
+                                                                                                                                            'ten '
+                                                                                                                                            'concise '
+                                                                                                                                            'proof '
+                                                                                                                                            'references; '
+                                                                                                                                            'do '
+                                                                                                                                            'not '
+                                                                                                                                            'include '
+                                                                                                                                            'secrets '
+                                                                                                                                            'or '
+                                                                                                                                            'raw '
+                                                                                                                                            'logs.'},
+                                                                                                                'scope': {'type': 'string',
+                                                                                                                          'maxLength': 128,
+                                                                                                                          'description': 'Optional '
+                                                                                                                                         'bounded '
+                                                                                                                                         'file, '
+                                                                                                                                         'package, '
+                                                                                                                                         'runtime, '
+                                                                                                                                         'or '
+                                                                                                                                         'test '
+                                                                                                                                         'scope.'},
+                                                                                                                'observed_at': {'type': 'string',
+                                                                                                                                'maxLength': 64,
+                                                                                                                                'description': 'Optional '
+                                                                                                                                               'timestamp '
+                                                                                                                                               'or '
+                                                                                                                                               'revision '
+                                                                                                                                               'associated '
+                                                                                                                                               'with '
+                                                                                                                                               'the '
+                                                                                                                                               'proof.'},
+                                                                                                                'confidence': {'type': 'number',
+                                                                                                                               'minimum': 0,
+                                                                                                                               'maximum': 1,
+                                                                                                                               'description': 'Optional '
+                                                                                                                                              'confidence '
+                                                                                                                                              'from '
+                                                                                                                                              'the '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter, '
+                                                                                                                                              'between '
+                                                                                                                                              'zero '
+                                                                                                                                              'and '
+                                                                                                                                              'one.'}}},
+                                                                            'installed_dependency': {'type': 'object',
+                                                                                                     'additionalProperties': False,
+                                                                                                     'maxProperties': 6,
+                                                                                                     'description': 'One '
+                                                                                                                    'bounded, '
+                                                                                                                    'attributable '
+                                                                                                                    'evidence '
+                                                                                                                    'check '
+                                                                                                                    'for '
+                                                                                                                    'the '
+                                                                                                                    'requested '
+                                                                                                                    'policy '
+                                                                                                                    'question.',
+                                                                                                     'properties': {'status': {'type': 'string',
+                                                                                                                               'enum': ['confirmed',
+                                                                                                                                        'candidate',
+                                                                                                                                        'unknown',
+                                                                                                                                        'not_applicable',
+                                                                                                                                        'needs_review'],
+                                                                                                                               'description': 'Evidence '
+                                                                                                                                              'state. '
+                                                                                                                                              'Use '
+                                                                                                                                              'unknown '
+                                                                                                                                              'when '
+                                                                                                                                              'the '
+                                                                                                                                              'source '
+                                                                                                                                              'was '
+                                                                                                                                              'not '
+                                                                                                                                              'verified.'},
+                                                                                                                    'source': {'type': 'string',
+                                                                                                                               'enum': ['code_impact',
+                                                                                                                                        'git_diff',
+                                                                                                                                        'lockfile',
+                                                                                                                                        'manifest',
+                                                                                                                                        'runtime',
+                                                                                                                                        'test_runner',
+                                                                                                                                        'caller_assertion'],
+                                                                                                                               'description': 'Named '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter '
+                                                                                                                                              'or '
+                                                                                                                                              'provenance '
+                                                                                                                                              'source '
+                                                                                                                                              'for '
+                                                                                                                                              'this '
+                                                                                                                                              'check.'},
+                                                                                                                    'evidence': {'type': 'array',
+                                                                                                                                 'maxItems': 10,
+                                                                                                                                 'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                     {'type': 'object',
+                                                                                                                                                      'additionalProperties': False,
+                                                                                                                                                      'maxProperties': 5,
+                                                                                                                                                      'properties': {'source': {'type': 'string',
+                                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                     'kind': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                     'path': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                     'detail': {'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                     'lines': {'type': 'array',
+                                                                                                                                                                               'maxItems': 2,
+                                                                                                                                                                               'items': {'type': 'integer',
+                                                                                                                                                                                         'minimum': 0}}}}]},
+                                                                                                                                 'description': 'At '
+                                                                                                                                                'most '
+                                                                                                                                                'ten '
+                                                                                                                                                'concise '
+                                                                                                                                                'proof '
+                                                                                                                                                'references; '
+                                                                                                                                                'do '
+                                                                                                                                                'not '
+                                                                                                                                                'include '
+                                                                                                                                                'secrets '
+                                                                                                                                                'or '
+                                                                                                                                                'raw '
+                                                                                                                                                'logs.'},
+                                                                                                                    'scope': {'type': 'string',
+                                                                                                                              'maxLength': 128,
+                                                                                                                              'description': 'Optional '
+                                                                                                                                             'bounded '
+                                                                                                                                             'file, '
+                                                                                                                                             'package, '
+                                                                                                                                             'runtime, '
+                                                                                                                                             'or '
+                                                                                                                                             'test '
+                                                                                                                                             'scope.'},
+                                                                                                                    'observed_at': {'type': 'string',
+                                                                                                                                    'maxLength': 64,
+                                                                                                                                    'description': 'Optional '
+                                                                                                                                                   'timestamp '
+                                                                                                                                                   'or '
+                                                                                                                                                   'revision '
+                                                                                                                                                   'associated '
+                                                                                                                                                   'with '
+                                                                                                                                                   'the '
+                                                                                                                                                   'proof.'},
+                                                                                                                    'confidence': {'type': 'number',
+                                                                                                                                   'minimum': 0,
+                                                                                                                                   'maximum': 1,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'confidence '
+                                                                                                                                                  'from '
+                                                                                                                                                  'the '
+                                                                                                                                                  'evidence '
+                                                                                                                                                  'adapter, '
+                                                                                                                                                  'between '
+                                                                                                                                                  'zero '
+                                                                                                                                                  'and '
+                                                                                                                                                  'one.'}}},
+                                                                            'smallest_safe_diff': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'validation_surface': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'preservation': {'type': 'object',
+                                                                                             'additionalProperties': False,
+                                                                                             'maxProperties': 6,
+                                                                                             'description': 'Optional '
+                                                                                                            'explicit '
+                                                                                                            'proofs '
+                                                                                                            'for '
+                                                                                                            'contracts '
+                                                                                                            'and '
+                                                                                                            'protections '
+                                                                                                            'that '
+                                                                                                            'must '
+                                                                                                            'be '
+                                                                                                            'preserved.',
+                                                                                             'properties': {'validation': {'type': 'object',
+                                                                                                                           'additionalProperties': False,
+                                                                                                                           'maxProperties': 6,
+                                                                                                                           'description': 'One '
+                                                                                                                                          'bounded, '
+                                                                                                                                          'attributable '
+                                                                                                                                          'evidence '
+                                                                                                                                          'check '
+                                                                                                                                          'for '
+                                                                                                                                          'the '
+                                                                                                                                          'requested '
+                                                                                                                                          'policy '
+                                                                                                                                          'question.',
+                                                                                                                           'properties': {'status': {'type': 'string',
+                                                                                                                                                     'enum': ['confirmed',
+                                                                                                                                                              'candidate',
+                                                                                                                                                              'unknown',
+                                                                                                                                                              'not_applicable',
+                                                                                                                                                              'needs_review'],
+                                                                                                                                                     'description': 'Evidence '
+                                                                                                                                                                    'state. '
+                                                                                                                                                                    'Use '
+                                                                                                                                                                    'unknown '
+                                                                                                                                                                    'when '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'was '
+                                                                                                                                                                    'not '
+                                                                                                                                                                    'verified.'},
+                                                                                                                                          'source': {'type': 'string',
+                                                                                                                                                     'enum': ['code_impact',
+                                                                                                                                                              'git_diff',
+                                                                                                                                                              'lockfile',
+                                                                                                                                                              'manifest',
+                                                                                                                                                              'runtime',
+                                                                                                                                                              'test_runner',
+                                                                                                                                                              'caller_assertion'],
+                                                                                                                                                     'description': 'Named '
+                                                                                                                                                                    'evidence '
+                                                                                                                                                                    'adapter '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'provenance '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'for '
+                                                                                                                                                                    'this '
+                                                                                                                                                                    'check.'},
+                                                                                                                                          'evidence': {'type': 'array',
+                                                                                                                                                       'maxItems': 10,
+                                                                                                                                                       'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                           {'type': 'object',
+                                                                                                                                                                            'additionalProperties': False,
+                                                                                                                                                                            'maxProperties': 5,
+                                                                                                                                                                            'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                                           'kind': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                                           'path': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                                                           'detail': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                                                           'lines': {'type': 'array',
+                                                                                                                                                                                                     'maxItems': 2,
+                                                                                                                                                                                                     'items': {'type': 'integer',
+                                                                                                                                                                                                               'minimum': 0}}}}]},
+                                                                                                                                                       'description': 'At '
+                                                                                                                                                                      'most '
+                                                                                                                                                                      'ten '
+                                                                                                                                                                      'concise '
+                                                                                                                                                                      'proof '
+                                                                                                                                                                      'references; '
+                                                                                                                                                                      'do '
+                                                                                                                                                                      'not '
+                                                                                                                                                                      'include '
+                                                                                                                                                                      'secrets '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'raw '
+                                                                                                                                                                      'logs.'},
+                                                                                                                                          'scope': {'type': 'string',
+                                                                                                                                                    'maxLength': 128,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'bounded '
+                                                                                                                                                                   'file, '
+                                                                                                                                                                   'package, '
+                                                                                                                                                                   'runtime, '
+                                                                                                                                                                   'or '
+                                                                                                                                                                   'test '
+                                                                                                                                                                   'scope.'},
+                                                                                                                                          'observed_at': {'type': 'string',
+                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                          'description': 'Optional '
+                                                                                                                                                                         'timestamp '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'revision '
+                                                                                                                                                                         'associated '
+                                                                                                                                                                         'with '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'proof.'},
+                                                                                                                                          'confidence': {'type': 'number',
+                                                                                                                                                         'minimum': 0,
+                                                                                                                                                         'maximum': 1,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'confidence '
+                                                                                                                                                                        'from '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter, '
+                                                                                                                                                                        'between '
+                                                                                                                                                                        'zero '
+                                                                                                                                                                        'and '
+                                                                                                                                                                        'one.'}}},
+                                                                                                            'error_contract': {'type': 'object',
+                                                                                                                               'additionalProperties': False,
+                                                                                                                               'maxProperties': 6,
+                                                                                                                               'description': 'One '
+                                                                                                                                              'bounded, '
+                                                                                                                                              'attributable '
+                                                                                                                                              'evidence '
+                                                                                                                                              'check '
+                                                                                                                                              'for '
+                                                                                                                                              'the '
+                                                                                                                                              'requested '
+                                                                                                                                              'policy '
+                                                                                                                                              'question.',
+                                                                                                                               'properties': {'status': {'type': 'string',
+                                                                                                                                                         'enum': ['confirmed',
+                                                                                                                                                                  'candidate',
+                                                                                                                                                                  'unknown',
+                                                                                                                                                                  'not_applicable',
+                                                                                                                                                                  'needs_review'],
+                                                                                                                                                         'description': 'Evidence '
+                                                                                                                                                                        'state. '
+                                                                                                                                                                        'Use '
+                                                                                                                                                                        'unknown '
+                                                                                                                                                                        'when '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'was '
+                                                                                                                                                                        'not '
+                                                                                                                                                                        'verified.'},
+                                                                                                                                              'source': {'type': 'string',
+                                                                                                                                                         'enum': ['code_impact',
+                                                                                                                                                                  'git_diff',
+                                                                                                                                                                  'lockfile',
+                                                                                                                                                                  'manifest',
+                                                                                                                                                                  'runtime',
+                                                                                                                                                                  'test_runner',
+                                                                                                                                                                  'caller_assertion'],
+                                                                                                                                                         'description': 'Named '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'provenance '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'for '
+                                                                                                                                                                        'this '
+                                                                                                                                                                        'check.'},
+                                                                                                                                              'evidence': {'type': 'array',
+                                                                                                                                                           'maxItems': 10,
+                                                                                                                                                           'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                               {'type': 'object',
+                                                                                                                                                                                'additionalProperties': False,
+                                                                                                                                                                                'maxProperties': 5,
+                                                                                                                                                                                'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                               'kind': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 64},
+                                                                                                                                                                                               'path': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 256},
+                                                                                                                                                                                               'detail': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                                               'lines': {'type': 'array',
+                                                                                                                                                                                                         'maxItems': 2,
+                                                                                                                                                                                                         'items': {'type': 'integer',
+                                                                                                                                                                                                                   'minimum': 0}}}}]},
+                                                                                                                                                           'description': 'At '
+                                                                                                                                                                          'most '
+                                                                                                                                                                          'ten '
+                                                                                                                                                                          'concise '
+                                                                                                                                                                          'proof '
+                                                                                                                                                                          'references; '
+                                                                                                                                                                          'do '
+                                                                                                                                                                          'not '
+                                                                                                                                                                          'include '
+                                                                                                                                                                          'secrets '
+                                                                                                                                                                          'or '
+                                                                                                                                                                          'raw '
+                                                                                                                                                                          'logs.'},
+                                                                                                                                              'scope': {'type': 'string',
+                                                                                                                                                        'maxLength': 128,
+                                                                                                                                                        'description': 'Optional '
+                                                                                                                                                                       'bounded '
+                                                                                                                                                                       'file, '
+                                                                                                                                                                       'package, '
+                                                                                                                                                                       'runtime, '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'test '
+                                                                                                                                                                       'scope.'},
+                                                                                                                                              'observed_at': {'type': 'string',
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'timestamp '
+                                                                                                                                                                             'or '
+                                                                                                                                                                             'revision '
+                                                                                                                                                                             'associated '
+                                                                                                                                                                             'with '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'proof.'},
+                                                                                                                                              'confidence': {'type': 'number',
+                                                                                                                                                             'minimum': 0,
+                                                                                                                                                             'maximum': 1,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'confidence '
+                                                                                                                                                                            'from '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'evidence '
+                                                                                                                                                                            'adapter, '
+                                                                                                                                                                            'between '
+                                                                                                                                                                            'zero '
+                                                                                                                                                                            'and '
+                                                                                                                                                                            'one.'}}},
+                                                                                                            'security_auth': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'accessibility': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'public_contract': {'type': 'object',
+                                                                                                                                'additionalProperties': False,
+                                                                                                                                'maxProperties': 6,
+                                                                                                                                'description': 'One '
+                                                                                                                                               'bounded, '
+                                                                                                                                               'attributable '
+                                                                                                                                               'evidence '
+                                                                                                                                               'check '
+                                                                                                                                               'for '
+                                                                                                                                               'the '
+                                                                                                                                               'requested '
+                                                                                                                                               'policy '
+                                                                                                                                               'question.',
+                                                                                                                                'properties': {'status': {'type': 'string',
+                                                                                                                                                          'enum': ['confirmed',
+                                                                                                                                                                   'candidate',
+                                                                                                                                                                   'unknown',
+                                                                                                                                                                   'not_applicable',
+                                                                                                                                                                   'needs_review'],
+                                                                                                                                                          'description': 'Evidence '
+                                                                                                                                                                         'state. '
+                                                                                                                                                                         'Use '
+                                                                                                                                                                         'unknown '
+                                                                                                                                                                         'when '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'was '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'verified.'},
+                                                                                                                                               'source': {'type': 'string',
+                                                                                                                                                          'enum': ['code_impact',
+                                                                                                                                                                   'git_diff',
+                                                                                                                                                                   'lockfile',
+                                                                                                                                                                   'manifest',
+                                                                                                                                                                   'runtime',
+                                                                                                                                                                   'test_runner',
+                                                                                                                                                                   'caller_assertion'],
+                                                                                                                                                          'description': 'Named '
+                                                                                                                                                                         'evidence '
+                                                                                                                                                                         'adapter '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'provenance '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'for '
+                                                                                                                                                                         'this '
+                                                                                                                                                                         'check.'},
+                                                                                                                                               'evidence': {'type': 'array',
+                                                                                                                                                            'maxItems': 10,
+                                                                                                                                                            'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                {'type': 'object',
+                                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                                 'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                                'kind': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                                'path': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                                'detail': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 256},
+                                                                                                                                                                                                'lines': {'type': 'array',
+                                                                                                                                                                                                          'maxItems': 2,
+                                                                                                                                                                                                          'items': {'type': 'integer',
+                                                                                                                                                                                                                    'minimum': 0}}}}]},
+                                                                                                                                                            'description': 'At '
+                                                                                                                                                                           'most '
+                                                                                                                                                                           'ten '
+                                                                                                                                                                           'concise '
+                                                                                                                                                                           'proof '
+                                                                                                                                                                           'references; '
+                                                                                                                                                                           'do '
+                                                                                                                                                                           'not '
+                                                                                                                                                                           'include '
+                                                                                                                                                                           'secrets '
+                                                                                                                                                                           'or '
+                                                                                                                                                                           'raw '
+                                                                                                                                                                           'logs.'},
+                                                                                                                                               'scope': {'type': 'string',
+                                                                                                                                                         'maxLength': 128,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'bounded '
+                                                                                                                                                                        'file, '
+                                                                                                                                                                        'package, '
+                                                                                                                                                                        'runtime, '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'test '
+                                                                                                                                                                        'scope.'},
+                                                                                                                                               'observed_at': {'type': 'string',
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Optional '
+                                                                                                                                                                              'timestamp '
+                                                                                                                                                                              'or '
+                                                                                                                                                                              'revision '
+                                                                                                                                                                              'associated '
+                                                                                                                                                                              'with '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'proof.'},
+                                                                                                                                               'confidence': {'type': 'number',
+                                                                                                                                                              'minimum': 0,
+                                                                                                                                                              'maximum': 1,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'confidence '
+                                                                                                                                                                             'from '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter, '
+                                                                                                                                                                             'between '
+                                                                                                                                                                             'zero '
+                                                                                                                                                                             'and '
+                                                                                                                                                                             'one.'}}},
+                                                                                                            'tests': {'type': 'object',
+                                                                                                                      'additionalProperties': False,
+                                                                                                                      'maxProperties': 6,
+                                                                                                                      'description': 'One '
+                                                                                                                                     'bounded, '
+                                                                                                                                     'attributable '
+                                                                                                                                     'evidence '
+                                                                                                                                     'check '
+                                                                                                                                     'for '
+                                                                                                                                     'the '
+                                                                                                                                     'requested '
+                                                                                                                                     'policy '
+                                                                                                                                     'question.',
+                                                                                                                      'properties': {'status': {'type': 'string',
+                                                                                                                                                'enum': ['confirmed',
+                                                                                                                                                         'candidate',
+                                                                                                                                                         'unknown',
+                                                                                                                                                         'not_applicable',
+                                                                                                                                                         'needs_review'],
+                                                                                                                                                'description': 'Evidence '
+                                                                                                                                                               'state. '
+                                                                                                                                                               'Use '
+                                                                                                                                                               'unknown '
+                                                                                                                                                               'when '
+                                                                                                                                                               'the '
+                                                                                                                                                               'source '
+                                                                                                                                                               'was '
+                                                                                                                                                               'not '
+                                                                                                                                                               'verified.'},
+                                                                                                                                     'source': {'type': 'string',
+                                                                                                                                                'enum': ['code_impact',
+                                                                                                                                                         'git_diff',
+                                                                                                                                                         'lockfile',
+                                                                                                                                                         'manifest',
+                                                                                                                                                         'runtime',
+                                                                                                                                                         'test_runner',
+                                                                                                                                                         'caller_assertion'],
+                                                                                                                                                'description': 'Named '
+                                                                                                                                                               'evidence '
+                                                                                                                                                               'adapter '
+                                                                                                                                                               'or '
+                                                                                                                                                               'provenance '
+                                                                                                                                                               'source '
+                                                                                                                                                               'for '
+                                                                                                                                                               'this '
+                                                                                                                                                               'check.'},
+                                                                                                                                     'evidence': {'type': 'array',
+                                                                                                                                                  'maxItems': 10,
+                                                                                                                                                  'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                      {'type': 'object',
+                                                                                                                                                                       'additionalProperties': False,
+                                                                                                                                                                       'maxProperties': 5,
+                                                                                                                                                                       'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                                      'kind': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                                      'path': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                                      'detail': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                      'lines': {'type': 'array',
+                                                                                                                                                                                                'maxItems': 2,
+                                                                                                                                                                                                'items': {'type': 'integer',
+                                                                                                                                                                                                          'minimum': 0}}}}]},
+                                                                                                                                                  'description': 'At '
+                                                                                                                                                                 'most '
+                                                                                                                                                                 'ten '
+                                                                                                                                                                 'concise '
+                                                                                                                                                                 'proof '
+                                                                                                                                                                 'references; '
+                                                                                                                                                                 'do '
+                                                                                                                                                                 'not '
+                                                                                                                                                                 'include '
+                                                                                                                                                                 'secrets '
+                                                                                                                                                                 'or '
+                                                                                                                                                                 'raw '
+                                                                                                                                                                 'logs.'},
+                                                                                                                                     'scope': {'type': 'string',
+                                                                                                                                               'maxLength': 128,
+                                                                                                                                               'description': 'Optional '
+                                                                                                                                                              'bounded '
+                                                                                                                                                              'file, '
+                                                                                                                                                              'package, '
+                                                                                                                                                              'runtime, '
+                                                                                                                                                              'or '
+                                                                                                                                                              'test '
+                                                                                                                                                              'scope.'},
+                                                                                                                                     'observed_at': {'type': 'string',
+                                                                                                                                                     'maxLength': 64,
+                                                                                                                                                     'description': 'Optional '
+                                                                                                                                                                    'timestamp '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'revision '
+                                                                                                                                                                    'associated '
+                                                                                                                                                                    'with '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'proof.'},
+                                                                                                                                     'confidence': {'type': 'number',
+                                                                                                                                                    'minimum': 0,
+                                                                                                                                                    'maximum': 1,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'confidence '
+                                                                                                                                                                   'from '
+                                                                                                                                                                   'the '
+                                                                                                                                                                   'evidence '
+                                                                                                                                                                   'adapter, '
+                                                                                                                                                                   'between '
+                                                                                                                                                                   'zero '
+                                                                                                                                                                   'and '
+                                                                                                                                                                   'one.'}}}}}}},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '
@@ -816,6 +2062,1252 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'impact. Unknown '
                                                                         'runtime/package evidence '
                                                                         'remains explicit.'},
+                                 'minimum_change_evidence': {'type': 'object',
+                                                             'additionalProperties': False,
+                                                             'maxProperties': 6,
+                                                             'description': 'Optional bounded '
+                                                                            'evidence receipt for '
+                                                                            'minimum_change_mode=review. '
+                                                                            'Use named sources and '
+                                                                            'concise proof '
+                                                                            'references; missing '
+                                                                            'evidence remains '
+                                                                            'unknown.',
+                                                             'properties': {'existing_capability': {'type': 'object',
+                                                                                                    'additionalProperties': False,
+                                                                                                    'maxProperties': 6,
+                                                                                                    'description': 'One '
+                                                                                                                   'bounded, '
+                                                                                                                   'attributable '
+                                                                                                                   'evidence '
+                                                                                                                   'check '
+                                                                                                                   'for '
+                                                                                                                   'the '
+                                                                                                                   'requested '
+                                                                                                                   'policy '
+                                                                                                                   'question.',
+                                                                                                    'properties': {'status': {'type': 'string',
+                                                                                                                              'enum': ['confirmed',
+                                                                                                                                       'candidate',
+                                                                                                                                       'unknown',
+                                                                                                                                       'not_applicable',
+                                                                                                                                       'needs_review'],
+                                                                                                                              'description': 'Evidence '
+                                                                                                                                             'state. '
+                                                                                                                                             'Use '
+                                                                                                                                             'unknown '
+                                                                                                                                             'when '
+                                                                                                                                             'the '
+                                                                                                                                             'source '
+                                                                                                                                             'was '
+                                                                                                                                             'not '
+                                                                                                                                             'verified.'},
+                                                                                                                   'source': {'type': 'string',
+                                                                                                                              'enum': ['code_impact',
+                                                                                                                                       'git_diff',
+                                                                                                                                       'lockfile',
+                                                                                                                                       'manifest',
+                                                                                                                                       'runtime',
+                                                                                                                                       'test_runner',
+                                                                                                                                       'caller_assertion'],
+                                                                                                                              'description': 'Named '
+                                                                                                                                             'evidence '
+                                                                                                                                             'adapter '
+                                                                                                                                             'or '
+                                                                                                                                             'provenance '
+                                                                                                                                             'source '
+                                                                                                                                             'for '
+                                                                                                                                             'this '
+                                                                                                                                             'check.'},
+                                                                                                                   'evidence': {'type': 'array',
+                                                                                                                                'maxItems': 10,
+                                                                                                                                'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                     'maxLength': 256},
+                                                                                                                                                    {'type': 'object',
+                                                                                                                                                     'additionalProperties': False,
+                                                                                                                                                     'maxProperties': 5,
+                                                                                                                                                     'properties': {'source': {'type': 'string',
+                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                    'kind': {'type': 'string',
+                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                    'path': {'type': 'string',
+                                                                                                                                                                             'maxLength': 256},
+                                                                                                                                                                    'detail': {'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                    'lines': {'type': 'array',
+                                                                                                                                                                              'maxItems': 2,
+                                                                                                                                                                              'items': {'type': 'integer',
+                                                                                                                                                                                        'minimum': 0}}}}]},
+                                                                                                                                'description': 'At '
+                                                                                                                                               'most '
+                                                                                                                                               'ten '
+                                                                                                                                               'concise '
+                                                                                                                                               'proof '
+                                                                                                                                               'references; '
+                                                                                                                                               'do '
+                                                                                                                                               'not '
+                                                                                                                                               'include '
+                                                                                                                                               'secrets '
+                                                                                                                                               'or '
+                                                                                                                                               'raw '
+                                                                                                                                               'logs.'},
+                                                                                                                   'scope': {'type': 'string',
+                                                                                                                             'maxLength': 128,
+                                                                                                                             'description': 'Optional '
+                                                                                                                                            'bounded '
+                                                                                                                                            'file, '
+                                                                                                                                            'package, '
+                                                                                                                                            'runtime, '
+                                                                                                                                            'or '
+                                                                                                                                            'test '
+                                                                                                                                            'scope.'},
+                                                                                                                   'observed_at': {'type': 'string',
+                                                                                                                                   'maxLength': 64,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'timestamp '
+                                                                                                                                                  'or '
+                                                                                                                                                  'revision '
+                                                                                                                                                  'associated '
+                                                                                                                                                  'with '
+                                                                                                                                                  'the '
+                                                                                                                                                  'proof.'},
+                                                                                                                   'confidence': {'type': 'number',
+                                                                                                                                  'minimum': 0,
+                                                                                                                                  'maximum': 1,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'confidence '
+                                                                                                                                                 'from '
+                                                                                                                                                 'the '
+                                                                                                                                                 'evidence '
+                                                                                                                                                 'adapter, '
+                                                                                                                                                 'between '
+                                                                                                                                                 'zero '
+                                                                                                                                                 'and '
+                                                                                                                                                 'one.'}}},
+                                                                            'stdlib_or_native': {'type': 'object',
+                                                                                                 'additionalProperties': False,
+                                                                                                 'maxProperties': 6,
+                                                                                                 'description': 'One '
+                                                                                                                'bounded, '
+                                                                                                                'attributable '
+                                                                                                                'evidence '
+                                                                                                                'check '
+                                                                                                                'for '
+                                                                                                                'the '
+                                                                                                                'requested '
+                                                                                                                'policy '
+                                                                                                                'question.',
+                                                                                                 'properties': {'status': {'type': 'string',
+                                                                                                                           'enum': ['confirmed',
+                                                                                                                                    'candidate',
+                                                                                                                                    'unknown',
+                                                                                                                                    'not_applicable',
+                                                                                                                                    'needs_review'],
+                                                                                                                           'description': 'Evidence '
+                                                                                                                                          'state. '
+                                                                                                                                          'Use '
+                                                                                                                                          'unknown '
+                                                                                                                                          'when '
+                                                                                                                                          'the '
+                                                                                                                                          'source '
+                                                                                                                                          'was '
+                                                                                                                                          'not '
+                                                                                                                                          'verified.'},
+                                                                                                                'source': {'type': 'string',
+                                                                                                                           'enum': ['code_impact',
+                                                                                                                                    'git_diff',
+                                                                                                                                    'lockfile',
+                                                                                                                                    'manifest',
+                                                                                                                                    'runtime',
+                                                                                                                                    'test_runner',
+                                                                                                                                    'caller_assertion'],
+                                                                                                                           'description': 'Named '
+                                                                                                                                          'evidence '
+                                                                                                                                          'adapter '
+                                                                                                                                          'or '
+                                                                                                                                          'provenance '
+                                                                                                                                          'source '
+                                                                                                                                          'for '
+                                                                                                                                          'this '
+                                                                                                                                          'check.'},
+                                                                                                                'evidence': {'type': 'array',
+                                                                                                                             'maxItems': 10,
+                                                                                                                             'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                  'maxLength': 256},
+                                                                                                                                                 {'type': 'object',
+                                                                                                                                                  'additionalProperties': False,
+                                                                                                                                                  'maxProperties': 5,
+                                                                                                                                                  'properties': {'source': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                 'kind': {'type': 'string',
+                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                 'path': {'type': 'string',
+                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                 'detail': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                 'lines': {'type': 'array',
+                                                                                                                                                                           'maxItems': 2,
+                                                                                                                                                                           'items': {'type': 'integer',
+                                                                                                                                                                                     'minimum': 0}}}}]},
+                                                                                                                             'description': 'At '
+                                                                                                                                            'most '
+                                                                                                                                            'ten '
+                                                                                                                                            'concise '
+                                                                                                                                            'proof '
+                                                                                                                                            'references; '
+                                                                                                                                            'do '
+                                                                                                                                            'not '
+                                                                                                                                            'include '
+                                                                                                                                            'secrets '
+                                                                                                                                            'or '
+                                                                                                                                            'raw '
+                                                                                                                                            'logs.'},
+                                                                                                                'scope': {'type': 'string',
+                                                                                                                          'maxLength': 128,
+                                                                                                                          'description': 'Optional '
+                                                                                                                                         'bounded '
+                                                                                                                                         'file, '
+                                                                                                                                         'package, '
+                                                                                                                                         'runtime, '
+                                                                                                                                         'or '
+                                                                                                                                         'test '
+                                                                                                                                         'scope.'},
+                                                                                                                'observed_at': {'type': 'string',
+                                                                                                                                'maxLength': 64,
+                                                                                                                                'description': 'Optional '
+                                                                                                                                               'timestamp '
+                                                                                                                                               'or '
+                                                                                                                                               'revision '
+                                                                                                                                               'associated '
+                                                                                                                                               'with '
+                                                                                                                                               'the '
+                                                                                                                                               'proof.'},
+                                                                                                                'confidence': {'type': 'number',
+                                                                                                                               'minimum': 0,
+                                                                                                                               'maximum': 1,
+                                                                                                                               'description': 'Optional '
+                                                                                                                                              'confidence '
+                                                                                                                                              'from '
+                                                                                                                                              'the '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter, '
+                                                                                                                                              'between '
+                                                                                                                                              'zero '
+                                                                                                                                              'and '
+                                                                                                                                              'one.'}}},
+                                                                            'installed_dependency': {'type': 'object',
+                                                                                                     'additionalProperties': False,
+                                                                                                     'maxProperties': 6,
+                                                                                                     'description': 'One '
+                                                                                                                    'bounded, '
+                                                                                                                    'attributable '
+                                                                                                                    'evidence '
+                                                                                                                    'check '
+                                                                                                                    'for '
+                                                                                                                    'the '
+                                                                                                                    'requested '
+                                                                                                                    'policy '
+                                                                                                                    'question.',
+                                                                                                     'properties': {'status': {'type': 'string',
+                                                                                                                               'enum': ['confirmed',
+                                                                                                                                        'candidate',
+                                                                                                                                        'unknown',
+                                                                                                                                        'not_applicable',
+                                                                                                                                        'needs_review'],
+                                                                                                                               'description': 'Evidence '
+                                                                                                                                              'state. '
+                                                                                                                                              'Use '
+                                                                                                                                              'unknown '
+                                                                                                                                              'when '
+                                                                                                                                              'the '
+                                                                                                                                              'source '
+                                                                                                                                              'was '
+                                                                                                                                              'not '
+                                                                                                                                              'verified.'},
+                                                                                                                    'source': {'type': 'string',
+                                                                                                                               'enum': ['code_impact',
+                                                                                                                                        'git_diff',
+                                                                                                                                        'lockfile',
+                                                                                                                                        'manifest',
+                                                                                                                                        'runtime',
+                                                                                                                                        'test_runner',
+                                                                                                                                        'caller_assertion'],
+                                                                                                                               'description': 'Named '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter '
+                                                                                                                                              'or '
+                                                                                                                                              'provenance '
+                                                                                                                                              'source '
+                                                                                                                                              'for '
+                                                                                                                                              'this '
+                                                                                                                                              'check.'},
+                                                                                                                    'evidence': {'type': 'array',
+                                                                                                                                 'maxItems': 10,
+                                                                                                                                 'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                     {'type': 'object',
+                                                                                                                                                      'additionalProperties': False,
+                                                                                                                                                      'maxProperties': 5,
+                                                                                                                                                      'properties': {'source': {'type': 'string',
+                                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                     'kind': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                     'path': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                     'detail': {'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                     'lines': {'type': 'array',
+                                                                                                                                                                               'maxItems': 2,
+                                                                                                                                                                               'items': {'type': 'integer',
+                                                                                                                                                                                         'minimum': 0}}}}]},
+                                                                                                                                 'description': 'At '
+                                                                                                                                                'most '
+                                                                                                                                                'ten '
+                                                                                                                                                'concise '
+                                                                                                                                                'proof '
+                                                                                                                                                'references; '
+                                                                                                                                                'do '
+                                                                                                                                                'not '
+                                                                                                                                                'include '
+                                                                                                                                                'secrets '
+                                                                                                                                                'or '
+                                                                                                                                                'raw '
+                                                                                                                                                'logs.'},
+                                                                                                                    'scope': {'type': 'string',
+                                                                                                                              'maxLength': 128,
+                                                                                                                              'description': 'Optional '
+                                                                                                                                             'bounded '
+                                                                                                                                             'file, '
+                                                                                                                                             'package, '
+                                                                                                                                             'runtime, '
+                                                                                                                                             'or '
+                                                                                                                                             'test '
+                                                                                                                                             'scope.'},
+                                                                                                                    'observed_at': {'type': 'string',
+                                                                                                                                    'maxLength': 64,
+                                                                                                                                    'description': 'Optional '
+                                                                                                                                                   'timestamp '
+                                                                                                                                                   'or '
+                                                                                                                                                   'revision '
+                                                                                                                                                   'associated '
+                                                                                                                                                   'with '
+                                                                                                                                                   'the '
+                                                                                                                                                   'proof.'},
+                                                                                                                    'confidence': {'type': 'number',
+                                                                                                                                   'minimum': 0,
+                                                                                                                                   'maximum': 1,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'confidence '
+                                                                                                                                                  'from '
+                                                                                                                                                  'the '
+                                                                                                                                                  'evidence '
+                                                                                                                                                  'adapter, '
+                                                                                                                                                  'between '
+                                                                                                                                                  'zero '
+                                                                                                                                                  'and '
+                                                                                                                                                  'one.'}}},
+                                                                            'smallest_safe_diff': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'validation_surface': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'preservation': {'type': 'object',
+                                                                                             'additionalProperties': False,
+                                                                                             'maxProperties': 6,
+                                                                                             'description': 'Optional '
+                                                                                                            'explicit '
+                                                                                                            'proofs '
+                                                                                                            'for '
+                                                                                                            'contracts '
+                                                                                                            'and '
+                                                                                                            'protections '
+                                                                                                            'that '
+                                                                                                            'must '
+                                                                                                            'be '
+                                                                                                            'preserved.',
+                                                                                             'properties': {'validation': {'type': 'object',
+                                                                                                                           'additionalProperties': False,
+                                                                                                                           'maxProperties': 6,
+                                                                                                                           'description': 'One '
+                                                                                                                                          'bounded, '
+                                                                                                                                          'attributable '
+                                                                                                                                          'evidence '
+                                                                                                                                          'check '
+                                                                                                                                          'for '
+                                                                                                                                          'the '
+                                                                                                                                          'requested '
+                                                                                                                                          'policy '
+                                                                                                                                          'question.',
+                                                                                                                           'properties': {'status': {'type': 'string',
+                                                                                                                                                     'enum': ['confirmed',
+                                                                                                                                                              'candidate',
+                                                                                                                                                              'unknown',
+                                                                                                                                                              'not_applicable',
+                                                                                                                                                              'needs_review'],
+                                                                                                                                                     'description': 'Evidence '
+                                                                                                                                                                    'state. '
+                                                                                                                                                                    'Use '
+                                                                                                                                                                    'unknown '
+                                                                                                                                                                    'when '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'was '
+                                                                                                                                                                    'not '
+                                                                                                                                                                    'verified.'},
+                                                                                                                                          'source': {'type': 'string',
+                                                                                                                                                     'enum': ['code_impact',
+                                                                                                                                                              'git_diff',
+                                                                                                                                                              'lockfile',
+                                                                                                                                                              'manifest',
+                                                                                                                                                              'runtime',
+                                                                                                                                                              'test_runner',
+                                                                                                                                                              'caller_assertion'],
+                                                                                                                                                     'description': 'Named '
+                                                                                                                                                                    'evidence '
+                                                                                                                                                                    'adapter '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'provenance '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'for '
+                                                                                                                                                                    'this '
+                                                                                                                                                                    'check.'},
+                                                                                                                                          'evidence': {'type': 'array',
+                                                                                                                                                       'maxItems': 10,
+                                                                                                                                                       'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                           {'type': 'object',
+                                                                                                                                                                            'additionalProperties': False,
+                                                                                                                                                                            'maxProperties': 5,
+                                                                                                                                                                            'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                                           'kind': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                                           'path': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                                                           'detail': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                                                           'lines': {'type': 'array',
+                                                                                                                                                                                                     'maxItems': 2,
+                                                                                                                                                                                                     'items': {'type': 'integer',
+                                                                                                                                                                                                               'minimum': 0}}}}]},
+                                                                                                                                                       'description': 'At '
+                                                                                                                                                                      'most '
+                                                                                                                                                                      'ten '
+                                                                                                                                                                      'concise '
+                                                                                                                                                                      'proof '
+                                                                                                                                                                      'references; '
+                                                                                                                                                                      'do '
+                                                                                                                                                                      'not '
+                                                                                                                                                                      'include '
+                                                                                                                                                                      'secrets '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'raw '
+                                                                                                                                                                      'logs.'},
+                                                                                                                                          'scope': {'type': 'string',
+                                                                                                                                                    'maxLength': 128,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'bounded '
+                                                                                                                                                                   'file, '
+                                                                                                                                                                   'package, '
+                                                                                                                                                                   'runtime, '
+                                                                                                                                                                   'or '
+                                                                                                                                                                   'test '
+                                                                                                                                                                   'scope.'},
+                                                                                                                                          'observed_at': {'type': 'string',
+                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                          'description': 'Optional '
+                                                                                                                                                                         'timestamp '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'revision '
+                                                                                                                                                                         'associated '
+                                                                                                                                                                         'with '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'proof.'},
+                                                                                                                                          'confidence': {'type': 'number',
+                                                                                                                                                         'minimum': 0,
+                                                                                                                                                         'maximum': 1,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'confidence '
+                                                                                                                                                                        'from '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter, '
+                                                                                                                                                                        'between '
+                                                                                                                                                                        'zero '
+                                                                                                                                                                        'and '
+                                                                                                                                                                        'one.'}}},
+                                                                                                            'error_contract': {'type': 'object',
+                                                                                                                               'additionalProperties': False,
+                                                                                                                               'maxProperties': 6,
+                                                                                                                               'description': 'One '
+                                                                                                                                              'bounded, '
+                                                                                                                                              'attributable '
+                                                                                                                                              'evidence '
+                                                                                                                                              'check '
+                                                                                                                                              'for '
+                                                                                                                                              'the '
+                                                                                                                                              'requested '
+                                                                                                                                              'policy '
+                                                                                                                                              'question.',
+                                                                                                                               'properties': {'status': {'type': 'string',
+                                                                                                                                                         'enum': ['confirmed',
+                                                                                                                                                                  'candidate',
+                                                                                                                                                                  'unknown',
+                                                                                                                                                                  'not_applicable',
+                                                                                                                                                                  'needs_review'],
+                                                                                                                                                         'description': 'Evidence '
+                                                                                                                                                                        'state. '
+                                                                                                                                                                        'Use '
+                                                                                                                                                                        'unknown '
+                                                                                                                                                                        'when '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'was '
+                                                                                                                                                                        'not '
+                                                                                                                                                                        'verified.'},
+                                                                                                                                              'source': {'type': 'string',
+                                                                                                                                                         'enum': ['code_impact',
+                                                                                                                                                                  'git_diff',
+                                                                                                                                                                  'lockfile',
+                                                                                                                                                                  'manifest',
+                                                                                                                                                                  'runtime',
+                                                                                                                                                                  'test_runner',
+                                                                                                                                                                  'caller_assertion'],
+                                                                                                                                                         'description': 'Named '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'provenance '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'for '
+                                                                                                                                                                        'this '
+                                                                                                                                                                        'check.'},
+                                                                                                                                              'evidence': {'type': 'array',
+                                                                                                                                                           'maxItems': 10,
+                                                                                                                                                           'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                               {'type': 'object',
+                                                                                                                                                                                'additionalProperties': False,
+                                                                                                                                                                                'maxProperties': 5,
+                                                                                                                                                                                'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                               'kind': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 64},
+                                                                                                                                                                                               'path': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 256},
+                                                                                                                                                                                               'detail': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                                               'lines': {'type': 'array',
+                                                                                                                                                                                                         'maxItems': 2,
+                                                                                                                                                                                                         'items': {'type': 'integer',
+                                                                                                                                                                                                                   'minimum': 0}}}}]},
+                                                                                                                                                           'description': 'At '
+                                                                                                                                                                          'most '
+                                                                                                                                                                          'ten '
+                                                                                                                                                                          'concise '
+                                                                                                                                                                          'proof '
+                                                                                                                                                                          'references; '
+                                                                                                                                                                          'do '
+                                                                                                                                                                          'not '
+                                                                                                                                                                          'include '
+                                                                                                                                                                          'secrets '
+                                                                                                                                                                          'or '
+                                                                                                                                                                          'raw '
+                                                                                                                                                                          'logs.'},
+                                                                                                                                              'scope': {'type': 'string',
+                                                                                                                                                        'maxLength': 128,
+                                                                                                                                                        'description': 'Optional '
+                                                                                                                                                                       'bounded '
+                                                                                                                                                                       'file, '
+                                                                                                                                                                       'package, '
+                                                                                                                                                                       'runtime, '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'test '
+                                                                                                                                                                       'scope.'},
+                                                                                                                                              'observed_at': {'type': 'string',
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'timestamp '
+                                                                                                                                                                             'or '
+                                                                                                                                                                             'revision '
+                                                                                                                                                                             'associated '
+                                                                                                                                                                             'with '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'proof.'},
+                                                                                                                                              'confidence': {'type': 'number',
+                                                                                                                                                             'minimum': 0,
+                                                                                                                                                             'maximum': 1,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'confidence '
+                                                                                                                                                                            'from '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'evidence '
+                                                                                                                                                                            'adapter, '
+                                                                                                                                                                            'between '
+                                                                                                                                                                            'zero '
+                                                                                                                                                                            'and '
+                                                                                                                                                                            'one.'}}},
+                                                                                                            'security_auth': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'accessibility': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'public_contract': {'type': 'object',
+                                                                                                                                'additionalProperties': False,
+                                                                                                                                'maxProperties': 6,
+                                                                                                                                'description': 'One '
+                                                                                                                                               'bounded, '
+                                                                                                                                               'attributable '
+                                                                                                                                               'evidence '
+                                                                                                                                               'check '
+                                                                                                                                               'for '
+                                                                                                                                               'the '
+                                                                                                                                               'requested '
+                                                                                                                                               'policy '
+                                                                                                                                               'question.',
+                                                                                                                                'properties': {'status': {'type': 'string',
+                                                                                                                                                          'enum': ['confirmed',
+                                                                                                                                                                   'candidate',
+                                                                                                                                                                   'unknown',
+                                                                                                                                                                   'not_applicable',
+                                                                                                                                                                   'needs_review'],
+                                                                                                                                                          'description': 'Evidence '
+                                                                                                                                                                         'state. '
+                                                                                                                                                                         'Use '
+                                                                                                                                                                         'unknown '
+                                                                                                                                                                         'when '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'was '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'verified.'},
+                                                                                                                                               'source': {'type': 'string',
+                                                                                                                                                          'enum': ['code_impact',
+                                                                                                                                                                   'git_diff',
+                                                                                                                                                                   'lockfile',
+                                                                                                                                                                   'manifest',
+                                                                                                                                                                   'runtime',
+                                                                                                                                                                   'test_runner',
+                                                                                                                                                                   'caller_assertion'],
+                                                                                                                                                          'description': 'Named '
+                                                                                                                                                                         'evidence '
+                                                                                                                                                                         'adapter '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'provenance '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'for '
+                                                                                                                                                                         'this '
+                                                                                                                                                                         'check.'},
+                                                                                                                                               'evidence': {'type': 'array',
+                                                                                                                                                            'maxItems': 10,
+                                                                                                                                                            'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                {'type': 'object',
+                                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                                 'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                                'kind': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                                'path': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                                'detail': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 256},
+                                                                                                                                                                                                'lines': {'type': 'array',
+                                                                                                                                                                                                          'maxItems': 2,
+                                                                                                                                                                                                          'items': {'type': 'integer',
+                                                                                                                                                                                                                    'minimum': 0}}}}]},
+                                                                                                                                                            'description': 'At '
+                                                                                                                                                                           'most '
+                                                                                                                                                                           'ten '
+                                                                                                                                                                           'concise '
+                                                                                                                                                                           'proof '
+                                                                                                                                                                           'references; '
+                                                                                                                                                                           'do '
+                                                                                                                                                                           'not '
+                                                                                                                                                                           'include '
+                                                                                                                                                                           'secrets '
+                                                                                                                                                                           'or '
+                                                                                                                                                                           'raw '
+                                                                                                                                                                           'logs.'},
+                                                                                                                                               'scope': {'type': 'string',
+                                                                                                                                                         'maxLength': 128,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'bounded '
+                                                                                                                                                                        'file, '
+                                                                                                                                                                        'package, '
+                                                                                                                                                                        'runtime, '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'test '
+                                                                                                                                                                        'scope.'},
+                                                                                                                                               'observed_at': {'type': 'string',
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Optional '
+                                                                                                                                                                              'timestamp '
+                                                                                                                                                                              'or '
+                                                                                                                                                                              'revision '
+                                                                                                                                                                              'associated '
+                                                                                                                                                                              'with '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'proof.'},
+                                                                                                                                               'confidence': {'type': 'number',
+                                                                                                                                                              'minimum': 0,
+                                                                                                                                                              'maximum': 1,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'confidence '
+                                                                                                                                                                             'from '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter, '
+                                                                                                                                                                             'between '
+                                                                                                                                                                             'zero '
+                                                                                                                                                                             'and '
+                                                                                                                                                                             'one.'}}},
+                                                                                                            'tests': {'type': 'object',
+                                                                                                                      'additionalProperties': False,
+                                                                                                                      'maxProperties': 6,
+                                                                                                                      'description': 'One '
+                                                                                                                                     'bounded, '
+                                                                                                                                     'attributable '
+                                                                                                                                     'evidence '
+                                                                                                                                     'check '
+                                                                                                                                     'for '
+                                                                                                                                     'the '
+                                                                                                                                     'requested '
+                                                                                                                                     'policy '
+                                                                                                                                     'question.',
+                                                                                                                      'properties': {'status': {'type': 'string',
+                                                                                                                                                'enum': ['confirmed',
+                                                                                                                                                         'candidate',
+                                                                                                                                                         'unknown',
+                                                                                                                                                         'not_applicable',
+                                                                                                                                                         'needs_review'],
+                                                                                                                                                'description': 'Evidence '
+                                                                                                                                                               'state. '
+                                                                                                                                                               'Use '
+                                                                                                                                                               'unknown '
+                                                                                                                                                               'when '
+                                                                                                                                                               'the '
+                                                                                                                                                               'source '
+                                                                                                                                                               'was '
+                                                                                                                                                               'not '
+                                                                                                                                                               'verified.'},
+                                                                                                                                     'source': {'type': 'string',
+                                                                                                                                                'enum': ['code_impact',
+                                                                                                                                                         'git_diff',
+                                                                                                                                                         'lockfile',
+                                                                                                                                                         'manifest',
+                                                                                                                                                         'runtime',
+                                                                                                                                                         'test_runner',
+                                                                                                                                                         'caller_assertion'],
+                                                                                                                                                'description': 'Named '
+                                                                                                                                                               'evidence '
+                                                                                                                                                               'adapter '
+                                                                                                                                                               'or '
+                                                                                                                                                               'provenance '
+                                                                                                                                                               'source '
+                                                                                                                                                               'for '
+                                                                                                                                                               'this '
+                                                                                                                                                               'check.'},
+                                                                                                                                     'evidence': {'type': 'array',
+                                                                                                                                                  'maxItems': 10,
+                                                                                                                                                  'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                      {'type': 'object',
+                                                                                                                                                                       'additionalProperties': False,
+                                                                                                                                                                       'maxProperties': 5,
+                                                                                                                                                                       'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                                      'kind': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                                      'path': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                                      'detail': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                      'lines': {'type': 'array',
+                                                                                                                                                                                                'maxItems': 2,
+                                                                                                                                                                                                'items': {'type': 'integer',
+                                                                                                                                                                                                          'minimum': 0}}}}]},
+                                                                                                                                                  'description': 'At '
+                                                                                                                                                                 'most '
+                                                                                                                                                                 'ten '
+                                                                                                                                                                 'concise '
+                                                                                                                                                                 'proof '
+                                                                                                                                                                 'references; '
+                                                                                                                                                                 'do '
+                                                                                                                                                                 'not '
+                                                                                                                                                                 'include '
+                                                                                                                                                                 'secrets '
+                                                                                                                                                                 'or '
+                                                                                                                                                                 'raw '
+                                                                                                                                                                 'logs.'},
+                                                                                                                                     'scope': {'type': 'string',
+                                                                                                                                               'maxLength': 128,
+                                                                                                                                               'description': 'Optional '
+                                                                                                                                                              'bounded '
+                                                                                                                                                              'file, '
+                                                                                                                                                              'package, '
+                                                                                                                                                              'runtime, '
+                                                                                                                                                              'or '
+                                                                                                                                                              'test '
+                                                                                                                                                              'scope.'},
+                                                                                                                                     'observed_at': {'type': 'string',
+                                                                                                                                                     'maxLength': 64,
+                                                                                                                                                     'description': 'Optional '
+                                                                                                                                                                    'timestamp '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'revision '
+                                                                                                                                                                    'associated '
+                                                                                                                                                                    'with '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'proof.'},
+                                                                                                                                     'confidence': {'type': 'number',
+                                                                                                                                                    'minimum': 0,
+                                                                                                                                                    'maximum': 1,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'confidence '
+                                                                                                                                                                   'from '
+                                                                                                                                                                   'the '
+                                                                                                                                                                   'evidence '
+                                                                                                                                                                   'adapter, '
+                                                                                                                                                                   'between '
+                                                                                                                                                                   'zero '
+                                                                                                                                                                   'and '
+                                                                                                                                                                   'one.'}}}}}}},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
@@ -5268,6 +7760,1252 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'safe diff, and validation '
                                                                         'evidence without blocking '
                                                                         'the response.'},
+                                 'minimum_change_evidence': {'type': 'object',
+                                                             'additionalProperties': False,
+                                                             'maxProperties': 6,
+                                                             'description': 'Optional bounded '
+                                                                            'evidence receipt for '
+                                                                            'minimum_change_mode=review. '
+                                                                            'Use named sources and '
+                                                                            'concise proof '
+                                                                            'references; missing '
+                                                                            'evidence remains '
+                                                                            'unknown.',
+                                                             'properties': {'existing_capability': {'type': 'object',
+                                                                                                    'additionalProperties': False,
+                                                                                                    'maxProperties': 6,
+                                                                                                    'description': 'One '
+                                                                                                                   'bounded, '
+                                                                                                                   'attributable '
+                                                                                                                   'evidence '
+                                                                                                                   'check '
+                                                                                                                   'for '
+                                                                                                                   'the '
+                                                                                                                   'requested '
+                                                                                                                   'policy '
+                                                                                                                   'question.',
+                                                                                                    'properties': {'status': {'type': 'string',
+                                                                                                                              'enum': ['confirmed',
+                                                                                                                                       'candidate',
+                                                                                                                                       'unknown',
+                                                                                                                                       'not_applicable',
+                                                                                                                                       'needs_review'],
+                                                                                                                              'description': 'Evidence '
+                                                                                                                                             'state. '
+                                                                                                                                             'Use '
+                                                                                                                                             'unknown '
+                                                                                                                                             'when '
+                                                                                                                                             'the '
+                                                                                                                                             'source '
+                                                                                                                                             'was '
+                                                                                                                                             'not '
+                                                                                                                                             'verified.'},
+                                                                                                                   'source': {'type': 'string',
+                                                                                                                              'enum': ['code_impact',
+                                                                                                                                       'git_diff',
+                                                                                                                                       'lockfile',
+                                                                                                                                       'manifest',
+                                                                                                                                       'runtime',
+                                                                                                                                       'test_runner',
+                                                                                                                                       'caller_assertion'],
+                                                                                                                              'description': 'Named '
+                                                                                                                                             'evidence '
+                                                                                                                                             'adapter '
+                                                                                                                                             'or '
+                                                                                                                                             'provenance '
+                                                                                                                                             'source '
+                                                                                                                                             'for '
+                                                                                                                                             'this '
+                                                                                                                                             'check.'},
+                                                                                                                   'evidence': {'type': 'array',
+                                                                                                                                'maxItems': 10,
+                                                                                                                                'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                     'maxLength': 256},
+                                                                                                                                                    {'type': 'object',
+                                                                                                                                                     'additionalProperties': False,
+                                                                                                                                                     'maxProperties': 5,
+                                                                                                                                                     'properties': {'source': {'type': 'string',
+                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                    'kind': {'type': 'string',
+                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                    'path': {'type': 'string',
+                                                                                                                                                                             'maxLength': 256},
+                                                                                                                                                                    'detail': {'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                    'lines': {'type': 'array',
+                                                                                                                                                                              'maxItems': 2,
+                                                                                                                                                                              'items': {'type': 'integer',
+                                                                                                                                                                                        'minimum': 0}}}}]},
+                                                                                                                                'description': 'At '
+                                                                                                                                               'most '
+                                                                                                                                               'ten '
+                                                                                                                                               'concise '
+                                                                                                                                               'proof '
+                                                                                                                                               'references; '
+                                                                                                                                               'do '
+                                                                                                                                               'not '
+                                                                                                                                               'include '
+                                                                                                                                               'secrets '
+                                                                                                                                               'or '
+                                                                                                                                               'raw '
+                                                                                                                                               'logs.'},
+                                                                                                                   'scope': {'type': 'string',
+                                                                                                                             'maxLength': 128,
+                                                                                                                             'description': 'Optional '
+                                                                                                                                            'bounded '
+                                                                                                                                            'file, '
+                                                                                                                                            'package, '
+                                                                                                                                            'runtime, '
+                                                                                                                                            'or '
+                                                                                                                                            'test '
+                                                                                                                                            'scope.'},
+                                                                                                                   'observed_at': {'type': 'string',
+                                                                                                                                   'maxLength': 64,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'timestamp '
+                                                                                                                                                  'or '
+                                                                                                                                                  'revision '
+                                                                                                                                                  'associated '
+                                                                                                                                                  'with '
+                                                                                                                                                  'the '
+                                                                                                                                                  'proof.'},
+                                                                                                                   'confidence': {'type': 'number',
+                                                                                                                                  'minimum': 0,
+                                                                                                                                  'maximum': 1,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'confidence '
+                                                                                                                                                 'from '
+                                                                                                                                                 'the '
+                                                                                                                                                 'evidence '
+                                                                                                                                                 'adapter, '
+                                                                                                                                                 'between '
+                                                                                                                                                 'zero '
+                                                                                                                                                 'and '
+                                                                                                                                                 'one.'}}},
+                                                                            'stdlib_or_native': {'type': 'object',
+                                                                                                 'additionalProperties': False,
+                                                                                                 'maxProperties': 6,
+                                                                                                 'description': 'One '
+                                                                                                                'bounded, '
+                                                                                                                'attributable '
+                                                                                                                'evidence '
+                                                                                                                'check '
+                                                                                                                'for '
+                                                                                                                'the '
+                                                                                                                'requested '
+                                                                                                                'policy '
+                                                                                                                'question.',
+                                                                                                 'properties': {'status': {'type': 'string',
+                                                                                                                           'enum': ['confirmed',
+                                                                                                                                    'candidate',
+                                                                                                                                    'unknown',
+                                                                                                                                    'not_applicable',
+                                                                                                                                    'needs_review'],
+                                                                                                                           'description': 'Evidence '
+                                                                                                                                          'state. '
+                                                                                                                                          'Use '
+                                                                                                                                          'unknown '
+                                                                                                                                          'when '
+                                                                                                                                          'the '
+                                                                                                                                          'source '
+                                                                                                                                          'was '
+                                                                                                                                          'not '
+                                                                                                                                          'verified.'},
+                                                                                                                'source': {'type': 'string',
+                                                                                                                           'enum': ['code_impact',
+                                                                                                                                    'git_diff',
+                                                                                                                                    'lockfile',
+                                                                                                                                    'manifest',
+                                                                                                                                    'runtime',
+                                                                                                                                    'test_runner',
+                                                                                                                                    'caller_assertion'],
+                                                                                                                           'description': 'Named '
+                                                                                                                                          'evidence '
+                                                                                                                                          'adapter '
+                                                                                                                                          'or '
+                                                                                                                                          'provenance '
+                                                                                                                                          'source '
+                                                                                                                                          'for '
+                                                                                                                                          'this '
+                                                                                                                                          'check.'},
+                                                                                                                'evidence': {'type': 'array',
+                                                                                                                             'maxItems': 10,
+                                                                                                                             'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                  'maxLength': 256},
+                                                                                                                                                 {'type': 'object',
+                                                                                                                                                  'additionalProperties': False,
+                                                                                                                                                  'maxProperties': 5,
+                                                                                                                                                  'properties': {'source': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                 'kind': {'type': 'string',
+                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                 'path': {'type': 'string',
+                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                 'detail': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                 'lines': {'type': 'array',
+                                                                                                                                                                           'maxItems': 2,
+                                                                                                                                                                           'items': {'type': 'integer',
+                                                                                                                                                                                     'minimum': 0}}}}]},
+                                                                                                                             'description': 'At '
+                                                                                                                                            'most '
+                                                                                                                                            'ten '
+                                                                                                                                            'concise '
+                                                                                                                                            'proof '
+                                                                                                                                            'references; '
+                                                                                                                                            'do '
+                                                                                                                                            'not '
+                                                                                                                                            'include '
+                                                                                                                                            'secrets '
+                                                                                                                                            'or '
+                                                                                                                                            'raw '
+                                                                                                                                            'logs.'},
+                                                                                                                'scope': {'type': 'string',
+                                                                                                                          'maxLength': 128,
+                                                                                                                          'description': 'Optional '
+                                                                                                                                         'bounded '
+                                                                                                                                         'file, '
+                                                                                                                                         'package, '
+                                                                                                                                         'runtime, '
+                                                                                                                                         'or '
+                                                                                                                                         'test '
+                                                                                                                                         'scope.'},
+                                                                                                                'observed_at': {'type': 'string',
+                                                                                                                                'maxLength': 64,
+                                                                                                                                'description': 'Optional '
+                                                                                                                                               'timestamp '
+                                                                                                                                               'or '
+                                                                                                                                               'revision '
+                                                                                                                                               'associated '
+                                                                                                                                               'with '
+                                                                                                                                               'the '
+                                                                                                                                               'proof.'},
+                                                                                                                'confidence': {'type': 'number',
+                                                                                                                               'minimum': 0,
+                                                                                                                               'maximum': 1,
+                                                                                                                               'description': 'Optional '
+                                                                                                                                              'confidence '
+                                                                                                                                              'from '
+                                                                                                                                              'the '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter, '
+                                                                                                                                              'between '
+                                                                                                                                              'zero '
+                                                                                                                                              'and '
+                                                                                                                                              'one.'}}},
+                                                                            'installed_dependency': {'type': 'object',
+                                                                                                     'additionalProperties': False,
+                                                                                                     'maxProperties': 6,
+                                                                                                     'description': 'One '
+                                                                                                                    'bounded, '
+                                                                                                                    'attributable '
+                                                                                                                    'evidence '
+                                                                                                                    'check '
+                                                                                                                    'for '
+                                                                                                                    'the '
+                                                                                                                    'requested '
+                                                                                                                    'policy '
+                                                                                                                    'question.',
+                                                                                                     'properties': {'status': {'type': 'string',
+                                                                                                                               'enum': ['confirmed',
+                                                                                                                                        'candidate',
+                                                                                                                                        'unknown',
+                                                                                                                                        'not_applicable',
+                                                                                                                                        'needs_review'],
+                                                                                                                               'description': 'Evidence '
+                                                                                                                                              'state. '
+                                                                                                                                              'Use '
+                                                                                                                                              'unknown '
+                                                                                                                                              'when '
+                                                                                                                                              'the '
+                                                                                                                                              'source '
+                                                                                                                                              'was '
+                                                                                                                                              'not '
+                                                                                                                                              'verified.'},
+                                                                                                                    'source': {'type': 'string',
+                                                                                                                               'enum': ['code_impact',
+                                                                                                                                        'git_diff',
+                                                                                                                                        'lockfile',
+                                                                                                                                        'manifest',
+                                                                                                                                        'runtime',
+                                                                                                                                        'test_runner',
+                                                                                                                                        'caller_assertion'],
+                                                                                                                               'description': 'Named '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter '
+                                                                                                                                              'or '
+                                                                                                                                              'provenance '
+                                                                                                                                              'source '
+                                                                                                                                              'for '
+                                                                                                                                              'this '
+                                                                                                                                              'check.'},
+                                                                                                                    'evidence': {'type': 'array',
+                                                                                                                                 'maxItems': 10,
+                                                                                                                                 'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                     {'type': 'object',
+                                                                                                                                                      'additionalProperties': False,
+                                                                                                                                                      'maxProperties': 5,
+                                                                                                                                                      'properties': {'source': {'type': 'string',
+                                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                     'kind': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                     'path': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                     'detail': {'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                     'lines': {'type': 'array',
+                                                                                                                                                                               'maxItems': 2,
+                                                                                                                                                                               'items': {'type': 'integer',
+                                                                                                                                                                                         'minimum': 0}}}}]},
+                                                                                                                                 'description': 'At '
+                                                                                                                                                'most '
+                                                                                                                                                'ten '
+                                                                                                                                                'concise '
+                                                                                                                                                'proof '
+                                                                                                                                                'references; '
+                                                                                                                                                'do '
+                                                                                                                                                'not '
+                                                                                                                                                'include '
+                                                                                                                                                'secrets '
+                                                                                                                                                'or '
+                                                                                                                                                'raw '
+                                                                                                                                                'logs.'},
+                                                                                                                    'scope': {'type': 'string',
+                                                                                                                              'maxLength': 128,
+                                                                                                                              'description': 'Optional '
+                                                                                                                                             'bounded '
+                                                                                                                                             'file, '
+                                                                                                                                             'package, '
+                                                                                                                                             'runtime, '
+                                                                                                                                             'or '
+                                                                                                                                             'test '
+                                                                                                                                             'scope.'},
+                                                                                                                    'observed_at': {'type': 'string',
+                                                                                                                                    'maxLength': 64,
+                                                                                                                                    'description': 'Optional '
+                                                                                                                                                   'timestamp '
+                                                                                                                                                   'or '
+                                                                                                                                                   'revision '
+                                                                                                                                                   'associated '
+                                                                                                                                                   'with '
+                                                                                                                                                   'the '
+                                                                                                                                                   'proof.'},
+                                                                                                                    'confidence': {'type': 'number',
+                                                                                                                                   'minimum': 0,
+                                                                                                                                   'maximum': 1,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'confidence '
+                                                                                                                                                  'from '
+                                                                                                                                                  'the '
+                                                                                                                                                  'evidence '
+                                                                                                                                                  'adapter, '
+                                                                                                                                                  'between '
+                                                                                                                                                  'zero '
+                                                                                                                                                  'and '
+                                                                                                                                                  'one.'}}},
+                                                                            'smallest_safe_diff': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'validation_surface': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'preservation': {'type': 'object',
+                                                                                             'additionalProperties': False,
+                                                                                             'maxProperties': 6,
+                                                                                             'description': 'Optional '
+                                                                                                            'explicit '
+                                                                                                            'proofs '
+                                                                                                            'for '
+                                                                                                            'contracts '
+                                                                                                            'and '
+                                                                                                            'protections '
+                                                                                                            'that '
+                                                                                                            'must '
+                                                                                                            'be '
+                                                                                                            'preserved.',
+                                                                                             'properties': {'validation': {'type': 'object',
+                                                                                                                           'additionalProperties': False,
+                                                                                                                           'maxProperties': 6,
+                                                                                                                           'description': 'One '
+                                                                                                                                          'bounded, '
+                                                                                                                                          'attributable '
+                                                                                                                                          'evidence '
+                                                                                                                                          'check '
+                                                                                                                                          'for '
+                                                                                                                                          'the '
+                                                                                                                                          'requested '
+                                                                                                                                          'policy '
+                                                                                                                                          'question.',
+                                                                                                                           'properties': {'status': {'type': 'string',
+                                                                                                                                                     'enum': ['confirmed',
+                                                                                                                                                              'candidate',
+                                                                                                                                                              'unknown',
+                                                                                                                                                              'not_applicable',
+                                                                                                                                                              'needs_review'],
+                                                                                                                                                     'description': 'Evidence '
+                                                                                                                                                                    'state. '
+                                                                                                                                                                    'Use '
+                                                                                                                                                                    'unknown '
+                                                                                                                                                                    'when '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'was '
+                                                                                                                                                                    'not '
+                                                                                                                                                                    'verified.'},
+                                                                                                                                          'source': {'type': 'string',
+                                                                                                                                                     'enum': ['code_impact',
+                                                                                                                                                              'git_diff',
+                                                                                                                                                              'lockfile',
+                                                                                                                                                              'manifest',
+                                                                                                                                                              'runtime',
+                                                                                                                                                              'test_runner',
+                                                                                                                                                              'caller_assertion'],
+                                                                                                                                                     'description': 'Named '
+                                                                                                                                                                    'evidence '
+                                                                                                                                                                    'adapter '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'provenance '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'for '
+                                                                                                                                                                    'this '
+                                                                                                                                                                    'check.'},
+                                                                                                                                          'evidence': {'type': 'array',
+                                                                                                                                                       'maxItems': 10,
+                                                                                                                                                       'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                           {'type': 'object',
+                                                                                                                                                                            'additionalProperties': False,
+                                                                                                                                                                            'maxProperties': 5,
+                                                                                                                                                                            'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                                           'kind': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                                           'path': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                                                           'detail': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                                                           'lines': {'type': 'array',
+                                                                                                                                                                                                     'maxItems': 2,
+                                                                                                                                                                                                     'items': {'type': 'integer',
+                                                                                                                                                                                                               'minimum': 0}}}}]},
+                                                                                                                                                       'description': 'At '
+                                                                                                                                                                      'most '
+                                                                                                                                                                      'ten '
+                                                                                                                                                                      'concise '
+                                                                                                                                                                      'proof '
+                                                                                                                                                                      'references; '
+                                                                                                                                                                      'do '
+                                                                                                                                                                      'not '
+                                                                                                                                                                      'include '
+                                                                                                                                                                      'secrets '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'raw '
+                                                                                                                                                                      'logs.'},
+                                                                                                                                          'scope': {'type': 'string',
+                                                                                                                                                    'maxLength': 128,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'bounded '
+                                                                                                                                                                   'file, '
+                                                                                                                                                                   'package, '
+                                                                                                                                                                   'runtime, '
+                                                                                                                                                                   'or '
+                                                                                                                                                                   'test '
+                                                                                                                                                                   'scope.'},
+                                                                                                                                          'observed_at': {'type': 'string',
+                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                          'description': 'Optional '
+                                                                                                                                                                         'timestamp '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'revision '
+                                                                                                                                                                         'associated '
+                                                                                                                                                                         'with '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'proof.'},
+                                                                                                                                          'confidence': {'type': 'number',
+                                                                                                                                                         'minimum': 0,
+                                                                                                                                                         'maximum': 1,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'confidence '
+                                                                                                                                                                        'from '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter, '
+                                                                                                                                                                        'between '
+                                                                                                                                                                        'zero '
+                                                                                                                                                                        'and '
+                                                                                                                                                                        'one.'}}},
+                                                                                                            'error_contract': {'type': 'object',
+                                                                                                                               'additionalProperties': False,
+                                                                                                                               'maxProperties': 6,
+                                                                                                                               'description': 'One '
+                                                                                                                                              'bounded, '
+                                                                                                                                              'attributable '
+                                                                                                                                              'evidence '
+                                                                                                                                              'check '
+                                                                                                                                              'for '
+                                                                                                                                              'the '
+                                                                                                                                              'requested '
+                                                                                                                                              'policy '
+                                                                                                                                              'question.',
+                                                                                                                               'properties': {'status': {'type': 'string',
+                                                                                                                                                         'enum': ['confirmed',
+                                                                                                                                                                  'candidate',
+                                                                                                                                                                  'unknown',
+                                                                                                                                                                  'not_applicable',
+                                                                                                                                                                  'needs_review'],
+                                                                                                                                                         'description': 'Evidence '
+                                                                                                                                                                        'state. '
+                                                                                                                                                                        'Use '
+                                                                                                                                                                        'unknown '
+                                                                                                                                                                        'when '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'was '
+                                                                                                                                                                        'not '
+                                                                                                                                                                        'verified.'},
+                                                                                                                                              'source': {'type': 'string',
+                                                                                                                                                         'enum': ['code_impact',
+                                                                                                                                                                  'git_diff',
+                                                                                                                                                                  'lockfile',
+                                                                                                                                                                  'manifest',
+                                                                                                                                                                  'runtime',
+                                                                                                                                                                  'test_runner',
+                                                                                                                                                                  'caller_assertion'],
+                                                                                                                                                         'description': 'Named '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'provenance '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'for '
+                                                                                                                                                                        'this '
+                                                                                                                                                                        'check.'},
+                                                                                                                                              'evidence': {'type': 'array',
+                                                                                                                                                           'maxItems': 10,
+                                                                                                                                                           'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                               {'type': 'object',
+                                                                                                                                                                                'additionalProperties': False,
+                                                                                                                                                                                'maxProperties': 5,
+                                                                                                                                                                                'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                               'kind': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 64},
+                                                                                                                                                                                               'path': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 256},
+                                                                                                                                                                                               'detail': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                                               'lines': {'type': 'array',
+                                                                                                                                                                                                         'maxItems': 2,
+                                                                                                                                                                                                         'items': {'type': 'integer',
+                                                                                                                                                                                                                   'minimum': 0}}}}]},
+                                                                                                                                                           'description': 'At '
+                                                                                                                                                                          'most '
+                                                                                                                                                                          'ten '
+                                                                                                                                                                          'concise '
+                                                                                                                                                                          'proof '
+                                                                                                                                                                          'references; '
+                                                                                                                                                                          'do '
+                                                                                                                                                                          'not '
+                                                                                                                                                                          'include '
+                                                                                                                                                                          'secrets '
+                                                                                                                                                                          'or '
+                                                                                                                                                                          'raw '
+                                                                                                                                                                          'logs.'},
+                                                                                                                                              'scope': {'type': 'string',
+                                                                                                                                                        'maxLength': 128,
+                                                                                                                                                        'description': 'Optional '
+                                                                                                                                                                       'bounded '
+                                                                                                                                                                       'file, '
+                                                                                                                                                                       'package, '
+                                                                                                                                                                       'runtime, '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'test '
+                                                                                                                                                                       'scope.'},
+                                                                                                                                              'observed_at': {'type': 'string',
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'timestamp '
+                                                                                                                                                                             'or '
+                                                                                                                                                                             'revision '
+                                                                                                                                                                             'associated '
+                                                                                                                                                                             'with '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'proof.'},
+                                                                                                                                              'confidence': {'type': 'number',
+                                                                                                                                                             'minimum': 0,
+                                                                                                                                                             'maximum': 1,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'confidence '
+                                                                                                                                                                            'from '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'evidence '
+                                                                                                                                                                            'adapter, '
+                                                                                                                                                                            'between '
+                                                                                                                                                                            'zero '
+                                                                                                                                                                            'and '
+                                                                                                                                                                            'one.'}}},
+                                                                                                            'security_auth': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'accessibility': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'public_contract': {'type': 'object',
+                                                                                                                                'additionalProperties': False,
+                                                                                                                                'maxProperties': 6,
+                                                                                                                                'description': 'One '
+                                                                                                                                               'bounded, '
+                                                                                                                                               'attributable '
+                                                                                                                                               'evidence '
+                                                                                                                                               'check '
+                                                                                                                                               'for '
+                                                                                                                                               'the '
+                                                                                                                                               'requested '
+                                                                                                                                               'policy '
+                                                                                                                                               'question.',
+                                                                                                                                'properties': {'status': {'type': 'string',
+                                                                                                                                                          'enum': ['confirmed',
+                                                                                                                                                                   'candidate',
+                                                                                                                                                                   'unknown',
+                                                                                                                                                                   'not_applicable',
+                                                                                                                                                                   'needs_review'],
+                                                                                                                                                          'description': 'Evidence '
+                                                                                                                                                                         'state. '
+                                                                                                                                                                         'Use '
+                                                                                                                                                                         'unknown '
+                                                                                                                                                                         'when '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'was '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'verified.'},
+                                                                                                                                               'source': {'type': 'string',
+                                                                                                                                                          'enum': ['code_impact',
+                                                                                                                                                                   'git_diff',
+                                                                                                                                                                   'lockfile',
+                                                                                                                                                                   'manifest',
+                                                                                                                                                                   'runtime',
+                                                                                                                                                                   'test_runner',
+                                                                                                                                                                   'caller_assertion'],
+                                                                                                                                                          'description': 'Named '
+                                                                                                                                                                         'evidence '
+                                                                                                                                                                         'adapter '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'provenance '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'for '
+                                                                                                                                                                         'this '
+                                                                                                                                                                         'check.'},
+                                                                                                                                               'evidence': {'type': 'array',
+                                                                                                                                                            'maxItems': 10,
+                                                                                                                                                            'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                {'type': 'object',
+                                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                                 'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                                'kind': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                                'path': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                                'detail': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 256},
+                                                                                                                                                                                                'lines': {'type': 'array',
+                                                                                                                                                                                                          'maxItems': 2,
+                                                                                                                                                                                                          'items': {'type': 'integer',
+                                                                                                                                                                                                                    'minimum': 0}}}}]},
+                                                                                                                                                            'description': 'At '
+                                                                                                                                                                           'most '
+                                                                                                                                                                           'ten '
+                                                                                                                                                                           'concise '
+                                                                                                                                                                           'proof '
+                                                                                                                                                                           'references; '
+                                                                                                                                                                           'do '
+                                                                                                                                                                           'not '
+                                                                                                                                                                           'include '
+                                                                                                                                                                           'secrets '
+                                                                                                                                                                           'or '
+                                                                                                                                                                           'raw '
+                                                                                                                                                                           'logs.'},
+                                                                                                                                               'scope': {'type': 'string',
+                                                                                                                                                         'maxLength': 128,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'bounded '
+                                                                                                                                                                        'file, '
+                                                                                                                                                                        'package, '
+                                                                                                                                                                        'runtime, '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'test '
+                                                                                                                                                                        'scope.'},
+                                                                                                                                               'observed_at': {'type': 'string',
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Optional '
+                                                                                                                                                                              'timestamp '
+                                                                                                                                                                              'or '
+                                                                                                                                                                              'revision '
+                                                                                                                                                                              'associated '
+                                                                                                                                                                              'with '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'proof.'},
+                                                                                                                                               'confidence': {'type': 'number',
+                                                                                                                                                              'minimum': 0,
+                                                                                                                                                              'maximum': 1,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'confidence '
+                                                                                                                                                                             'from '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter, '
+                                                                                                                                                                             'between '
+                                                                                                                                                                             'zero '
+                                                                                                                                                                             'and '
+                                                                                                                                                                             'one.'}}},
+                                                                                                            'tests': {'type': 'object',
+                                                                                                                      'additionalProperties': False,
+                                                                                                                      'maxProperties': 6,
+                                                                                                                      'description': 'One '
+                                                                                                                                     'bounded, '
+                                                                                                                                     'attributable '
+                                                                                                                                     'evidence '
+                                                                                                                                     'check '
+                                                                                                                                     'for '
+                                                                                                                                     'the '
+                                                                                                                                     'requested '
+                                                                                                                                     'policy '
+                                                                                                                                     'question.',
+                                                                                                                      'properties': {'status': {'type': 'string',
+                                                                                                                                                'enum': ['confirmed',
+                                                                                                                                                         'candidate',
+                                                                                                                                                         'unknown',
+                                                                                                                                                         'not_applicable',
+                                                                                                                                                         'needs_review'],
+                                                                                                                                                'description': 'Evidence '
+                                                                                                                                                               'state. '
+                                                                                                                                                               'Use '
+                                                                                                                                                               'unknown '
+                                                                                                                                                               'when '
+                                                                                                                                                               'the '
+                                                                                                                                                               'source '
+                                                                                                                                                               'was '
+                                                                                                                                                               'not '
+                                                                                                                                                               'verified.'},
+                                                                                                                                     'source': {'type': 'string',
+                                                                                                                                                'enum': ['code_impact',
+                                                                                                                                                         'git_diff',
+                                                                                                                                                         'lockfile',
+                                                                                                                                                         'manifest',
+                                                                                                                                                         'runtime',
+                                                                                                                                                         'test_runner',
+                                                                                                                                                         'caller_assertion'],
+                                                                                                                                                'description': 'Named '
+                                                                                                                                                               'evidence '
+                                                                                                                                                               'adapter '
+                                                                                                                                                               'or '
+                                                                                                                                                               'provenance '
+                                                                                                                                                               'source '
+                                                                                                                                                               'for '
+                                                                                                                                                               'this '
+                                                                                                                                                               'check.'},
+                                                                                                                                     'evidence': {'type': 'array',
+                                                                                                                                                  'maxItems': 10,
+                                                                                                                                                  'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                      {'type': 'object',
+                                                                                                                                                                       'additionalProperties': False,
+                                                                                                                                                                       'maxProperties': 5,
+                                                                                                                                                                       'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                                      'kind': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                                      'path': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                                      'detail': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                      'lines': {'type': 'array',
+                                                                                                                                                                                                'maxItems': 2,
+                                                                                                                                                                                                'items': {'type': 'integer',
+                                                                                                                                                                                                          'minimum': 0}}}}]},
+                                                                                                                                                  'description': 'At '
+                                                                                                                                                                 'most '
+                                                                                                                                                                 'ten '
+                                                                                                                                                                 'concise '
+                                                                                                                                                                 'proof '
+                                                                                                                                                                 'references; '
+                                                                                                                                                                 'do '
+                                                                                                                                                                 'not '
+                                                                                                                                                                 'include '
+                                                                                                                                                                 'secrets '
+                                                                                                                                                                 'or '
+                                                                                                                                                                 'raw '
+                                                                                                                                                                 'logs.'},
+                                                                                                                                     'scope': {'type': 'string',
+                                                                                                                                               'maxLength': 128,
+                                                                                                                                               'description': 'Optional '
+                                                                                                                                                              'bounded '
+                                                                                                                                                              'file, '
+                                                                                                                                                              'package, '
+                                                                                                                                                              'runtime, '
+                                                                                                                                                              'or '
+                                                                                                                                                              'test '
+                                                                                                                                                              'scope.'},
+                                                                                                                                     'observed_at': {'type': 'string',
+                                                                                                                                                     'maxLength': 64,
+                                                                                                                                                     'description': 'Optional '
+                                                                                                                                                                    'timestamp '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'revision '
+                                                                                                                                                                    'associated '
+                                                                                                                                                                    'with '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'proof.'},
+                                                                                                                                     'confidence': {'type': 'number',
+                                                                                                                                                    'minimum': 0,
+                                                                                                                                                    'maximum': 1,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'confidence '
+                                                                                                                                                                   'from '
+                                                                                                                                                                   'the '
+                                                                                                                                                                   'evidence '
+                                                                                                                                                                   'adapter, '
+                                                                                                                                                                   'between '
+                                                                                                                                                                   'zero '
+                                                                                                                                                                   'and '
+                                                                                                                                                                   'one.'}}}}}}},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '
@@ -5980,6 +9718,1252 @@ TOOL_DEFINITIONS = [{'name': 'rlm_context_query',
                                                                         'impact. Unknown '
                                                                         'runtime/package evidence '
                                                                         'remains explicit.'},
+                                 'minimum_change_evidence': {'type': 'object',
+                                                             'additionalProperties': False,
+                                                             'maxProperties': 6,
+                                                             'description': 'Optional bounded '
+                                                                            'evidence receipt for '
+                                                                            'minimum_change_mode=review. '
+                                                                            'Use named sources and '
+                                                                            'concise proof '
+                                                                            'references; missing '
+                                                                            'evidence remains '
+                                                                            'unknown.',
+                                                             'properties': {'existing_capability': {'type': 'object',
+                                                                                                    'additionalProperties': False,
+                                                                                                    'maxProperties': 6,
+                                                                                                    'description': 'One '
+                                                                                                                   'bounded, '
+                                                                                                                   'attributable '
+                                                                                                                   'evidence '
+                                                                                                                   'check '
+                                                                                                                   'for '
+                                                                                                                   'the '
+                                                                                                                   'requested '
+                                                                                                                   'policy '
+                                                                                                                   'question.',
+                                                                                                    'properties': {'status': {'type': 'string',
+                                                                                                                              'enum': ['confirmed',
+                                                                                                                                       'candidate',
+                                                                                                                                       'unknown',
+                                                                                                                                       'not_applicable',
+                                                                                                                                       'needs_review'],
+                                                                                                                              'description': 'Evidence '
+                                                                                                                                             'state. '
+                                                                                                                                             'Use '
+                                                                                                                                             'unknown '
+                                                                                                                                             'when '
+                                                                                                                                             'the '
+                                                                                                                                             'source '
+                                                                                                                                             'was '
+                                                                                                                                             'not '
+                                                                                                                                             'verified.'},
+                                                                                                                   'source': {'type': 'string',
+                                                                                                                              'enum': ['code_impact',
+                                                                                                                                       'git_diff',
+                                                                                                                                       'lockfile',
+                                                                                                                                       'manifest',
+                                                                                                                                       'runtime',
+                                                                                                                                       'test_runner',
+                                                                                                                                       'caller_assertion'],
+                                                                                                                              'description': 'Named '
+                                                                                                                                             'evidence '
+                                                                                                                                             'adapter '
+                                                                                                                                             'or '
+                                                                                                                                             'provenance '
+                                                                                                                                             'source '
+                                                                                                                                             'for '
+                                                                                                                                             'this '
+                                                                                                                                             'check.'},
+                                                                                                                   'evidence': {'type': 'array',
+                                                                                                                                'maxItems': 10,
+                                                                                                                                'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                     'maxLength': 256},
+                                                                                                                                                    {'type': 'object',
+                                                                                                                                                     'additionalProperties': False,
+                                                                                                                                                     'maxProperties': 5,
+                                                                                                                                                     'properties': {'source': {'type': 'string',
+                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                    'kind': {'type': 'string',
+                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                    'path': {'type': 'string',
+                                                                                                                                                                             'maxLength': 256},
+                                                                                                                                                                    'detail': {'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                    'lines': {'type': 'array',
+                                                                                                                                                                              'maxItems': 2,
+                                                                                                                                                                              'items': {'type': 'integer',
+                                                                                                                                                                                        'minimum': 0}}}}]},
+                                                                                                                                'description': 'At '
+                                                                                                                                               'most '
+                                                                                                                                               'ten '
+                                                                                                                                               'concise '
+                                                                                                                                               'proof '
+                                                                                                                                               'references; '
+                                                                                                                                               'do '
+                                                                                                                                               'not '
+                                                                                                                                               'include '
+                                                                                                                                               'secrets '
+                                                                                                                                               'or '
+                                                                                                                                               'raw '
+                                                                                                                                               'logs.'},
+                                                                                                                   'scope': {'type': 'string',
+                                                                                                                             'maxLength': 128,
+                                                                                                                             'description': 'Optional '
+                                                                                                                                            'bounded '
+                                                                                                                                            'file, '
+                                                                                                                                            'package, '
+                                                                                                                                            'runtime, '
+                                                                                                                                            'or '
+                                                                                                                                            'test '
+                                                                                                                                            'scope.'},
+                                                                                                                   'observed_at': {'type': 'string',
+                                                                                                                                   'maxLength': 64,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'timestamp '
+                                                                                                                                                  'or '
+                                                                                                                                                  'revision '
+                                                                                                                                                  'associated '
+                                                                                                                                                  'with '
+                                                                                                                                                  'the '
+                                                                                                                                                  'proof.'},
+                                                                                                                   'confidence': {'type': 'number',
+                                                                                                                                  'minimum': 0,
+                                                                                                                                  'maximum': 1,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'confidence '
+                                                                                                                                                 'from '
+                                                                                                                                                 'the '
+                                                                                                                                                 'evidence '
+                                                                                                                                                 'adapter, '
+                                                                                                                                                 'between '
+                                                                                                                                                 'zero '
+                                                                                                                                                 'and '
+                                                                                                                                                 'one.'}}},
+                                                                            'stdlib_or_native': {'type': 'object',
+                                                                                                 'additionalProperties': False,
+                                                                                                 'maxProperties': 6,
+                                                                                                 'description': 'One '
+                                                                                                                'bounded, '
+                                                                                                                'attributable '
+                                                                                                                'evidence '
+                                                                                                                'check '
+                                                                                                                'for '
+                                                                                                                'the '
+                                                                                                                'requested '
+                                                                                                                'policy '
+                                                                                                                'question.',
+                                                                                                 'properties': {'status': {'type': 'string',
+                                                                                                                           'enum': ['confirmed',
+                                                                                                                                    'candidate',
+                                                                                                                                    'unknown',
+                                                                                                                                    'not_applicable',
+                                                                                                                                    'needs_review'],
+                                                                                                                           'description': 'Evidence '
+                                                                                                                                          'state. '
+                                                                                                                                          'Use '
+                                                                                                                                          'unknown '
+                                                                                                                                          'when '
+                                                                                                                                          'the '
+                                                                                                                                          'source '
+                                                                                                                                          'was '
+                                                                                                                                          'not '
+                                                                                                                                          'verified.'},
+                                                                                                                'source': {'type': 'string',
+                                                                                                                           'enum': ['code_impact',
+                                                                                                                                    'git_diff',
+                                                                                                                                    'lockfile',
+                                                                                                                                    'manifest',
+                                                                                                                                    'runtime',
+                                                                                                                                    'test_runner',
+                                                                                                                                    'caller_assertion'],
+                                                                                                                           'description': 'Named '
+                                                                                                                                          'evidence '
+                                                                                                                                          'adapter '
+                                                                                                                                          'or '
+                                                                                                                                          'provenance '
+                                                                                                                                          'source '
+                                                                                                                                          'for '
+                                                                                                                                          'this '
+                                                                                                                                          'check.'},
+                                                                                                                'evidence': {'type': 'array',
+                                                                                                                             'maxItems': 10,
+                                                                                                                             'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                  'maxLength': 256},
+                                                                                                                                                 {'type': 'object',
+                                                                                                                                                  'additionalProperties': False,
+                                                                                                                                                  'maxProperties': 5,
+                                                                                                                                                  'properties': {'source': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                 'kind': {'type': 'string',
+                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                 'path': {'type': 'string',
+                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                 'detail': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                 'lines': {'type': 'array',
+                                                                                                                                                                           'maxItems': 2,
+                                                                                                                                                                           'items': {'type': 'integer',
+                                                                                                                                                                                     'minimum': 0}}}}]},
+                                                                                                                             'description': 'At '
+                                                                                                                                            'most '
+                                                                                                                                            'ten '
+                                                                                                                                            'concise '
+                                                                                                                                            'proof '
+                                                                                                                                            'references; '
+                                                                                                                                            'do '
+                                                                                                                                            'not '
+                                                                                                                                            'include '
+                                                                                                                                            'secrets '
+                                                                                                                                            'or '
+                                                                                                                                            'raw '
+                                                                                                                                            'logs.'},
+                                                                                                                'scope': {'type': 'string',
+                                                                                                                          'maxLength': 128,
+                                                                                                                          'description': 'Optional '
+                                                                                                                                         'bounded '
+                                                                                                                                         'file, '
+                                                                                                                                         'package, '
+                                                                                                                                         'runtime, '
+                                                                                                                                         'or '
+                                                                                                                                         'test '
+                                                                                                                                         'scope.'},
+                                                                                                                'observed_at': {'type': 'string',
+                                                                                                                                'maxLength': 64,
+                                                                                                                                'description': 'Optional '
+                                                                                                                                               'timestamp '
+                                                                                                                                               'or '
+                                                                                                                                               'revision '
+                                                                                                                                               'associated '
+                                                                                                                                               'with '
+                                                                                                                                               'the '
+                                                                                                                                               'proof.'},
+                                                                                                                'confidence': {'type': 'number',
+                                                                                                                               'minimum': 0,
+                                                                                                                               'maximum': 1,
+                                                                                                                               'description': 'Optional '
+                                                                                                                                              'confidence '
+                                                                                                                                              'from '
+                                                                                                                                              'the '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter, '
+                                                                                                                                              'between '
+                                                                                                                                              'zero '
+                                                                                                                                              'and '
+                                                                                                                                              'one.'}}},
+                                                                            'installed_dependency': {'type': 'object',
+                                                                                                     'additionalProperties': False,
+                                                                                                     'maxProperties': 6,
+                                                                                                     'description': 'One '
+                                                                                                                    'bounded, '
+                                                                                                                    'attributable '
+                                                                                                                    'evidence '
+                                                                                                                    'check '
+                                                                                                                    'for '
+                                                                                                                    'the '
+                                                                                                                    'requested '
+                                                                                                                    'policy '
+                                                                                                                    'question.',
+                                                                                                     'properties': {'status': {'type': 'string',
+                                                                                                                               'enum': ['confirmed',
+                                                                                                                                        'candidate',
+                                                                                                                                        'unknown',
+                                                                                                                                        'not_applicable',
+                                                                                                                                        'needs_review'],
+                                                                                                                               'description': 'Evidence '
+                                                                                                                                              'state. '
+                                                                                                                                              'Use '
+                                                                                                                                              'unknown '
+                                                                                                                                              'when '
+                                                                                                                                              'the '
+                                                                                                                                              'source '
+                                                                                                                                              'was '
+                                                                                                                                              'not '
+                                                                                                                                              'verified.'},
+                                                                                                                    'source': {'type': 'string',
+                                                                                                                               'enum': ['code_impact',
+                                                                                                                                        'git_diff',
+                                                                                                                                        'lockfile',
+                                                                                                                                        'manifest',
+                                                                                                                                        'runtime',
+                                                                                                                                        'test_runner',
+                                                                                                                                        'caller_assertion'],
+                                                                                                                               'description': 'Named '
+                                                                                                                                              'evidence '
+                                                                                                                                              'adapter '
+                                                                                                                                              'or '
+                                                                                                                                              'provenance '
+                                                                                                                                              'source '
+                                                                                                                                              'for '
+                                                                                                                                              'this '
+                                                                                                                                              'check.'},
+                                                                                                                    'evidence': {'type': 'array',
+                                                                                                                                 'maxItems': 10,
+                                                                                                                                 'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                     {'type': 'object',
+                                                                                                                                                      'additionalProperties': False,
+                                                                                                                                                      'maxProperties': 5,
+                                                                                                                                                      'properties': {'source': {'type': 'string',
+                                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                     'kind': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                     'path': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                     'detail': {'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                     'lines': {'type': 'array',
+                                                                                                                                                                               'maxItems': 2,
+                                                                                                                                                                               'items': {'type': 'integer',
+                                                                                                                                                                                         'minimum': 0}}}}]},
+                                                                                                                                 'description': 'At '
+                                                                                                                                                'most '
+                                                                                                                                                'ten '
+                                                                                                                                                'concise '
+                                                                                                                                                'proof '
+                                                                                                                                                'references; '
+                                                                                                                                                'do '
+                                                                                                                                                'not '
+                                                                                                                                                'include '
+                                                                                                                                                'secrets '
+                                                                                                                                                'or '
+                                                                                                                                                'raw '
+                                                                                                                                                'logs.'},
+                                                                                                                    'scope': {'type': 'string',
+                                                                                                                              'maxLength': 128,
+                                                                                                                              'description': 'Optional '
+                                                                                                                                             'bounded '
+                                                                                                                                             'file, '
+                                                                                                                                             'package, '
+                                                                                                                                             'runtime, '
+                                                                                                                                             'or '
+                                                                                                                                             'test '
+                                                                                                                                             'scope.'},
+                                                                                                                    'observed_at': {'type': 'string',
+                                                                                                                                    'maxLength': 64,
+                                                                                                                                    'description': 'Optional '
+                                                                                                                                                   'timestamp '
+                                                                                                                                                   'or '
+                                                                                                                                                   'revision '
+                                                                                                                                                   'associated '
+                                                                                                                                                   'with '
+                                                                                                                                                   'the '
+                                                                                                                                                   'proof.'},
+                                                                                                                    'confidence': {'type': 'number',
+                                                                                                                                   'minimum': 0,
+                                                                                                                                   'maximum': 1,
+                                                                                                                                   'description': 'Optional '
+                                                                                                                                                  'confidence '
+                                                                                                                                                  'from '
+                                                                                                                                                  'the '
+                                                                                                                                                  'evidence '
+                                                                                                                                                  'adapter, '
+                                                                                                                                                  'between '
+                                                                                                                                                  'zero '
+                                                                                                                                                  'and '
+                                                                                                                                                  'one.'}}},
+                                                                            'smallest_safe_diff': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'validation_surface': {'type': 'object',
+                                                                                                   'additionalProperties': False,
+                                                                                                   'maxProperties': 6,
+                                                                                                   'description': 'One '
+                                                                                                                  'bounded, '
+                                                                                                                  'attributable '
+                                                                                                                  'evidence '
+                                                                                                                  'check '
+                                                                                                                  'for '
+                                                                                                                  'the '
+                                                                                                                  'requested '
+                                                                                                                  'policy '
+                                                                                                                  'question.',
+                                                                                                   'properties': {'status': {'type': 'string',
+                                                                                                                             'enum': ['confirmed',
+                                                                                                                                      'candidate',
+                                                                                                                                      'unknown',
+                                                                                                                                      'not_applicable',
+                                                                                                                                      'needs_review'],
+                                                                                                                             'description': 'Evidence '
+                                                                                                                                            'state. '
+                                                                                                                                            'Use '
+                                                                                                                                            'unknown '
+                                                                                                                                            'when '
+                                                                                                                                            'the '
+                                                                                                                                            'source '
+                                                                                                                                            'was '
+                                                                                                                                            'not '
+                                                                                                                                            'verified.'},
+                                                                                                                  'source': {'type': 'string',
+                                                                                                                             'enum': ['code_impact',
+                                                                                                                                      'git_diff',
+                                                                                                                                      'lockfile',
+                                                                                                                                      'manifest',
+                                                                                                                                      'runtime',
+                                                                                                                                      'test_runner',
+                                                                                                                                      'caller_assertion'],
+                                                                                                                             'description': 'Named '
+                                                                                                                                            'evidence '
+                                                                                                                                            'adapter '
+                                                                                                                                            'or '
+                                                                                                                                            'provenance '
+                                                                                                                                            'source '
+                                                                                                                                            'for '
+                                                                                                                                            'this '
+                                                                                                                                            'check.'},
+                                                                                                                  'evidence': {'type': 'array',
+                                                                                                                               'maxItems': 10,
+                                                                                                                               'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                   {'type': 'object',
+                                                                                                                                                    'additionalProperties': False,
+                                                                                                                                                    'maxProperties': 5,
+                                                                                                                                                    'properties': {'source': {'type': 'string',
+                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                   'kind': {'type': 'string',
+                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                   'path': {'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                   'detail': {'type': 'string',
+                                                                                                                                                                              'maxLength': 256},
+                                                                                                                                                                   'lines': {'type': 'array',
+                                                                                                                                                                             'maxItems': 2,
+                                                                                                                                                                             'items': {'type': 'integer',
+                                                                                                                                                                                       'minimum': 0}}}}]},
+                                                                                                                               'description': 'At '
+                                                                                                                                              'most '
+                                                                                                                                              'ten '
+                                                                                                                                              'concise '
+                                                                                                                                              'proof '
+                                                                                                                                              'references; '
+                                                                                                                                              'do '
+                                                                                                                                              'not '
+                                                                                                                                              'include '
+                                                                                                                                              'secrets '
+                                                                                                                                              'or '
+                                                                                                                                              'raw '
+                                                                                                                                              'logs.'},
+                                                                                                                  'scope': {'type': 'string',
+                                                                                                                            'maxLength': 128,
+                                                                                                                            'description': 'Optional '
+                                                                                                                                           'bounded '
+                                                                                                                                           'file, '
+                                                                                                                                           'package, '
+                                                                                                                                           'runtime, '
+                                                                                                                                           'or '
+                                                                                                                                           'test '
+                                                                                                                                           'scope.'},
+                                                                                                                  'observed_at': {'type': 'string',
+                                                                                                                                  'maxLength': 64,
+                                                                                                                                  'description': 'Optional '
+                                                                                                                                                 'timestamp '
+                                                                                                                                                 'or '
+                                                                                                                                                 'revision '
+                                                                                                                                                 'associated '
+                                                                                                                                                 'with '
+                                                                                                                                                 'the '
+                                                                                                                                                 'proof.'},
+                                                                                                                  'confidence': {'type': 'number',
+                                                                                                                                 'minimum': 0,
+                                                                                                                                 'maximum': 1,
+                                                                                                                                 'description': 'Optional '
+                                                                                                                                                'confidence '
+                                                                                                                                                'from '
+                                                                                                                                                'the '
+                                                                                                                                                'evidence '
+                                                                                                                                                'adapter, '
+                                                                                                                                                'between '
+                                                                                                                                                'zero '
+                                                                                                                                                'and '
+                                                                                                                                                'one.'}}},
+                                                                            'preservation': {'type': 'object',
+                                                                                             'additionalProperties': False,
+                                                                                             'maxProperties': 6,
+                                                                                             'description': 'Optional '
+                                                                                                            'explicit '
+                                                                                                            'proofs '
+                                                                                                            'for '
+                                                                                                            'contracts '
+                                                                                                            'and '
+                                                                                                            'protections '
+                                                                                                            'that '
+                                                                                                            'must '
+                                                                                                            'be '
+                                                                                                            'preserved.',
+                                                                                             'properties': {'validation': {'type': 'object',
+                                                                                                                           'additionalProperties': False,
+                                                                                                                           'maxProperties': 6,
+                                                                                                                           'description': 'One '
+                                                                                                                                          'bounded, '
+                                                                                                                                          'attributable '
+                                                                                                                                          'evidence '
+                                                                                                                                          'check '
+                                                                                                                                          'for '
+                                                                                                                                          'the '
+                                                                                                                                          'requested '
+                                                                                                                                          'policy '
+                                                                                                                                          'question.',
+                                                                                                                           'properties': {'status': {'type': 'string',
+                                                                                                                                                     'enum': ['confirmed',
+                                                                                                                                                              'candidate',
+                                                                                                                                                              'unknown',
+                                                                                                                                                              'not_applicable',
+                                                                                                                                                              'needs_review'],
+                                                                                                                                                     'description': 'Evidence '
+                                                                                                                                                                    'state. '
+                                                                                                                                                                    'Use '
+                                                                                                                                                                    'unknown '
+                                                                                                                                                                    'when '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'was '
+                                                                                                                                                                    'not '
+                                                                                                                                                                    'verified.'},
+                                                                                                                                          'source': {'type': 'string',
+                                                                                                                                                     'enum': ['code_impact',
+                                                                                                                                                              'git_diff',
+                                                                                                                                                              'lockfile',
+                                                                                                                                                              'manifest',
+                                                                                                                                                              'runtime',
+                                                                                                                                                              'test_runner',
+                                                                                                                                                              'caller_assertion'],
+                                                                                                                                                     'description': 'Named '
+                                                                                                                                                                    'evidence '
+                                                                                                                                                                    'adapter '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'provenance '
+                                                                                                                                                                    'source '
+                                                                                                                                                                    'for '
+                                                                                                                                                                    'this '
+                                                                                                                                                                    'check.'},
+                                                                                                                                          'evidence': {'type': 'array',
+                                                                                                                                                       'maxItems': 10,
+                                                                                                                                                       'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                            'maxLength': 256},
+                                                                                                                                                                           {'type': 'object',
+                                                                                                                                                                            'additionalProperties': False,
+                                                                                                                                                                            'maxProperties': 5,
+                                                                                                                                                                            'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                                           'kind': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                                           'path': {'type': 'string',
+                                                                                                                                                                                                    'maxLength': 256},
+                                                                                                                                                                                           'detail': {'type': 'string',
+                                                                                                                                                                                                      'maxLength': 256},
+                                                                                                                                                                                           'lines': {'type': 'array',
+                                                                                                                                                                                                     'maxItems': 2,
+                                                                                                                                                                                                     'items': {'type': 'integer',
+                                                                                                                                                                                                               'minimum': 0}}}}]},
+                                                                                                                                                       'description': 'At '
+                                                                                                                                                                      'most '
+                                                                                                                                                                      'ten '
+                                                                                                                                                                      'concise '
+                                                                                                                                                                      'proof '
+                                                                                                                                                                      'references; '
+                                                                                                                                                                      'do '
+                                                                                                                                                                      'not '
+                                                                                                                                                                      'include '
+                                                                                                                                                                      'secrets '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'raw '
+                                                                                                                                                                      'logs.'},
+                                                                                                                                          'scope': {'type': 'string',
+                                                                                                                                                    'maxLength': 128,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'bounded '
+                                                                                                                                                                   'file, '
+                                                                                                                                                                   'package, '
+                                                                                                                                                                   'runtime, '
+                                                                                                                                                                   'or '
+                                                                                                                                                                   'test '
+                                                                                                                                                                   'scope.'},
+                                                                                                                                          'observed_at': {'type': 'string',
+                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                          'description': 'Optional '
+                                                                                                                                                                         'timestamp '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'revision '
+                                                                                                                                                                         'associated '
+                                                                                                                                                                         'with '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'proof.'},
+                                                                                                                                          'confidence': {'type': 'number',
+                                                                                                                                                         'minimum': 0,
+                                                                                                                                                         'maximum': 1,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'confidence '
+                                                                                                                                                                        'from '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter, '
+                                                                                                                                                                        'between '
+                                                                                                                                                                        'zero '
+                                                                                                                                                                        'and '
+                                                                                                                                                                        'one.'}}},
+                                                                                                            'error_contract': {'type': 'object',
+                                                                                                                               'additionalProperties': False,
+                                                                                                                               'maxProperties': 6,
+                                                                                                                               'description': 'One '
+                                                                                                                                              'bounded, '
+                                                                                                                                              'attributable '
+                                                                                                                                              'evidence '
+                                                                                                                                              'check '
+                                                                                                                                              'for '
+                                                                                                                                              'the '
+                                                                                                                                              'requested '
+                                                                                                                                              'policy '
+                                                                                                                                              'question.',
+                                                                                                                               'properties': {'status': {'type': 'string',
+                                                                                                                                                         'enum': ['confirmed',
+                                                                                                                                                                  'candidate',
+                                                                                                                                                                  'unknown',
+                                                                                                                                                                  'not_applicable',
+                                                                                                                                                                  'needs_review'],
+                                                                                                                                                         'description': 'Evidence '
+                                                                                                                                                                        'state. '
+                                                                                                                                                                        'Use '
+                                                                                                                                                                        'unknown '
+                                                                                                                                                                        'when '
+                                                                                                                                                                        'the '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'was '
+                                                                                                                                                                        'not '
+                                                                                                                                                                        'verified.'},
+                                                                                                                                              'source': {'type': 'string',
+                                                                                                                                                         'enum': ['code_impact',
+                                                                                                                                                                  'git_diff',
+                                                                                                                                                                  'lockfile',
+                                                                                                                                                                  'manifest',
+                                                                                                                                                                  'runtime',
+                                                                                                                                                                  'test_runner',
+                                                                                                                                                                  'caller_assertion'],
+                                                                                                                                                         'description': 'Named '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'provenance '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'for '
+                                                                                                                                                                        'this '
+                                                                                                                                                                        'check.'},
+                                                                                                                                              'evidence': {'type': 'array',
+                                                                                                                                                           'maxItems': 10,
+                                                                                                                                                           'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                'maxLength': 256},
+                                                                                                                                                                               {'type': 'object',
+                                                                                                                                                                                'additionalProperties': False,
+                                                                                                                                                                                'maxProperties': 5,
+                                                                                                                                                                                'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                               'kind': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 64},
+                                                                                                                                                                                               'path': {'type': 'string',
+                                                                                                                                                                                                        'maxLength': 256},
+                                                                                                                                                                                               'detail': {'type': 'string',
+                                                                                                                                                                                                          'maxLength': 256},
+                                                                                                                                                                                               'lines': {'type': 'array',
+                                                                                                                                                                                                         'maxItems': 2,
+                                                                                                                                                                                                         'items': {'type': 'integer',
+                                                                                                                                                                                                                   'minimum': 0}}}}]},
+                                                                                                                                                           'description': 'At '
+                                                                                                                                                                          'most '
+                                                                                                                                                                          'ten '
+                                                                                                                                                                          'concise '
+                                                                                                                                                                          'proof '
+                                                                                                                                                                          'references; '
+                                                                                                                                                                          'do '
+                                                                                                                                                                          'not '
+                                                                                                                                                                          'include '
+                                                                                                                                                                          'secrets '
+                                                                                                                                                                          'or '
+                                                                                                                                                                          'raw '
+                                                                                                                                                                          'logs.'},
+                                                                                                                                              'scope': {'type': 'string',
+                                                                                                                                                        'maxLength': 128,
+                                                                                                                                                        'description': 'Optional '
+                                                                                                                                                                       'bounded '
+                                                                                                                                                                       'file, '
+                                                                                                                                                                       'package, '
+                                                                                                                                                                       'runtime, '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'test '
+                                                                                                                                                                       'scope.'},
+                                                                                                                                              'observed_at': {'type': 'string',
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'timestamp '
+                                                                                                                                                                             'or '
+                                                                                                                                                                             'revision '
+                                                                                                                                                                             'associated '
+                                                                                                                                                                             'with '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'proof.'},
+                                                                                                                                              'confidence': {'type': 'number',
+                                                                                                                                                             'minimum': 0,
+                                                                                                                                                             'maximum': 1,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'confidence '
+                                                                                                                                                                            'from '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'evidence '
+                                                                                                                                                                            'adapter, '
+                                                                                                                                                                            'between '
+                                                                                                                                                                            'zero '
+                                                                                                                                                                            'and '
+                                                                                                                                                                            'one.'}}},
+                                                                                                            'security_auth': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'accessibility': {'type': 'object',
+                                                                                                                              'additionalProperties': False,
+                                                                                                                              'maxProperties': 6,
+                                                                                                                              'description': 'One '
+                                                                                                                                             'bounded, '
+                                                                                                                                             'attributable '
+                                                                                                                                             'evidence '
+                                                                                                                                             'check '
+                                                                                                                                             'for '
+                                                                                                                                             'the '
+                                                                                                                                             'requested '
+                                                                                                                                             'policy '
+                                                                                                                                             'question.',
+                                                                                                                              'properties': {'status': {'type': 'string',
+                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                                 'candidate',
+                                                                                                                                                                 'unknown',
+                                                                                                                                                                 'not_applicable',
+                                                                                                                                                                 'needs_review'],
+                                                                                                                                                        'description': 'Evidence '
+                                                                                                                                                                       'state. '
+                                                                                                                                                                       'Use '
+                                                                                                                                                                       'unknown '
+                                                                                                                                                                       'when '
+                                                                                                                                                                       'the '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'was '
+                                                                                                                                                                       'not '
+                                                                                                                                                                       'verified.'},
+                                                                                                                                             'source': {'type': 'string',
+                                                                                                                                                        'enum': ['code_impact',
+                                                                                                                                                                 'git_diff',
+                                                                                                                                                                 'lockfile',
+                                                                                                                                                                 'manifest',
+                                                                                                                                                                 'runtime',
+                                                                                                                                                                 'test_runner',
+                                                                                                                                                                 'caller_assertion'],
+                                                                                                                                                        'description': 'Named '
+                                                                                                                                                                       'evidence '
+                                                                                                                                                                       'adapter '
+                                                                                                                                                                       'or '
+                                                                                                                                                                       'provenance '
+                                                                                                                                                                       'source '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'this '
+                                                                                                                                                                       'check.'},
+                                                                                                                                             'evidence': {'type': 'array',
+                                                                                                                                                          'maxItems': 10,
+                                                                                                                                                          'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                              {'type': 'object',
+                                                                                                                                                                               'additionalProperties': False,
+                                                                                                                                                                               'maxProperties': 5,
+                                                                                                                                                                               'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                              'kind': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                              'path': {'type': 'string',
+                                                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                                              'detail': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                              'lines': {'type': 'array',
+                                                                                                                                                                                                        'maxItems': 2,
+                                                                                                                                                                                                        'items': {'type': 'integer',
+                                                                                                                                                                                                                  'minimum': 0}}}}]},
+                                                                                                                                                          'description': 'At '
+                                                                                                                                                                         'most '
+                                                                                                                                                                         'ten '
+                                                                                                                                                                         'concise '
+                                                                                                                                                                         'proof '
+                                                                                                                                                                         'references; '
+                                                                                                                                                                         'do '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'include '
+                                                                                                                                                                         'secrets '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'raw '
+                                                                                                                                                                         'logs.'},
+                                                                                                                                             'scope': {'type': 'string',
+                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                       'description': 'Optional '
+                                                                                                                                                                      'bounded '
+                                                                                                                                                                      'file, '
+                                                                                                                                                                      'package, '
+                                                                                                                                                                      'runtime, '
+                                                                                                                                                                      'or '
+                                                                                                                                                                      'test '
+                                                                                                                                                                      'scope.'},
+                                                                                                                                             'observed_at': {'type': 'string',
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Optional '
+                                                                                                                                                                            'timestamp '
+                                                                                                                                                                            'or '
+                                                                                                                                                                            'revision '
+                                                                                                                                                                            'associated '
+                                                                                                                                                                            'with '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'proof.'},
+                                                                                                                                             'confidence': {'type': 'number',
+                                                                                                                                                            'minimum': 0,
+                                                                                                                                                            'maximum': 1,
+                                                                                                                                                            'description': 'Optional '
+                                                                                                                                                                           'confidence '
+                                                                                                                                                                           'from '
+                                                                                                                                                                           'the '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter, '
+                                                                                                                                                                           'between '
+                                                                                                                                                                           'zero '
+                                                                                                                                                                           'and '
+                                                                                                                                                                           'one.'}}},
+                                                                                                            'public_contract': {'type': 'object',
+                                                                                                                                'additionalProperties': False,
+                                                                                                                                'maxProperties': 6,
+                                                                                                                                'description': 'One '
+                                                                                                                                               'bounded, '
+                                                                                                                                               'attributable '
+                                                                                                                                               'evidence '
+                                                                                                                                               'check '
+                                                                                                                                               'for '
+                                                                                                                                               'the '
+                                                                                                                                               'requested '
+                                                                                                                                               'policy '
+                                                                                                                                               'question.',
+                                                                                                                                'properties': {'status': {'type': 'string',
+                                                                                                                                                          'enum': ['confirmed',
+                                                                                                                                                                   'candidate',
+                                                                                                                                                                   'unknown',
+                                                                                                                                                                   'not_applicable',
+                                                                                                                                                                   'needs_review'],
+                                                                                                                                                          'description': 'Evidence '
+                                                                                                                                                                         'state. '
+                                                                                                                                                                         'Use '
+                                                                                                                                                                         'unknown '
+                                                                                                                                                                         'when '
+                                                                                                                                                                         'the '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'was '
+                                                                                                                                                                         'not '
+                                                                                                                                                                         'verified.'},
+                                                                                                                                               'source': {'type': 'string',
+                                                                                                                                                          'enum': ['code_impact',
+                                                                                                                                                                   'git_diff',
+                                                                                                                                                                   'lockfile',
+                                                                                                                                                                   'manifest',
+                                                                                                                                                                   'runtime',
+                                                                                                                                                                   'test_runner',
+                                                                                                                                                                   'caller_assertion'],
+                                                                                                                                                          'description': 'Named '
+                                                                                                                                                                         'evidence '
+                                                                                                                                                                         'adapter '
+                                                                                                                                                                         'or '
+                                                                                                                                                                         'provenance '
+                                                                                                                                                                         'source '
+                                                                                                                                                                         'for '
+                                                                                                                                                                         'this '
+                                                                                                                                                                         'check.'},
+                                                                                                                                               'evidence': {'type': 'array',
+                                                                                                                                                            'maxItems': 10,
+                                                                                                                                                            'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                {'type': 'object',
+                                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                                 'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                                'kind': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                                'path': {'type': 'string',
+                                                                                                                                                                                                         'maxLength': 256},
+                                                                                                                                                                                                'detail': {'type': 'string',
+                                                                                                                                                                                                           'maxLength': 256},
+                                                                                                                                                                                                'lines': {'type': 'array',
+                                                                                                                                                                                                          'maxItems': 2,
+                                                                                                                                                                                                          'items': {'type': 'integer',
+                                                                                                                                                                                                                    'minimum': 0}}}}]},
+                                                                                                                                                            'description': 'At '
+                                                                                                                                                                           'most '
+                                                                                                                                                                           'ten '
+                                                                                                                                                                           'concise '
+                                                                                                                                                                           'proof '
+                                                                                                                                                                           'references; '
+                                                                                                                                                                           'do '
+                                                                                                                                                                           'not '
+                                                                                                                                                                           'include '
+                                                                                                                                                                           'secrets '
+                                                                                                                                                                           'or '
+                                                                                                                                                                           'raw '
+                                                                                                                                                                           'logs.'},
+                                                                                                                                               'scope': {'type': 'string',
+                                                                                                                                                         'maxLength': 128,
+                                                                                                                                                         'description': 'Optional '
+                                                                                                                                                                        'bounded '
+                                                                                                                                                                        'file, '
+                                                                                                                                                                        'package, '
+                                                                                                                                                                        'runtime, '
+                                                                                                                                                                        'or '
+                                                                                                                                                                        'test '
+                                                                                                                                                                        'scope.'},
+                                                                                                                                               'observed_at': {'type': 'string',
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Optional '
+                                                                                                                                                                              'timestamp '
+                                                                                                                                                                              'or '
+                                                                                                                                                                              'revision '
+                                                                                                                                                                              'associated '
+                                                                                                                                                                              'with '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'proof.'},
+                                                                                                                                               'confidence': {'type': 'number',
+                                                                                                                                                              'minimum': 0,
+                                                                                                                                                              'maximum': 1,
+                                                                                                                                                              'description': 'Optional '
+                                                                                                                                                                             'confidence '
+                                                                                                                                                                             'from '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter, '
+                                                                                                                                                                             'between '
+                                                                                                                                                                             'zero '
+                                                                                                                                                                             'and '
+                                                                                                                                                                             'one.'}}},
+                                                                                                            'tests': {'type': 'object',
+                                                                                                                      'additionalProperties': False,
+                                                                                                                      'maxProperties': 6,
+                                                                                                                      'description': 'One '
+                                                                                                                                     'bounded, '
+                                                                                                                                     'attributable '
+                                                                                                                                     'evidence '
+                                                                                                                                     'check '
+                                                                                                                                     'for '
+                                                                                                                                     'the '
+                                                                                                                                     'requested '
+                                                                                                                                     'policy '
+                                                                                                                                     'question.',
+                                                                                                                      'properties': {'status': {'type': 'string',
+                                                                                                                                                'enum': ['confirmed',
+                                                                                                                                                         'candidate',
+                                                                                                                                                         'unknown',
+                                                                                                                                                         'not_applicable',
+                                                                                                                                                         'needs_review'],
+                                                                                                                                                'description': 'Evidence '
+                                                                                                                                                               'state. '
+                                                                                                                                                               'Use '
+                                                                                                                                                               'unknown '
+                                                                                                                                                               'when '
+                                                                                                                                                               'the '
+                                                                                                                                                               'source '
+                                                                                                                                                               'was '
+                                                                                                                                                               'not '
+                                                                                                                                                               'verified.'},
+                                                                                                                                     'source': {'type': 'string',
+                                                                                                                                                'enum': ['code_impact',
+                                                                                                                                                         'git_diff',
+                                                                                                                                                         'lockfile',
+                                                                                                                                                         'manifest',
+                                                                                                                                                         'runtime',
+                                                                                                                                                         'test_runner',
+                                                                                                                                                         'caller_assertion'],
+                                                                                                                                                'description': 'Named '
+                                                                                                                                                               'evidence '
+                                                                                                                                                               'adapter '
+                                                                                                                                                               'or '
+                                                                                                                                                               'provenance '
+                                                                                                                                                               'source '
+                                                                                                                                                               'for '
+                                                                                                                                                               'this '
+                                                                                                                                                               'check.'},
+                                                                                                                                     'evidence': {'type': 'array',
+                                                                                                                                                  'maxItems': 10,
+                                                                                                                                                  'items': {'oneOf': [{'type': 'string',
+                                                                                                                                                                       'maxLength': 256},
+                                                                                                                                                                      {'type': 'object',
+                                                                                                                                                                       'additionalProperties': False,
+                                                                                                                                                                       'maxProperties': 5,
+                                                                                                                                                                       'properties': {'source': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                                      'kind': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                                                      'path': {'type': 'string',
+                                                                                                                                                                                               'maxLength': 256},
+                                                                                                                                                                                      'detail': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 256},
+                                                                                                                                                                                      'lines': {'type': 'array',
+                                                                                                                                                                                                'maxItems': 2,
+                                                                                                                                                                                                'items': {'type': 'integer',
+                                                                                                                                                                                                          'minimum': 0}}}}]},
+                                                                                                                                                  'description': 'At '
+                                                                                                                                                                 'most '
+                                                                                                                                                                 'ten '
+                                                                                                                                                                 'concise '
+                                                                                                                                                                 'proof '
+                                                                                                                                                                 'references; '
+                                                                                                                                                                 'do '
+                                                                                                                                                                 'not '
+                                                                                                                                                                 'include '
+                                                                                                                                                                 'secrets '
+                                                                                                                                                                 'or '
+                                                                                                                                                                 'raw '
+                                                                                                                                                                 'logs.'},
+                                                                                                                                     'scope': {'type': 'string',
+                                                                                                                                               'maxLength': 128,
+                                                                                                                                               'description': 'Optional '
+                                                                                                                                                              'bounded '
+                                                                                                                                                              'file, '
+                                                                                                                                                              'package, '
+                                                                                                                                                              'runtime, '
+                                                                                                                                                              'or '
+                                                                                                                                                              'test '
+                                                                                                                                                              'scope.'},
+                                                                                                                                     'observed_at': {'type': 'string',
+                                                                                                                                                     'maxLength': 64,
+                                                                                                                                                     'description': 'Optional '
+                                                                                                                                                                    'timestamp '
+                                                                                                                                                                    'or '
+                                                                                                                                                                    'revision '
+                                                                                                                                                                    'associated '
+                                                                                                                                                                    'with '
+                                                                                                                                                                    'the '
+                                                                                                                                                                    'proof.'},
+                                                                                                                                     'confidence': {'type': 'number',
+                                                                                                                                                    'minimum': 0,
+                                                                                                                                                    'maximum': 1,
+                                                                                                                                                    'description': 'Optional '
+                                                                                                                                                                   'confidence '
+                                                                                                                                                                   'from '
+                                                                                                                                                                   'the '
+                                                                                                                                                                   'evidence '
+                                                                                                                                                                   'adapter, '
+                                                                                                                                                                   'between '
+                                                                                                                                                                   'zero '
+                                                                                                                                                                   'and '
+                                                                                                                                                                   'one.'}}}}}}},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
