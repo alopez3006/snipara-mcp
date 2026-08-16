@@ -691,6 +691,13 @@ def _canonical_tool_name(name: str) -> str:
     return name
 
 
+def _is_known_tool_name(name: str) -> bool:
+    """Accept both advertised Snipara names and their backend rlm aliases."""
+    if name in TOOL_NAMES:
+        return True
+    return name.startswith("rlm_") and f"snipara_{name.removeprefix('rlm_')}" in TOOL_NAMES
+
+
 @server.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Handle tool calls."""
@@ -2117,7 +2124,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             ]
 
         else:
-            if name not in TOOL_NAMES:
+            if not _is_known_tool_name(name):
                 return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
             result = await call_api(name, arguments)
