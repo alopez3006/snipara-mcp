@@ -577,15 +577,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                       'not '
                                                                                                                                                       'verification.',
                                                                                                                                        'properties': {'name': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Stable '
+                                                                                                                                                                              'evidence '
+                                                                                                                                                                              'adapter '
+                                                                                                                                                                              'identifier.'},
                                                                                                                                                       'version': {'type': 'string',
-                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                                  'maxLength': 64,
+                                                                                                                                                                  'description': 'Adapter '
+                                                                                                                                                                                 'contract '
+                                                                                                                                                                                 'version '
+                                                                                                                                                                                 'that '
+                                                                                                                                                                                 'produced '
+                                                                                                                                                                                 'the '
+                                                                                                                                                                                 'receipt.'},
                                                                                                                                                       'status': {'type': 'string',
-                                                                                                                                                                 'enum': ['verified']},
+                                                                                                                                                                 'enum': ['verified'],
+                                                                                                                                                                 'description': 'Receipt '
+                                                                                                                                                                                'status; '
+                                                                                                                                                                                'verified '
+                                                                                                                                                                                'means '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'adapter '
+                                                                                                                                                                                'corroborated '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'claim.'},
                                                                                                                                                       'claim': {'type': 'string',
-                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                'maxLength': 64,
+                                                                                                                                                                'description': 'Bounded '
+                                                                                                                                                                               'policy '
+                                                                                                                                                                               'claim '
+                                                                                                                                                                               'verified '
+                                                                                                                                                                               'by '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'adapter.'},
                                                                                                                                                       'fingerprint': {'type': 'string',
-                                                                                                                                                                      'maxLength': 128}}}}},
+                                                                                                                                                                      'maxLength': 128,
+                                                                                                                                                                      'description': 'Stable '
+                                                                                                                                                                                     'digest '
+                                                                                                                                                                                     'binding '
+                                                                                                                                                                                     'the '
+                                                                                                                                                                                     'receipt '
+                                                                                                                                                                                     'to '
+                                                                                                                                                                                     'its '
+                                                                                                                                                                                     'evidence.'}}}}},
                                                                             'stdlib_or_native': {'type': 'object',
                                                                                                  'additionalProperties': False,
                                                                                                  'maxProperties': 7,
@@ -723,15 +758,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                    'not '
                                                                                                                                                    'verification.',
                                                                                                                                     'properties': {'name': {'type': 'string',
-                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                            'description': 'Stable '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter '
+                                                                                                                                                                           'identifier.'},
                                                                                                                                                    'version': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Adapter '
+                                                                                                                                                                              'contract '
+                                                                                                                                                                              'version '
+                                                                                                                                                                              'that '
+                                                                                                                                                                              'produced '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'receipt.'},
                                                                                                                                                    'status': {'type': 'string',
-                                                                                                                                                              'enum': ['verified']},
+                                                                                                                                                              'enum': ['verified'],
+                                                                                                                                                              'description': 'Receipt '
+                                                                                                                                                                             'status; '
+                                                                                                                                                                             'verified '
+                                                                                                                                                                             'means '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'adapter '
+                                                                                                                                                                             'corroborated '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'claim.'},
                                                                                                                                                    'claim': {'type': 'string',
-                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Bounded '
+                                                                                                                                                                            'policy '
+                                                                                                                                                                            'claim '
+                                                                                                                                                                            'verified '
+                                                                                                                                                                            'by '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'adapter.'},
                                                                                                                                                    'fingerprint': {'type': 'string',
-                                                                                                                                                                   'maxLength': 128}}}}},
+                                                                                                                                                                   'maxLength': 128,
+                                                                                                                                                                   'description': 'Stable '
+                                                                                                                                                                                  'digest '
+                                                                                                                                                                                  'binding '
+                                                                                                                                                                                  'the '
+                                                                                                                                                                                  'receipt '
+                                                                                                                                                                                  'to '
+                                                                                                                                                                                  'its '
+                                                                                                                                                                                  'evidence.'}}}}},
                                                                             'installed_dependency': {'type': 'object',
                                                                                                      'additionalProperties': False,
                                                                                                      'maxProperties': 7,
@@ -869,15 +939,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                        'not '
                                                                                                                                                        'verification.',
                                                                                                                                         'properties': {'name': {'type': 'string',
-                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                'maxLength': 64,
+                                                                                                                                                                'description': 'Stable '
+                                                                                                                                                                               'evidence '
+                                                                                                                                                                               'adapter '
+                                                                                                                                                                               'identifier.'},
                                                                                                                                                        'version': {'type': 'string',
-                                                                                                                                                                   'maxLength': 64},
+                                                                                                                                                                   'maxLength': 64,
+                                                                                                                                                                   'description': 'Adapter '
+                                                                                                                                                                                  'contract '
+                                                                                                                                                                                  'version '
+                                                                                                                                                                                  'that '
+                                                                                                                                                                                  'produced '
+                                                                                                                                                                                  'the '
+                                                                                                                                                                                  'receipt.'},
                                                                                                                                                        'status': {'type': 'string',
-                                                                                                                                                                  'enum': ['verified']},
+                                                                                                                                                                  'enum': ['verified'],
+                                                                                                                                                                  'description': 'Receipt '
+                                                                                                                                                                                 'status; '
+                                                                                                                                                                                 'verified '
+                                                                                                                                                                                 'means '
+                                                                                                                                                                                 'the '
+                                                                                                                                                                                 'adapter '
+                                                                                                                                                                                 'corroborated '
+                                                                                                                                                                                 'the '
+                                                                                                                                                                                 'claim.'},
                                                                                                                                                        'claim': {'type': 'string',
-                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                 'description': 'Bounded '
+                                                                                                                                                                                'policy '
+                                                                                                                                                                                'claim '
+                                                                                                                                                                                'verified '
+                                                                                                                                                                                'by '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'adapter.'},
                                                                                                                                                        'fingerprint': {'type': 'string',
-                                                                                                                                                                       'maxLength': 128}}}}},
+                                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                                       'description': 'Stable '
+                                                                                                                                                                                      'digest '
+                                                                                                                                                                                      'binding '
+                                                                                                                                                                                      'the '
+                                                                                                                                                                                      'receipt '
+                                                                                                                                                                                      'to '
+                                                                                                                                                                                      'its '
+                                                                                                                                                                                      'evidence.'}}}}},
                                                                             'smallest_safe_diff': {'type': 'object',
                                                                                                    'additionalProperties': False,
                                                                                                    'maxProperties': 7,
@@ -1015,15 +1120,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                      'not '
                                                                                                                                                      'verification.',
                                                                                                                                       'properties': {'name': {'type': 'string',
-                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Stable '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter '
+                                                                                                                                                                             'identifier.'},
                                                                                                                                                      'version': {'type': 'string',
-                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                 'description': 'Adapter '
+                                                                                                                                                                                'contract '
+                                                                                                                                                                                'version '
+                                                                                                                                                                                'that '
+                                                                                                                                                                                'produced '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'receipt.'},
                                                                                                                                                      'status': {'type': 'string',
-                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                                'enum': ['verified'],
+                                                                                                                                                                'description': 'Receipt '
+                                                                                                                                                                               'status; '
+                                                                                                                                                                               'verified '
+                                                                                                                                                                               'means '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'adapter '
+                                                                                                                                                                               'corroborated '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'claim.'},
                                                                                                                                                      'claim': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Bounded '
+                                                                                                                                                                              'policy '
+                                                                                                                                                                              'claim '
+                                                                                                                                                                              'verified '
+                                                                                                                                                                              'by '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'adapter.'},
                                                                                                                                                      'fingerprint': {'type': 'string',
-                                                                                                                                                                     'maxLength': 128}}}}},
+                                                                                                                                                                     'maxLength': 128,
+                                                                                                                                                                     'description': 'Stable '
+                                                                                                                                                                                    'digest '
+                                                                                                                                                                                    'binding '
+                                                                                                                                                                                    'the '
+                                                                                                                                                                                    'receipt '
+                                                                                                                                                                                    'to '
+                                                                                                                                                                                    'its '
+                                                                                                                                                                                    'evidence.'}}}}},
                                                                             'validation_surface': {'type': 'object',
                                                                                                    'additionalProperties': False,
                                                                                                    'maxProperties': 7,
@@ -1161,15 +1301,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                      'not '
                                                                                                                                                      'verification.',
                                                                                                                                       'properties': {'name': {'type': 'string',
-                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Stable '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter '
+                                                                                                                                                                             'identifier.'},
                                                                                                                                                      'version': {'type': 'string',
-                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                 'description': 'Adapter '
+                                                                                                                                                                                'contract '
+                                                                                                                                                                                'version '
+                                                                                                                                                                                'that '
+                                                                                                                                                                                'produced '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'receipt.'},
                                                                                                                                                      'status': {'type': 'string',
-                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                                'enum': ['verified'],
+                                                                                                                                                                'description': 'Receipt '
+                                                                                                                                                                               'status; '
+                                                                                                                                                                               'verified '
+                                                                                                                                                                               'means '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'adapter '
+                                                                                                                                                                               'corroborated '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'claim.'},
                                                                                                                                                      'claim': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Bounded '
+                                                                                                                                                                              'policy '
+                                                                                                                                                                              'claim '
+                                                                                                                                                                              'verified '
+                                                                                                                                                                              'by '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'adapter.'},
                                                                                                                                                      'fingerprint': {'type': 'string',
-                                                                                                                                                                     'maxLength': 128}}}}},
+                                                                                                                                                                     'maxLength': 128,
+                                                                                                                                                                     'description': 'Stable '
+                                                                                                                                                                                    'digest '
+                                                                                                                                                                                    'binding '
+                                                                                                                                                                                    'the '
+                                                                                                                                                                                    'receipt '
+                                                                                                                                                                                    'to '
+                                                                                                                                                                                    'its '
+                                                                                                                                                                                    'evidence.'}}}}},
                                                                             'preservation': {'type': 'object',
                                                                                              'additionalProperties': False,
                                                                                              'maxProperties': 6,
@@ -1321,15 +1496,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                              'not '
                                                                                                                                                                              'verification.',
                                                                                                                                                               'properties': {'name': {'type': 'string',
-                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                                      'maxLength': 64,
+                                                                                                                                                                                      'description': 'Stable '
+                                                                                                                                                                                                     'evidence '
+                                                                                                                                                                                                     'adapter '
+                                                                                                                                                                                                     'identifier.'},
                                                                                                                                                                              'version': {'type': 'string',
-                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                         'maxLength': 64,
+                                                                                                                                                                                         'description': 'Adapter '
+                                                                                                                                                                                                        'contract '
+                                                                                                                                                                                                        'version '
+                                                                                                                                                                                                        'that '
+                                                                                                                                                                                                        'produced '
+                                                                                                                                                                                                        'the '
+                                                                                                                                                                                                        'receipt.'},
                                                                                                                                                                              'status': {'type': 'string',
-                                                                                                                                                                                        'enum': ['verified']},
+                                                                                                                                                                                        'enum': ['verified'],
+                                                                                                                                                                                        'description': 'Receipt '
+                                                                                                                                                                                                       'status; '
+                                                                                                                                                                                                       'verified '
+                                                                                                                                                                                                       'means '
+                                                                                                                                                                                                       'the '
+                                                                                                                                                                                                       'adapter '
+                                                                                                                                                                                                       'corroborated '
+                                                                                                                                                                                                       'the '
+                                                                                                                                                                                                       'claim.'},
                                                                                                                                                                              'claim': {'type': 'string',
-                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                       'maxLength': 64,
+                                                                                                                                                                                       'description': 'Bounded '
+                                                                                                                                                                                                      'policy '
+                                                                                                                                                                                                      'claim '
+                                                                                                                                                                                                      'verified '
+                                                                                                                                                                                                      'by '
+                                                                                                                                                                                                      'the '
+                                                                                                                                                                                                      'adapter.'},
                                                                                                                                                                              'fingerprint': {'type': 'string',
-                                                                                                                                                                                             'maxLength': 128}}}}},
+                                                                                                                                                                                             'maxLength': 128,
+                                                                                                                                                                                             'description': 'Stable '
+                                                                                                                                                                                                            'digest '
+                                                                                                                                                                                                            'binding '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'receipt '
+                                                                                                                                                                                                            'to '
+                                                                                                                                                                                                            'its '
+                                                                                                                                                                                                            'evidence.'}}}}},
                                                                                                             'error_contract': {'type': 'object',
                                                                                                                                'additionalProperties': False,
                                                                                                                                'maxProperties': 7,
@@ -1467,15 +1677,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                  'not '
                                                                                                                                                                                  'verification.',
                                                                                                                                                                   'properties': {'name': {'type': 'string',
-                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                                                          'description': 'Stable '
+                                                                                                                                                                                                         'evidence '
+                                                                                                                                                                                                         'adapter '
+                                                                                                                                                                                                         'identifier.'},
                                                                                                                                                                                  'version': {'type': 'string',
-                                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                                                             'description': 'Adapter '
+                                                                                                                                                                                                            'contract '
+                                                                                                                                                                                                            'version '
+                                                                                                                                                                                                            'that '
+                                                                                                                                                                                                            'produced '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'receipt.'},
                                                                                                                                                                                  'status': {'type': 'string',
-                                                                                                                                                                                            'enum': ['verified']},
+                                                                                                                                                                                            'enum': ['verified'],
+                                                                                                                                                                                            'description': 'Receipt '
+                                                                                                                                                                                                           'status; '
+                                                                                                                                                                                                           'verified '
+                                                                                                                                                                                                           'means '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'adapter '
+                                                                                                                                                                                                           'corroborated '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'claim.'},
                                                                                                                                                                                  'claim': {'type': 'string',
-                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                           'maxLength': 64,
+                                                                                                                                                                                           'description': 'Bounded '
+                                                                                                                                                                                                          'policy '
+                                                                                                                                                                                                          'claim '
+                                                                                                                                                                                                          'verified '
+                                                                                                                                                                                                          'by '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'adapter.'},
                                                                                                                                                                                  'fingerprint': {'type': 'string',
-                                                                                                                                                                                                 'maxLength': 128}}}}},
+                                                                                                                                                                                                 'maxLength': 128,
+                                                                                                                                                                                                 'description': 'Stable '
+                                                                                                                                                                                                                'digest '
+                                                                                                                                                                                                                'binding '
+                                                                                                                                                                                                                'the '
+                                                                                                                                                                                                                'receipt '
+                                                                                                                                                                                                                'to '
+                                                                                                                                                                                                                'its '
+                                                                                                                                                                                                                'evidence.'}}}}},
                                                                                                             'security_auth': {'type': 'object',
                                                                                                                               'additionalProperties': False,
                                                                                                                               'maxProperties': 7,
@@ -1613,15 +1858,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                 'not '
                                                                                                                                                                                 'verification.',
                                                                                                                                                                  'properties': {'name': {'type': 'string',
-                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                         'maxLength': 64,
+                                                                                                                                                                                         'description': 'Stable '
+                                                                                                                                                                                                        'evidence '
+                                                                                                                                                                                                        'adapter '
+                                                                                                                                                                                                        'identifier.'},
                                                                                                                                                                                 'version': {'type': 'string',
-                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                                                            'description': 'Adapter '
+                                                                                                                                                                                                           'contract '
+                                                                                                                                                                                                           'version '
+                                                                                                                                                                                                           'that '
+                                                                                                                                                                                                           'produced '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'receipt.'},
                                                                                                                                                                                 'status': {'type': 'string',
-                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                           'enum': ['verified'],
+                                                                                                                                                                                           'description': 'Receipt '
+                                                                                                                                                                                                          'status; '
+                                                                                                                                                                                                          'verified '
+                                                                                                                                                                                                          'means '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'adapter '
+                                                                                                                                                                                                          'corroborated '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'claim.'},
                                                                                                                                                                                 'claim': {'type': 'string',
-                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                                                          'description': 'Bounded '
+                                                                                                                                                                                                         'policy '
+                                                                                                                                                                                                         'claim '
+                                                                                                                                                                                                         'verified '
+                                                                                                                                                                                                         'by '
+                                                                                                                                                                                                         'the '
+                                                                                                                                                                                                         'adapter.'},
                                                                                                                                                                                 'fingerprint': {'type': 'string',
-                                                                                                                                                                                                'maxLength': 128}}}}},
+                                                                                                                                                                                                'maxLength': 128,
+                                                                                                                                                                                                'description': 'Stable '
+                                                                                                                                                                                                               'digest '
+                                                                                                                                                                                                               'binding '
+                                                                                                                                                                                                               'the '
+                                                                                                                                                                                                               'receipt '
+                                                                                                                                                                                                               'to '
+                                                                                                                                                                                                               'its '
+                                                                                                                                                                                                               'evidence.'}}}}},
                                                                                                             'accessibility': {'type': 'object',
                                                                                                                               'additionalProperties': False,
                                                                                                                               'maxProperties': 7,
@@ -1759,15 +2039,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                 'not '
                                                                                                                                                                                 'verification.',
                                                                                                                                                                  'properties': {'name': {'type': 'string',
-                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                         'maxLength': 64,
+                                                                                                                                                                                         'description': 'Stable '
+                                                                                                                                                                                                        'evidence '
+                                                                                                                                                                                                        'adapter '
+                                                                                                                                                                                                        'identifier.'},
                                                                                                                                                                                 'version': {'type': 'string',
-                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                                                            'description': 'Adapter '
+                                                                                                                                                                                                           'contract '
+                                                                                                                                                                                                           'version '
+                                                                                                                                                                                                           'that '
+                                                                                                                                                                                                           'produced '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'receipt.'},
                                                                                                                                                                                 'status': {'type': 'string',
-                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                           'enum': ['verified'],
+                                                                                                                                                                                           'description': 'Receipt '
+                                                                                                                                                                                                          'status; '
+                                                                                                                                                                                                          'verified '
+                                                                                                                                                                                                          'means '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'adapter '
+                                                                                                                                                                                                          'corroborated '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'claim.'},
                                                                                                                                                                                 'claim': {'type': 'string',
-                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                                                          'description': 'Bounded '
+                                                                                                                                                                                                         'policy '
+                                                                                                                                                                                                         'claim '
+                                                                                                                                                                                                         'verified '
+                                                                                                                                                                                                         'by '
+                                                                                                                                                                                                         'the '
+                                                                                                                                                                                                         'adapter.'},
                                                                                                                                                                                 'fingerprint': {'type': 'string',
-                                                                                                                                                                                                'maxLength': 128}}}}},
+                                                                                                                                                                                                'maxLength': 128,
+                                                                                                                                                                                                'description': 'Stable '
+                                                                                                                                                                                                               'digest '
+                                                                                                                                                                                                               'binding '
+                                                                                                                                                                                                               'the '
+                                                                                                                                                                                                               'receipt '
+                                                                                                                                                                                                               'to '
+                                                                                                                                                                                                               'its '
+                                                                                                                                                                                                               'evidence.'}}}}},
                                                                                                             'public_contract': {'type': 'object',
                                                                                                                                 'additionalProperties': False,
                                                                                                                                 'maxProperties': 7,
@@ -1905,15 +2220,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                   'not '
                                                                                                                                                                                   'verification.',
                                                                                                                                                                    'properties': {'name': {'type': 'string',
-                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                           'maxLength': 64,
+                                                                                                                                                                                           'description': 'Stable '
+                                                                                                                                                                                                          'evidence '
+                                                                                                                                                                                                          'adapter '
+                                                                                                                                                                                                          'identifier.'},
                                                                                                                                                                                   'version': {'type': 'string',
-                                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                                                              'description': 'Adapter '
+                                                                                                                                                                                                             'contract '
+                                                                                                                                                                                                             'version '
+                                                                                                                                                                                                             'that '
+                                                                                                                                                                                                             'produced '
+                                                                                                                                                                                                             'the '
+                                                                                                                                                                                                             'receipt.'},
                                                                                                                                                                                   'status': {'type': 'string',
-                                                                                                                                                                                             'enum': ['verified']},
+                                                                                                                                                                                             'enum': ['verified'],
+                                                                                                                                                                                             'description': 'Receipt '
+                                                                                                                                                                                                            'status; '
+                                                                                                                                                                                                            'verified '
+                                                                                                                                                                                                            'means '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'adapter '
+                                                                                                                                                                                                            'corroborated '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'claim.'},
                                                                                                                                                                                   'claim': {'type': 'string',
-                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                                                            'description': 'Bounded '
+                                                                                                                                                                                                           'policy '
+                                                                                                                                                                                                           'claim '
+                                                                                                                                                                                                           'verified '
+                                                                                                                                                                                                           'by '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'adapter.'},
                                                                                                                                                                                   'fingerprint': {'type': 'string',
-                                                                                                                                                                                                  'maxLength': 128}}}}},
+                                                                                                                                                                                                  'maxLength': 128,
+                                                                                                                                                                                                  'description': 'Stable '
+                                                                                                                                                                                                                 'digest '
+                                                                                                                                                                                                                 'binding '
+                                                                                                                                                                                                                 'the '
+                                                                                                                                                                                                                 'receipt '
+                                                                                                                                                                                                                 'to '
+                                                                                                                                                                                                                 'its '
+                                                                                                                                                                                                                 'evidence.'}}}}},
                                                                                                             'tests': {'type': 'object',
                                                                                                                       'additionalProperties': False,
                                                                                                                       'maxProperties': 7,
@@ -2051,15 +2401,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                         'not '
                                                                                                                                                                         'verification.',
                                                                                                                                                          'properties': {'name': {'type': 'string',
-                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                                 'description': 'Stable '
+                                                                                                                                                                                                'evidence '
+                                                                                                                                                                                                'adapter '
+                                                                                                                                                                                                'identifier.'},
                                                                                                                                                                         'version': {'type': 'string',
-                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                                    'maxLength': 64,
+                                                                                                                                                                                    'description': 'Adapter '
+                                                                                                                                                                                                   'contract '
+                                                                                                                                                                                                   'version '
+                                                                                                                                                                                                   'that '
+                                                                                                                                                                                                   'produced '
+                                                                                                                                                                                                   'the '
+                                                                                                                                                                                                   'receipt.'},
                                                                                                                                                                         'status': {'type': 'string',
-                                                                                                                                                                                   'enum': ['verified']},
+                                                                                                                                                                                   'enum': ['verified'],
+                                                                                                                                                                                   'description': 'Receipt '
+                                                                                                                                                                                                  'status; '
+                                                                                                                                                                                                  'verified '
+                                                                                                                                                                                                  'means '
+                                                                                                                                                                                                  'the '
+                                                                                                                                                                                                  'adapter '
+                                                                                                                                                                                                  'corroborated '
+                                                                                                                                                                                                  'the '
+                                                                                                                                                                                                  'claim.'},
                                                                                                                                                                         'claim': {'type': 'string',
-                                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                                                  'maxLength': 64,
+                                                                                                                                                                                  'description': 'Bounded '
+                                                                                                                                                                                                 'policy '
+                                                                                                                                                                                                 'claim '
+                                                                                                                                                                                                 'verified '
+                                                                                                                                                                                                 'by '
+                                                                                                                                                                                                 'the '
+                                                                                                                                                                                                 'adapter.'},
                                                                                                                                                                         'fingerprint': {'type': 'string',
-                                                                                                                                                                                        'maxLength': 128}}}}}}}}},
+                                                                                                                                                                                        'maxLength': 128,
+                                                                                                                                                                                        'description': 'Stable '
+                                                                                                                                                                                                       'digest '
+                                                                                                                                                                                                       'binding '
+                                                                                                                                                                                                       'the '
+                                                                                                                                                                                                       'receipt '
+                                                                                                                                                                                                       'to '
+                                                                                                                                                                                                       'its '
+                                                                                                                                                                                                       'evidence.'}}}}}}}}},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '
@@ -2920,15 +3305,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                       'not '
                                                                                                                                                       'verification.',
                                                                                                                                        'properties': {'name': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Stable '
+                                                                                                                                                                              'evidence '
+                                                                                                                                                                              'adapter '
+                                                                                                                                                                              'identifier.'},
                                                                                                                                                       'version': {'type': 'string',
-                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                                  'maxLength': 64,
+                                                                                                                                                                  'description': 'Adapter '
+                                                                                                                                                                                 'contract '
+                                                                                                                                                                                 'version '
+                                                                                                                                                                                 'that '
+                                                                                                                                                                                 'produced '
+                                                                                                                                                                                 'the '
+                                                                                                                                                                                 'receipt.'},
                                                                                                                                                       'status': {'type': 'string',
-                                                                                                                                                                 'enum': ['verified']},
+                                                                                                                                                                 'enum': ['verified'],
+                                                                                                                                                                 'description': 'Receipt '
+                                                                                                                                                                                'status; '
+                                                                                                                                                                                'verified '
+                                                                                                                                                                                'means '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'adapter '
+                                                                                                                                                                                'corroborated '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'claim.'},
                                                                                                                                                       'claim': {'type': 'string',
-                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                'maxLength': 64,
+                                                                                                                                                                'description': 'Bounded '
+                                                                                                                                                                               'policy '
+                                                                                                                                                                               'claim '
+                                                                                                                                                                               'verified '
+                                                                                                                                                                               'by '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'adapter.'},
                                                                                                                                                       'fingerprint': {'type': 'string',
-                                                                                                                                                                      'maxLength': 128}}}}},
+                                                                                                                                                                      'maxLength': 128,
+                                                                                                                                                                      'description': 'Stable '
+                                                                                                                                                                                     'digest '
+                                                                                                                                                                                     'binding '
+                                                                                                                                                                                     'the '
+                                                                                                                                                                                     'receipt '
+                                                                                                                                                                                     'to '
+                                                                                                                                                                                     'its '
+                                                                                                                                                                                     'evidence.'}}}}},
                                                                             'stdlib_or_native': {'type': 'object',
                                                                                                  'additionalProperties': False,
                                                                                                  'maxProperties': 7,
@@ -3066,15 +3486,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                    'not '
                                                                                                                                                    'verification.',
                                                                                                                                     'properties': {'name': {'type': 'string',
-                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                            'description': 'Stable '
+                                                                                                                                                                           'evidence '
+                                                                                                                                                                           'adapter '
+                                                                                                                                                                           'identifier.'},
                                                                                                                                                    'version': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Adapter '
+                                                                                                                                                                              'contract '
+                                                                                                                                                                              'version '
+                                                                                                                                                                              'that '
+                                                                                                                                                                              'produced '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'receipt.'},
                                                                                                                                                    'status': {'type': 'string',
-                                                                                                                                                              'enum': ['verified']},
+                                                                                                                                                              'enum': ['verified'],
+                                                                                                                                                              'description': 'Receipt '
+                                                                                                                                                                             'status; '
+                                                                                                                                                                             'verified '
+                                                                                                                                                                             'means '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'adapter '
+                                                                                                                                                                             'corroborated '
+                                                                                                                                                                             'the '
+                                                                                                                                                                             'claim.'},
                                                                                                                                                    'claim': {'type': 'string',
-                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                             'description': 'Bounded '
+                                                                                                                                                                            'policy '
+                                                                                                                                                                            'claim '
+                                                                                                                                                                            'verified '
+                                                                                                                                                                            'by '
+                                                                                                                                                                            'the '
+                                                                                                                                                                            'adapter.'},
                                                                                                                                                    'fingerprint': {'type': 'string',
-                                                                                                                                                                   'maxLength': 128}}}}},
+                                                                                                                                                                   'maxLength': 128,
+                                                                                                                                                                   'description': 'Stable '
+                                                                                                                                                                                  'digest '
+                                                                                                                                                                                  'binding '
+                                                                                                                                                                                  'the '
+                                                                                                                                                                                  'receipt '
+                                                                                                                                                                                  'to '
+                                                                                                                                                                                  'its '
+                                                                                                                                                                                  'evidence.'}}}}},
                                                                             'installed_dependency': {'type': 'object',
                                                                                                      'additionalProperties': False,
                                                                                                      'maxProperties': 7,
@@ -3212,15 +3667,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                        'not '
                                                                                                                                                        'verification.',
                                                                                                                                         'properties': {'name': {'type': 'string',
-                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                                'maxLength': 64,
+                                                                                                                                                                'description': 'Stable '
+                                                                                                                                                                               'evidence '
+                                                                                                                                                                               'adapter '
+                                                                                                                                                                               'identifier.'},
                                                                                                                                                        'version': {'type': 'string',
-                                                                                                                                                                   'maxLength': 64},
+                                                                                                                                                                   'maxLength': 64,
+                                                                                                                                                                   'description': 'Adapter '
+                                                                                                                                                                                  'contract '
+                                                                                                                                                                                  'version '
+                                                                                                                                                                                  'that '
+                                                                                                                                                                                  'produced '
+                                                                                                                                                                                  'the '
+                                                                                                                                                                                  'receipt.'},
                                                                                                                                                        'status': {'type': 'string',
-                                                                                                                                                                  'enum': ['verified']},
+                                                                                                                                                                  'enum': ['verified'],
+                                                                                                                                                                  'description': 'Receipt '
+                                                                                                                                                                                 'status; '
+                                                                                                                                                                                 'verified '
+                                                                                                                                                                                 'means '
+                                                                                                                                                                                 'the '
+                                                                                                                                                                                 'adapter '
+                                                                                                                                                                                 'corroborated '
+                                                                                                                                                                                 'the '
+                                                                                                                                                                                 'claim.'},
                                                                                                                                                        'claim': {'type': 'string',
-                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                 'description': 'Bounded '
+                                                                                                                                                                                'policy '
+                                                                                                                                                                                'claim '
+                                                                                                                                                                                'verified '
+                                                                                                                                                                                'by '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'adapter.'},
                                                                                                                                                        'fingerprint': {'type': 'string',
-                                                                                                                                                                       'maxLength': 128}}}}},
+                                                                                                                                                                       'maxLength': 128,
+                                                                                                                                                                       'description': 'Stable '
+                                                                                                                                                                                      'digest '
+                                                                                                                                                                                      'binding '
+                                                                                                                                                                                      'the '
+                                                                                                                                                                                      'receipt '
+                                                                                                                                                                                      'to '
+                                                                                                                                                                                      'its '
+                                                                                                                                                                                      'evidence.'}}}}},
                                                                             'smallest_safe_diff': {'type': 'object',
                                                                                                    'additionalProperties': False,
                                                                                                    'maxProperties': 7,
@@ -3358,15 +3848,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                      'not '
                                                                                                                                                      'verification.',
                                                                                                                                       'properties': {'name': {'type': 'string',
-                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Stable '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter '
+                                                                                                                                                                             'identifier.'},
                                                                                                                                                      'version': {'type': 'string',
-                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                 'description': 'Adapter '
+                                                                                                                                                                                'contract '
+                                                                                                                                                                                'version '
+                                                                                                                                                                                'that '
+                                                                                                                                                                                'produced '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'receipt.'},
                                                                                                                                                      'status': {'type': 'string',
-                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                                'enum': ['verified'],
+                                                                                                                                                                'description': 'Receipt '
+                                                                                                                                                                               'status; '
+                                                                                                                                                                               'verified '
+                                                                                                                                                                               'means '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'adapter '
+                                                                                                                                                                               'corroborated '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'claim.'},
                                                                                                                                                      'claim': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Bounded '
+                                                                                                                                                                              'policy '
+                                                                                                                                                                              'claim '
+                                                                                                                                                                              'verified '
+                                                                                                                                                                              'by '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'adapter.'},
                                                                                                                                                      'fingerprint': {'type': 'string',
-                                                                                                                                                                     'maxLength': 128}}}}},
+                                                                                                                                                                     'maxLength': 128,
+                                                                                                                                                                     'description': 'Stable '
+                                                                                                                                                                                    'digest '
+                                                                                                                                                                                    'binding '
+                                                                                                                                                                                    'the '
+                                                                                                                                                                                    'receipt '
+                                                                                                                                                                                    'to '
+                                                                                                                                                                                    'its '
+                                                                                                                                                                                    'evidence.'}}}}},
                                                                             'validation_surface': {'type': 'object',
                                                                                                    'additionalProperties': False,
                                                                                                    'maxProperties': 7,
@@ -3504,15 +4029,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                      'not '
                                                                                                                                                      'verification.',
                                                                                                                                       'properties': {'name': {'type': 'string',
-                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                              'description': 'Stable '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter '
+                                                                                                                                                                             'identifier.'},
                                                                                                                                                      'version': {'type': 'string',
-                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                 'description': 'Adapter '
+                                                                                                                                                                                'contract '
+                                                                                                                                                                                'version '
+                                                                                                                                                                                'that '
+                                                                                                                                                                                'produced '
+                                                                                                                                                                                'the '
+                                                                                                                                                                                'receipt.'},
                                                                                                                                                      'status': {'type': 'string',
-                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                                'enum': ['verified'],
+                                                                                                                                                                'description': 'Receipt '
+                                                                                                                                                                               'status; '
+                                                                                                                                                                               'verified '
+                                                                                                                                                                               'means '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'adapter '
+                                                                                                                                                                               'corroborated '
+                                                                                                                                                                               'the '
+                                                                                                                                                                               'claim.'},
                                                                                                                                                      'claim': {'type': 'string',
-                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                               'maxLength': 64,
+                                                                                                                                                               'description': 'Bounded '
+                                                                                                                                                                              'policy '
+                                                                                                                                                                              'claim '
+                                                                                                                                                                              'verified '
+                                                                                                                                                                              'by '
+                                                                                                                                                                              'the '
+                                                                                                                                                                              'adapter.'},
                                                                                                                                                      'fingerprint': {'type': 'string',
-                                                                                                                                                                     'maxLength': 128}}}}},
+                                                                                                                                                                     'maxLength': 128,
+                                                                                                                                                                     'description': 'Stable '
+                                                                                                                                                                                    'digest '
+                                                                                                                                                                                    'binding '
+                                                                                                                                                                                    'the '
+                                                                                                                                                                                    'receipt '
+                                                                                                                                                                                    'to '
+                                                                                                                                                                                    'its '
+                                                                                                                                                                                    'evidence.'}}}}},
                                                                             'preservation': {'type': 'object',
                                                                                              'additionalProperties': False,
                                                                                              'maxProperties': 6,
@@ -3664,15 +4224,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                              'not '
                                                                                                                                                                              'verification.',
                                                                                                                                                               'properties': {'name': {'type': 'string',
-                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                                      'maxLength': 64,
+                                                                                                                                                                                      'description': 'Stable '
+                                                                                                                                                                                                     'evidence '
+                                                                                                                                                                                                     'adapter '
+                                                                                                                                                                                                     'identifier.'},
                                                                                                                                                                              'version': {'type': 'string',
-                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                         'maxLength': 64,
+                                                                                                                                                                                         'description': 'Adapter '
+                                                                                                                                                                                                        'contract '
+                                                                                                                                                                                                        'version '
+                                                                                                                                                                                                        'that '
+                                                                                                                                                                                                        'produced '
+                                                                                                                                                                                                        'the '
+                                                                                                                                                                                                        'receipt.'},
                                                                                                                                                                              'status': {'type': 'string',
-                                                                                                                                                                                        'enum': ['verified']},
+                                                                                                                                                                                        'enum': ['verified'],
+                                                                                                                                                                                        'description': 'Receipt '
+                                                                                                                                                                                                       'status; '
+                                                                                                                                                                                                       'verified '
+                                                                                                                                                                                                       'means '
+                                                                                                                                                                                                       'the '
+                                                                                                                                                                                                       'adapter '
+                                                                                                                                                                                                       'corroborated '
+                                                                                                                                                                                                       'the '
+                                                                                                                                                                                                       'claim.'},
                                                                                                                                                                              'claim': {'type': 'string',
-                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                                       'maxLength': 64,
+                                                                                                                                                                                       'description': 'Bounded '
+                                                                                                                                                                                                      'policy '
+                                                                                                                                                                                                      'claim '
+                                                                                                                                                                                                      'verified '
+                                                                                                                                                                                                      'by '
+                                                                                                                                                                                                      'the '
+                                                                                                                                                                                                      'adapter.'},
                                                                                                                                                                              'fingerprint': {'type': 'string',
-                                                                                                                                                                                             'maxLength': 128}}}}},
+                                                                                                                                                                                             'maxLength': 128,
+                                                                                                                                                                                             'description': 'Stable '
+                                                                                                                                                                                                            'digest '
+                                                                                                                                                                                                            'binding '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'receipt '
+                                                                                                                                                                                                            'to '
+                                                                                                                                                                                                            'its '
+                                                                                                                                                                                                            'evidence.'}}}}},
                                                                                                             'error_contract': {'type': 'object',
                                                                                                                                'additionalProperties': False,
                                                                                                                                'maxProperties': 7,
@@ -3810,15 +4405,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                  'not '
                                                                                                                                                                                  'verification.',
                                                                                                                                                                   'properties': {'name': {'type': 'string',
-                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                                                          'description': 'Stable '
+                                                                                                                                                                                                         'evidence '
+                                                                                                                                                                                                         'adapter '
+                                                                                                                                                                                                         'identifier.'},
                                                                                                                                                                                  'version': {'type': 'string',
-                                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                                             'maxLength': 64,
+                                                                                                                                                                                             'description': 'Adapter '
+                                                                                                                                                                                                            'contract '
+                                                                                                                                                                                                            'version '
+                                                                                                                                                                                                            'that '
+                                                                                                                                                                                                            'produced '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'receipt.'},
                                                                                                                                                                                  'status': {'type': 'string',
-                                                                                                                                                                                            'enum': ['verified']},
+                                                                                                                                                                                            'enum': ['verified'],
+                                                                                                                                                                                            'description': 'Receipt '
+                                                                                                                                                                                                           'status; '
+                                                                                                                                                                                                           'verified '
+                                                                                                                                                                                                           'means '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'adapter '
+                                                                                                                                                                                                           'corroborated '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'claim.'},
                                                                                                                                                                                  'claim': {'type': 'string',
-                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                           'maxLength': 64,
+                                                                                                                                                                                           'description': 'Bounded '
+                                                                                                                                                                                                          'policy '
+                                                                                                                                                                                                          'claim '
+                                                                                                                                                                                                          'verified '
+                                                                                                                                                                                                          'by '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'adapter.'},
                                                                                                                                                                                  'fingerprint': {'type': 'string',
-                                                                                                                                                                                                 'maxLength': 128}}}}},
+                                                                                                                                                                                                 'maxLength': 128,
+                                                                                                                                                                                                 'description': 'Stable '
+                                                                                                                                                                                                                'digest '
+                                                                                                                                                                                                                'binding '
+                                                                                                                                                                                                                'the '
+                                                                                                                                                                                                                'receipt '
+                                                                                                                                                                                                                'to '
+                                                                                                                                                                                                                'its '
+                                                                                                                                                                                                                'evidence.'}}}}},
                                                                                                             'security_auth': {'type': 'object',
                                                                                                                               'additionalProperties': False,
                                                                                                                               'maxProperties': 7,
@@ -3956,15 +4586,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                 'not '
                                                                                                                                                                                 'verification.',
                                                                                                                                                                  'properties': {'name': {'type': 'string',
-                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                         'maxLength': 64,
+                                                                                                                                                                                         'description': 'Stable '
+                                                                                                                                                                                                        'evidence '
+                                                                                                                                                                                                        'adapter '
+                                                                                                                                                                                                        'identifier.'},
                                                                                                                                                                                 'version': {'type': 'string',
-                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                                                            'description': 'Adapter '
+                                                                                                                                                                                                           'contract '
+                                                                                                                                                                                                           'version '
+                                                                                                                                                                                                           'that '
+                                                                                                                                                                                                           'produced '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'receipt.'},
                                                                                                                                                                                 'status': {'type': 'string',
-                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                           'enum': ['verified'],
+                                                                                                                                                                                           'description': 'Receipt '
+                                                                                                                                                                                                          'status; '
+                                                                                                                                                                                                          'verified '
+                                                                                                                                                                                                          'means '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'adapter '
+                                                                                                                                                                                                          'corroborated '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'claim.'},
                                                                                                                                                                                 'claim': {'type': 'string',
-                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                                                          'description': 'Bounded '
+                                                                                                                                                                                                         'policy '
+                                                                                                                                                                                                         'claim '
+                                                                                                                                                                                                         'verified '
+                                                                                                                                                                                                         'by '
+                                                                                                                                                                                                         'the '
+                                                                                                                                                                                                         'adapter.'},
                                                                                                                                                                                 'fingerprint': {'type': 'string',
-                                                                                                                                                                                                'maxLength': 128}}}}},
+                                                                                                                                                                                                'maxLength': 128,
+                                                                                                                                                                                                'description': 'Stable '
+                                                                                                                                                                                                               'digest '
+                                                                                                                                                                                                               'binding '
+                                                                                                                                                                                                               'the '
+                                                                                                                                                                                                               'receipt '
+                                                                                                                                                                                                               'to '
+                                                                                                                                                                                                               'its '
+                                                                                                                                                                                                               'evidence.'}}}}},
                                                                                                             'accessibility': {'type': 'object',
                                                                                                                               'additionalProperties': False,
                                                                                                                               'maxProperties': 7,
@@ -4102,15 +4767,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                 'not '
                                                                                                                                                                                 'verification.',
                                                                                                                                                                  'properties': {'name': {'type': 'string',
-                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                         'maxLength': 64,
+                                                                                                                                                                                         'description': 'Stable '
+                                                                                                                                                                                                        'evidence '
+                                                                                                                                                                                                        'adapter '
+                                                                                                                                                                                                        'identifier.'},
                                                                                                                                                                                 'version': {'type': 'string',
-                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                                                            'description': 'Adapter '
+                                                                                                                                                                                                           'contract '
+                                                                                                                                                                                                           'version '
+                                                                                                                                                                                                           'that '
+                                                                                                                                                                                                           'produced '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'receipt.'},
                                                                                                                                                                                 'status': {'type': 'string',
-                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                           'enum': ['verified'],
+                                                                                                                                                                                           'description': 'Receipt '
+                                                                                                                                                                                                          'status; '
+                                                                                                                                                                                                          'verified '
+                                                                                                                                                                                                          'means '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'adapter '
+                                                                                                                                                                                                          'corroborated '
+                                                                                                                                                                                                          'the '
+                                                                                                                                                                                                          'claim.'},
                                                                                                                                                                                 'claim': {'type': 'string',
-                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                          'maxLength': 64,
+                                                                                                                                                                                          'description': 'Bounded '
+                                                                                                                                                                                                         'policy '
+                                                                                                                                                                                                         'claim '
+                                                                                                                                                                                                         'verified '
+                                                                                                                                                                                                         'by '
+                                                                                                                                                                                                         'the '
+                                                                                                                                                                                                         'adapter.'},
                                                                                                                                                                                 'fingerprint': {'type': 'string',
-                                                                                                                                                                                                'maxLength': 128}}}}},
+                                                                                                                                                                                                'maxLength': 128,
+                                                                                                                                                                                                'description': 'Stable '
+                                                                                                                                                                                                               'digest '
+                                                                                                                                                                                                               'binding '
+                                                                                                                                                                                                               'the '
+                                                                                                                                                                                                               'receipt '
+                                                                                                                                                                                                               'to '
+                                                                                                                                                                                                               'its '
+                                                                                                                                                                                                               'evidence.'}}}}},
                                                                                                             'public_contract': {'type': 'object',
                                                                                                                                 'additionalProperties': False,
                                                                                                                                 'maxProperties': 7,
@@ -4248,15 +4948,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                   'not '
                                                                                                                                                                                   'verification.',
                                                                                                                                                                    'properties': {'name': {'type': 'string',
-                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                           'maxLength': 64,
+                                                                                                                                                                                           'description': 'Stable '
+                                                                                                                                                                                                          'evidence '
+                                                                                                                                                                                                          'adapter '
+                                                                                                                                                                                                          'identifier.'},
                                                                                                                                                                                   'version': {'type': 'string',
-                                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                                              'maxLength': 64,
+                                                                                                                                                                                              'description': 'Adapter '
+                                                                                                                                                                                                             'contract '
+                                                                                                                                                                                                             'version '
+                                                                                                                                                                                                             'that '
+                                                                                                                                                                                                             'produced '
+                                                                                                                                                                                                             'the '
+                                                                                                                                                                                                             'receipt.'},
                                                                                                                                                                                   'status': {'type': 'string',
-                                                                                                                                                                                             'enum': ['verified']},
+                                                                                                                                                                                             'enum': ['verified'],
+                                                                                                                                                                                             'description': 'Receipt '
+                                                                                                                                                                                                            'status; '
+                                                                                                                                                                                                            'verified '
+                                                                                                                                                                                                            'means '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'adapter '
+                                                                                                                                                                                                            'corroborated '
+                                                                                                                                                                                                            'the '
+                                                                                                                                                                                                            'claim.'},
                                                                                                                                                                                   'claim': {'type': 'string',
-                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                            'maxLength': 64,
+                                                                                                                                                                                            'description': 'Bounded '
+                                                                                                                                                                                                           'policy '
+                                                                                                                                                                                                           'claim '
+                                                                                                                                                                                                           'verified '
+                                                                                                                                                                                                           'by '
+                                                                                                                                                                                                           'the '
+                                                                                                                                                                                                           'adapter.'},
                                                                                                                                                                                   'fingerprint': {'type': 'string',
-                                                                                                                                                                                                  'maxLength': 128}}}}},
+                                                                                                                                                                                                  'maxLength': 128,
+                                                                                                                                                                                                  'description': 'Stable '
+                                                                                                                                                                                                                 'digest '
+                                                                                                                                                                                                                 'binding '
+                                                                                                                                                                                                                 'the '
+                                                                                                                                                                                                                 'receipt '
+                                                                                                                                                                                                                 'to '
+                                                                                                                                                                                                                 'its '
+                                                                                                                                                                                                                 'evidence.'}}}}},
                                                                                                             'tests': {'type': 'object',
                                                                                                                       'additionalProperties': False,
                                                                                                                       'maxProperties': 7,
@@ -4394,15 +5129,50 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                         'not '
                                                                                                                                                                         'verification.',
                                                                                                                                                          'properties': {'name': {'type': 'string',
-                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                                 'maxLength': 64,
+                                                                                                                                                                                 'description': 'Stable '
+                                                                                                                                                                                                'evidence '
+                                                                                                                                                                                                'adapter '
+                                                                                                                                                                                                'identifier.'},
                                                                                                                                                                         'version': {'type': 'string',
-                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                                    'maxLength': 64,
+                                                                                                                                                                                    'description': 'Adapter '
+                                                                                                                                                                                                   'contract '
+                                                                                                                                                                                                   'version '
+                                                                                                                                                                                                   'that '
+                                                                                                                                                                                                   'produced '
+                                                                                                                                                                                                   'the '
+                                                                                                                                                                                                   'receipt.'},
                                                                                                                                                                         'status': {'type': 'string',
-                                                                                                                                                                                   'enum': ['verified']},
+                                                                                                                                                                                   'enum': ['verified'],
+                                                                                                                                                                                   'description': 'Receipt '
+                                                                                                                                                                                                  'status; '
+                                                                                                                                                                                                  'verified '
+                                                                                                                                                                                                  'means '
+                                                                                                                                                                                                  'the '
+                                                                                                                                                                                                  'adapter '
+                                                                                                                                                                                                  'corroborated '
+                                                                                                                                                                                                  'the '
+                                                                                                                                                                                                  'claim.'},
                                                                                                                                                                         'claim': {'type': 'string',
-                                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                                                  'maxLength': 64,
+                                                                                                                                                                                  'description': 'Bounded '
+                                                                                                                                                                                                 'policy '
+                                                                                                                                                                                                 'claim '
+                                                                                                                                                                                                 'verified '
+                                                                                                                                                                                                 'by '
+                                                                                                                                                                                                 'the '
+                                                                                                                                                                                                 'adapter.'},
                                                                                                                                                                         'fingerprint': {'type': 'string',
-                                                                                                                                                                                        'maxLength': 128}}}}}}}}},
+                                                                                                                                                                                        'maxLength': 128,
+                                                                                                                                                                                        'description': 'Stable '
+                                                                                                                                                                                                       'digest '
+                                                                                                                                                                                                       'binding '
+                                                                                                                                                                                                       'the '
+                                                                                                                                                                                                       'receipt '
+                                                                                                                                                                                                       'to '
+                                                                                                                                                                                                       'its '
+                                                                                                                                                                                                       'evidence.'}}}}}}}}},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,
