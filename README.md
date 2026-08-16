@@ -56,9 +56,10 @@ starting cold every session.
 | Inspect structural code relationships     | `snipara_code_callers`, `snipara_code_imports`, `snipara_code_neighbors`                |
 | Plan risky code changes                   | `snipara_code_symbol_card`, `snipara_code_impact` within plan capacity                  |
 
-Public MCP clients should use the `snipara_*` names. The generated contract
-retains `rlm_*` aliases for backward compatibility with older clients and
-directory records.
+Public MCP clients must use the `snipara_*` names. The `rlm_*` compatibility
+aliases were removed from the distributed contract on 2026-08-16 and remain
+only as internal handler identifiers. This contract cleanup is staged for the
+next package release; clients using legacy names must migrate before upgrading.
 
 The stdio server advertises the same compact default agent contract as the
 hosted MCP endpoint. Set `SNIPARA_TOOL_PROFILE=full` only for clients that need

@@ -152,6 +152,15 @@ async def test_list_tools_defaults_to_generated_agent_contract(monkeypatch) -> N
     assert all(name.startswith("snipara_") for name in listed_tools)
 
 
+def test_packaged_contract_excludes_legacy_handler_aliases() -> None:
+    """The distributed package must not load the internal legacy tool names."""
+    names = {tool["name"] for tool in MCP_TOOL_DEFINITIONS}
+
+    assert names
+    assert all(name.startswith("snipara_") for name in names)
+    assert not any(name.startswith("rlm_") for name in names)
+
+
 async def test_list_tools_supports_explicit_full_compatibility_profile(monkeypatch) -> None:
     """Advanced clients may opt into every generated public tool definition."""
     monkeypatch.setenv("SNIPARA_TOOL_PROFILE", "full")
