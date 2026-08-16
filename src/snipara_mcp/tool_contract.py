@@ -442,7 +442,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                             'unknown.',
                                                              'properties': {'existing_capability': {'type': 'object',
                                                                                                     'additionalProperties': False,
-                                                                                                    'maxProperties': 6,
+                                                                                                    'maxProperties': 7,
                                                                                                     'description': 'One '
                                                                                                                    'bounded, '
                                                                                                                    'attributable '
@@ -454,7 +454,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                    'policy '
                                                                                                                    'question.',
                                                                                                     'properties': {'status': {'type': 'string',
-                                                                                                                              'enum': ['confirmed',
+                                                                                                                              'enum': ['asserted',
+                                                                                                                                       'confirmed',
                                                                                                                                        'candidate',
                                                                                                                                        'unknown',
                                                                                                                                        'not_applicable',
@@ -462,13 +463,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                               'description': 'Evidence '
                                                                                                                                              'state. '
                                                                                                                                              'Use '
-                                                                                                                                             'unknown '
-                                                                                                                                             'when '
-                                                                                                                                             'the '
-                                                                                                                                             'source '
-                                                                                                                                             'was '
+                                                                                                                                             'asserted '
+                                                                                                                                             'for '
+                                                                                                                                             'caller '
+                                                                                                                                             'claims '
                                                                                                                                              'not '
-                                                                                                                                             'verified.'},
+                                                                                                                                             'verified '
+                                                                                                                                             'by '
+                                                                                                                                             'an '
+                                                                                                                                             'adapter.'},
                                                                                                                    'source': {'type': 'string',
                                                                                                                               'enum': ['code_impact',
                                                                                                                                        'git_diff',
@@ -550,10 +553,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                  'between '
                                                                                                                                                  'zero '
                                                                                                                                                  'and '
-                                                                                                                                                 'one.'}}},
+                                                                                                                                                 'one.'},
+                                                                                                                   'adapter_receipt': {'type': 'object',
+                                                                                                                                       'additionalProperties': False,
+                                                                                                                                       'maxProperties': 5,
+                                                                                                                                       'required': ['name',
+                                                                                                                                                    'version',
+                                                                                                                                                    'status',
+                                                                                                                                                    'claim',
+                                                                                                                                                    'fingerprint'],
+                                                                                                                                       'description': 'Bounded '
+                                                                                                                                                      'receipt '
+                                                                                                                                                      'emitted '
+                                                                                                                                                      'by '
+                                                                                                                                                      'a '
+                                                                                                                                                      'known '
+                                                                                                                                                      'evidence '
+                                                                                                                                                      'adapter; '
+                                                                                                                                                      'source '
+                                                                                                                                                      'labels '
+                                                                                                                                                      'alone '
+                                                                                                                                                      'are '
+                                                                                                                                                      'not '
+                                                                                                                                                      'verification.',
+                                                                                                                                       'properties': {'name': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                      'version': {'type': 'string',
+                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                      'status': {'type': 'string',
+                                                                                                                                                                 'enum': ['verified']},
+                                                                                                                                                      'claim': {'type': 'string',
+                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                      'fingerprint': {'type': 'string',
+                                                                                                                                                                      'maxLength': 128}}}}},
                                                                             'stdlib_or_native': {'type': 'object',
                                                                                                  'additionalProperties': False,
-                                                                                                 'maxProperties': 6,
+                                                                                                 'maxProperties': 7,
                                                                                                  'description': 'One '
                                                                                                                 'bounded, '
                                                                                                                 'attributable '
@@ -565,7 +600,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                 'policy '
                                                                                                                 'question.',
                                                                                                  'properties': {'status': {'type': 'string',
-                                                                                                                           'enum': ['confirmed',
+                                                                                                                           'enum': ['asserted',
+                                                                                                                                    'confirmed',
                                                                                                                                     'candidate',
                                                                                                                                     'unknown',
                                                                                                                                     'not_applicable',
@@ -573,13 +609,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                            'description': 'Evidence '
                                                                                                                                           'state. '
                                                                                                                                           'Use '
-                                                                                                                                          'unknown '
-                                                                                                                                          'when '
-                                                                                                                                          'the '
-                                                                                                                                          'source '
-                                                                                                                                          'was '
+                                                                                                                                          'asserted '
+                                                                                                                                          'for '
+                                                                                                                                          'caller '
+                                                                                                                                          'claims '
                                                                                                                                           'not '
-                                                                                                                                          'verified.'},
+                                                                                                                                          'verified '
+                                                                                                                                          'by '
+                                                                                                                                          'an '
+                                                                                                                                          'adapter.'},
                                                                                                                 'source': {'type': 'string',
                                                                                                                            'enum': ['code_impact',
                                                                                                                                     'git_diff',
@@ -661,10 +699,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                               'between '
                                                                                                                                               'zero '
                                                                                                                                               'and '
-                                                                                                                                              'one.'}}},
+                                                                                                                                              'one.'},
+                                                                                                                'adapter_receipt': {'type': 'object',
+                                                                                                                                    'additionalProperties': False,
+                                                                                                                                    'maxProperties': 5,
+                                                                                                                                    'required': ['name',
+                                                                                                                                                 'version',
+                                                                                                                                                 'status',
+                                                                                                                                                 'claim',
+                                                                                                                                                 'fingerprint'],
+                                                                                                                                    'description': 'Bounded '
+                                                                                                                                                   'receipt '
+                                                                                                                                                   'emitted '
+                                                                                                                                                   'by '
+                                                                                                                                                   'a '
+                                                                                                                                                   'known '
+                                                                                                                                                   'evidence '
+                                                                                                                                                   'adapter; '
+                                                                                                                                                   'source '
+                                                                                                                                                   'labels '
+                                                                                                                                                   'alone '
+                                                                                                                                                   'are '
+                                                                                                                                                   'not '
+                                                                                                                                                   'verification.',
+                                                                                                                                    'properties': {'name': {'type': 'string',
+                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                   'version': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                   'status': {'type': 'string',
+                                                                                                                                                              'enum': ['verified']},
+                                                                                                                                                   'claim': {'type': 'string',
+                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                   'fingerprint': {'type': 'string',
+                                                                                                                                                                   'maxLength': 128}}}}},
                                                                             'installed_dependency': {'type': 'object',
                                                                                                      'additionalProperties': False,
-                                                                                                     'maxProperties': 6,
+                                                                                                     'maxProperties': 7,
                                                                                                      'description': 'One '
                                                                                                                     'bounded, '
                                                                                                                     'attributable '
@@ -676,7 +746,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                     'policy '
                                                                                                                     'question.',
                                                                                                      'properties': {'status': {'type': 'string',
-                                                                                                                               'enum': ['confirmed',
+                                                                                                                               'enum': ['asserted',
+                                                                                                                                        'confirmed',
                                                                                                                                         'candidate',
                                                                                                                                         'unknown',
                                                                                                                                         'not_applicable',
@@ -684,13 +755,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                'description': 'Evidence '
                                                                                                                                               'state. '
                                                                                                                                               'Use '
-                                                                                                                                              'unknown '
-                                                                                                                                              'when '
-                                                                                                                                              'the '
-                                                                                                                                              'source '
-                                                                                                                                              'was '
+                                                                                                                                              'asserted '
+                                                                                                                                              'for '
+                                                                                                                                              'caller '
+                                                                                                                                              'claims '
                                                                                                                                               'not '
-                                                                                                                                              'verified.'},
+                                                                                                                                              'verified '
+                                                                                                                                              'by '
+                                                                                                                                              'an '
+                                                                                                                                              'adapter.'},
                                                                                                                     'source': {'type': 'string',
                                                                                                                                'enum': ['code_impact',
                                                                                                                                         'git_diff',
@@ -772,10 +845,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                   'between '
                                                                                                                                                   'zero '
                                                                                                                                                   'and '
-                                                                                                                                                  'one.'}}},
+                                                                                                                                                  'one.'},
+                                                                                                                    'adapter_receipt': {'type': 'object',
+                                                                                                                                        'additionalProperties': False,
+                                                                                                                                        'maxProperties': 5,
+                                                                                                                                        'required': ['name',
+                                                                                                                                                     'version',
+                                                                                                                                                     'status',
+                                                                                                                                                     'claim',
+                                                                                                                                                     'fingerprint'],
+                                                                                                                                        'description': 'Bounded '
+                                                                                                                                                       'receipt '
+                                                                                                                                                       'emitted '
+                                                                                                                                                       'by '
+                                                                                                                                                       'a '
+                                                                                                                                                       'known '
+                                                                                                                                                       'evidence '
+                                                                                                                                                       'adapter; '
+                                                                                                                                                       'source '
+                                                                                                                                                       'labels '
+                                                                                                                                                       'alone '
+                                                                                                                                                       'are '
+                                                                                                                                                       'not '
+                                                                                                                                                       'verification.',
+                                                                                                                                        'properties': {'name': {'type': 'string',
+                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                       'version': {'type': 'string',
+                                                                                                                                                                   'maxLength': 64},
+                                                                                                                                                       'status': {'type': 'string',
+                                                                                                                                                                  'enum': ['verified']},
+                                                                                                                                                       'claim': {'type': 'string',
+                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                       'fingerprint': {'type': 'string',
+                                                                                                                                                                       'maxLength': 128}}}}},
                                                                             'smallest_safe_diff': {'type': 'object',
                                                                                                    'additionalProperties': False,
-                                                                                                   'maxProperties': 6,
+                                                                                                   'maxProperties': 7,
                                                                                                    'description': 'One '
                                                                                                                   'bounded, '
                                                                                                                   'attributable '
@@ -787,7 +892,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                   'policy '
                                                                                                                   'question.',
                                                                                                    'properties': {'status': {'type': 'string',
-                                                                                                                             'enum': ['confirmed',
+                                                                                                                             'enum': ['asserted',
+                                                                                                                                      'confirmed',
                                                                                                                                       'candidate',
                                                                                                                                       'unknown',
                                                                                                                                       'not_applicable',
@@ -795,13 +901,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                              'description': 'Evidence '
                                                                                                                                             'state. '
                                                                                                                                             'Use '
-                                                                                                                                            'unknown '
-                                                                                                                                            'when '
-                                                                                                                                            'the '
-                                                                                                                                            'source '
-                                                                                                                                            'was '
+                                                                                                                                            'asserted '
+                                                                                                                                            'for '
+                                                                                                                                            'caller '
+                                                                                                                                            'claims '
                                                                                                                                             'not '
-                                                                                                                                            'verified.'},
+                                                                                                                                            'verified '
+                                                                                                                                            'by '
+                                                                                                                                            'an '
+                                                                                                                                            'adapter.'},
                                                                                                                   'source': {'type': 'string',
                                                                                                                              'enum': ['code_impact',
                                                                                                                                       'git_diff',
@@ -883,10 +991,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                 'between '
                                                                                                                                                 'zero '
                                                                                                                                                 'and '
-                                                                                                                                                'one.'}}},
+                                                                                                                                                'one.'},
+                                                                                                                  'adapter_receipt': {'type': 'object',
+                                                                                                                                      'additionalProperties': False,
+                                                                                                                                      'maxProperties': 5,
+                                                                                                                                      'required': ['name',
+                                                                                                                                                   'version',
+                                                                                                                                                   'status',
+                                                                                                                                                   'claim',
+                                                                                                                                                   'fingerprint'],
+                                                                                                                                      'description': 'Bounded '
+                                                                                                                                                     'receipt '
+                                                                                                                                                     'emitted '
+                                                                                                                                                     'by '
+                                                                                                                                                     'a '
+                                                                                                                                                     'known '
+                                                                                                                                                     'evidence '
+                                                                                                                                                     'adapter; '
+                                                                                                                                                     'source '
+                                                                                                                                                     'labels '
+                                                                                                                                                     'alone '
+                                                                                                                                                     'are '
+                                                                                                                                                     'not '
+                                                                                                                                                     'verification.',
+                                                                                                                                      'properties': {'name': {'type': 'string',
+                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                     'version': {'type': 'string',
+                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                     'status': {'type': 'string',
+                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                     'claim': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                     'fingerprint': {'type': 'string',
+                                                                                                                                                                     'maxLength': 128}}}}},
                                                                             'validation_surface': {'type': 'object',
                                                                                                    'additionalProperties': False,
-                                                                                                   'maxProperties': 6,
+                                                                                                   'maxProperties': 7,
                                                                                                    'description': 'One '
                                                                                                                   'bounded, '
                                                                                                                   'attributable '
@@ -898,7 +1038,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                   'policy '
                                                                                                                   'question.',
                                                                                                    'properties': {'status': {'type': 'string',
-                                                                                                                             'enum': ['confirmed',
+                                                                                                                             'enum': ['asserted',
+                                                                                                                                      'confirmed',
                                                                                                                                       'candidate',
                                                                                                                                       'unknown',
                                                                                                                                       'not_applicable',
@@ -906,13 +1047,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                              'description': 'Evidence '
                                                                                                                                             'state. '
                                                                                                                                             'Use '
-                                                                                                                                            'unknown '
-                                                                                                                                            'when '
-                                                                                                                                            'the '
-                                                                                                                                            'source '
-                                                                                                                                            'was '
+                                                                                                                                            'asserted '
+                                                                                                                                            'for '
+                                                                                                                                            'caller '
+                                                                                                                                            'claims '
                                                                                                                                             'not '
-                                                                                                                                            'verified.'},
+                                                                                                                                            'verified '
+                                                                                                                                            'by '
+                                                                                                                                            'an '
+                                                                                                                                            'adapter.'},
                                                                                                                   'source': {'type': 'string',
                                                                                                                              'enum': ['code_impact',
                                                                                                                                       'git_diff',
@@ -994,7 +1137,39 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                 'between '
                                                                                                                                                 'zero '
                                                                                                                                                 'and '
-                                                                                                                                                'one.'}}},
+                                                                                                                                                'one.'},
+                                                                                                                  'adapter_receipt': {'type': 'object',
+                                                                                                                                      'additionalProperties': False,
+                                                                                                                                      'maxProperties': 5,
+                                                                                                                                      'required': ['name',
+                                                                                                                                                   'version',
+                                                                                                                                                   'status',
+                                                                                                                                                   'claim',
+                                                                                                                                                   'fingerprint'],
+                                                                                                                                      'description': 'Bounded '
+                                                                                                                                                     'receipt '
+                                                                                                                                                     'emitted '
+                                                                                                                                                     'by '
+                                                                                                                                                     'a '
+                                                                                                                                                     'known '
+                                                                                                                                                     'evidence '
+                                                                                                                                                     'adapter; '
+                                                                                                                                                     'source '
+                                                                                                                                                     'labels '
+                                                                                                                                                     'alone '
+                                                                                                                                                     'are '
+                                                                                                                                                     'not '
+                                                                                                                                                     'verification.',
+                                                                                                                                      'properties': {'name': {'type': 'string',
+                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                     'version': {'type': 'string',
+                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                     'status': {'type': 'string',
+                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                     'claim': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                     'fingerprint': {'type': 'string',
+                                                                                                                                                                     'maxLength': 128}}}}},
                                                                             'preservation': {'type': 'object',
                                                                                              'additionalProperties': False,
                                                                                              'maxProperties': 6,
@@ -1011,7 +1186,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                             'preserved.',
                                                                                              'properties': {'validation': {'type': 'object',
                                                                                                                            'additionalProperties': False,
-                                                                                                                           'maxProperties': 6,
+                                                                                                                           'maxProperties': 7,
                                                                                                                            'description': 'One '
                                                                                                                                           'bounded, '
                                                                                                                                           'attributable '
@@ -1023,7 +1198,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                           'policy '
                                                                                                                                           'question.',
                                                                                                                            'properties': {'status': {'type': 'string',
-                                                                                                                                                     'enum': ['confirmed',
+                                                                                                                                                     'enum': ['asserted',
+                                                                                                                                                              'confirmed',
                                                                                                                                                               'candidate',
                                                                                                                                                               'unknown',
                                                                                                                                                               'not_applicable',
@@ -1031,13 +1207,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                      'description': 'Evidence '
                                                                                                                                                                     'state. '
                                                                                                                                                                     'Use '
-                                                                                                                                                                    'unknown '
-                                                                                                                                                                    'when '
-                                                                                                                                                                    'the '
-                                                                                                                                                                    'source '
-                                                                                                                                                                    'was '
+                                                                                                                                                                    'asserted '
+                                                                                                                                                                    'for '
+                                                                                                                                                                    'caller '
+                                                                                                                                                                    'claims '
                                                                                                                                                                     'not '
-                                                                                                                                                                    'verified.'},
+                                                                                                                                                                    'verified '
+                                                                                                                                                                    'by '
+                                                                                                                                                                    'an '
+                                                                                                                                                                    'adapter.'},
                                                                                                                                           'source': {'type': 'string',
                                                                                                                                                      'enum': ['code_impact',
                                                                                                                                                               'git_diff',
@@ -1119,10 +1297,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                         'between '
                                                                                                                                                                         'zero '
                                                                                                                                                                         'and '
-                                                                                                                                                                        'one.'}}},
+                                                                                                                                                                        'one.'},
+                                                                                                                                          'adapter_receipt': {'type': 'object',
+                                                                                                                                                              'additionalProperties': False,
+                                                                                                                                                              'maxProperties': 5,
+                                                                                                                                                              'required': ['name',
+                                                                                                                                                                           'version',
+                                                                                                                                                                           'status',
+                                                                                                                                                                           'claim',
+                                                                                                                                                                           'fingerprint'],
+                                                                                                                                                              'description': 'Bounded '
+                                                                                                                                                                             'receipt '
+                                                                                                                                                                             'emitted '
+                                                                                                                                                                             'by '
+                                                                                                                                                                             'a '
+                                                                                                                                                                             'known '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter; '
+                                                                                                                                                                             'source '
+                                                                                                                                                                             'labels '
+                                                                                                                                                                             'alone '
+                                                                                                                                                                             'are '
+                                                                                                                                                                             'not '
+                                                                                                                                                                             'verification.',
+                                                                                                                                                              'properties': {'name': {'type': 'string',
+                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                             'version': {'type': 'string',
+                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                             'status': {'type': 'string',
+                                                                                                                                                                                        'enum': ['verified']},
+                                                                                                                                                                             'claim': {'type': 'string',
+                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                             'fingerprint': {'type': 'string',
+                                                                                                                                                                                             'maxLength': 128}}}}},
                                                                                                             'error_contract': {'type': 'object',
                                                                                                                                'additionalProperties': False,
-                                                                                                                               'maxProperties': 6,
+                                                                                                                               'maxProperties': 7,
                                                                                                                                'description': 'One '
                                                                                                                                               'bounded, '
                                                                                                                                               'attributable '
@@ -1134,7 +1344,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                               'policy '
                                                                                                                                               'question.',
                                                                                                                                'properties': {'status': {'type': 'string',
-                                                                                                                                                         'enum': ['confirmed',
+                                                                                                                                                         'enum': ['asserted',
+                                                                                                                                                                  'confirmed',
                                                                                                                                                                   'candidate',
                                                                                                                                                                   'unknown',
                                                                                                                                                                   'not_applicable',
@@ -1142,13 +1353,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                          'description': 'Evidence '
                                                                                                                                                                         'state. '
                                                                                                                                                                         'Use '
-                                                                                                                                                                        'unknown '
-                                                                                                                                                                        'when '
-                                                                                                                                                                        'the '
-                                                                                                                                                                        'source '
-                                                                                                                                                                        'was '
+                                                                                                                                                                        'asserted '
+                                                                                                                                                                        'for '
+                                                                                                                                                                        'caller '
+                                                                                                                                                                        'claims '
                                                                                                                                                                         'not '
-                                                                                                                                                                        'verified.'},
+                                                                                                                                                                        'verified '
+                                                                                                                                                                        'by '
+                                                                                                                                                                        'an '
+                                                                                                                                                                        'adapter.'},
                                                                                                                                               'source': {'type': 'string',
                                                                                                                                                          'enum': ['code_impact',
                                                                                                                                                                   'git_diff',
@@ -1230,10 +1443,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                             'between '
                                                                                                                                                                             'zero '
                                                                                                                                                                             'and '
-                                                                                                                                                                            'one.'}}},
+                                                                                                                                                                            'one.'},
+                                                                                                                                              'adapter_receipt': {'type': 'object',
+                                                                                                                                                                  'additionalProperties': False,
+                                                                                                                                                                  'maxProperties': 5,
+                                                                                                                                                                  'required': ['name',
+                                                                                                                                                                               'version',
+                                                                                                                                                                               'status',
+                                                                                                                                                                               'claim',
+                                                                                                                                                                               'fingerprint'],
+                                                                                                                                                                  'description': 'Bounded '
+                                                                                                                                                                                 'receipt '
+                                                                                                                                                                                 'emitted '
+                                                                                                                                                                                 'by '
+                                                                                                                                                                                 'a '
+                                                                                                                                                                                 'known '
+                                                                                                                                                                                 'evidence '
+                                                                                                                                                                                 'adapter; '
+                                                                                                                                                                                 'source '
+                                                                                                                                                                                 'labels '
+                                                                                                                                                                                 'alone '
+                                                                                                                                                                                 'are '
+                                                                                                                                                                                 'not '
+                                                                                                                                                                                 'verification.',
+                                                                                                                                                                  'properties': {'name': {'type': 'string',
+                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                 'version': {'type': 'string',
+                                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                                 'status': {'type': 'string',
+                                                                                                                                                                                            'enum': ['verified']},
+                                                                                                                                                                                 'claim': {'type': 'string',
+                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                 'fingerprint': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 128}}}}},
                                                                                                             'security_auth': {'type': 'object',
                                                                                                                               'additionalProperties': False,
-                                                                                                                              'maxProperties': 6,
+                                                                                                                              'maxProperties': 7,
                                                                                                                               'description': 'One '
                                                                                                                                              'bounded, '
                                                                                                                                              'attributable '
@@ -1245,7 +1490,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                              'policy '
                                                                                                                                              'question.',
                                                                                                                               'properties': {'status': {'type': 'string',
-                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                        'enum': ['asserted',
+                                                                                                                                                                 'confirmed',
                                                                                                                                                                  'candidate',
                                                                                                                                                                  'unknown',
                                                                                                                                                                  'not_applicable',
@@ -1253,13 +1499,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                         'description': 'Evidence '
                                                                                                                                                                        'state. '
                                                                                                                                                                        'Use '
-                                                                                                                                                                       'unknown '
-                                                                                                                                                                       'when '
-                                                                                                                                                                       'the '
-                                                                                                                                                                       'source '
-                                                                                                                                                                       'was '
+                                                                                                                                                                       'asserted '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'caller '
+                                                                                                                                                                       'claims '
                                                                                                                                                                        'not '
-                                                                                                                                                                       'verified.'},
+                                                                                                                                                                       'verified '
+                                                                                                                                                                       'by '
+                                                                                                                                                                       'an '
+                                                                                                                                                                       'adapter.'},
                                                                                                                                              'source': {'type': 'string',
                                                                                                                                                         'enum': ['code_impact',
                                                                                                                                                                  'git_diff',
@@ -1341,10 +1589,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                            'between '
                                                                                                                                                                            'zero '
                                                                                                                                                                            'and '
-                                                                                                                                                                           'one.'}}},
+                                                                                                                                                                           'one.'},
+                                                                                                                                             'adapter_receipt': {'type': 'object',
+                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                 'required': ['name',
+                                                                                                                                                                              'version',
+                                                                                                                                                                              'status',
+                                                                                                                                                                              'claim',
+                                                                                                                                                                              'fingerprint'],
+                                                                                                                                                                 'description': 'Bounded '
+                                                                                                                                                                                'receipt '
+                                                                                                                                                                                'emitted '
+                                                                                                                                                                                'by '
+                                                                                                                                                                                'a '
+                                                                                                                                                                                'known '
+                                                                                                                                                                                'evidence '
+                                                                                                                                                                                'adapter; '
+                                                                                                                                                                                'source '
+                                                                                                                                                                                'labels '
+                                                                                                                                                                                'alone '
+                                                                                                                                                                                'are '
+                                                                                                                                                                                'not '
+                                                                                                                                                                                'verification.',
+                                                                                                                                                                 'properties': {'name': {'type': 'string',
+                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                'version': {'type': 'string',
+                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                'status': {'type': 'string',
+                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                'claim': {'type': 'string',
+                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                'fingerprint': {'type': 'string',
+                                                                                                                                                                                                'maxLength': 128}}}}},
                                                                                                             'accessibility': {'type': 'object',
                                                                                                                               'additionalProperties': False,
-                                                                                                                              'maxProperties': 6,
+                                                                                                                              'maxProperties': 7,
                                                                                                                               'description': 'One '
                                                                                                                                              'bounded, '
                                                                                                                                              'attributable '
@@ -1356,7 +1636,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                              'policy '
                                                                                                                                              'question.',
                                                                                                                               'properties': {'status': {'type': 'string',
-                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                        'enum': ['asserted',
+                                                                                                                                                                 'confirmed',
                                                                                                                                                                  'candidate',
                                                                                                                                                                  'unknown',
                                                                                                                                                                  'not_applicable',
@@ -1364,13 +1645,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                         'description': 'Evidence '
                                                                                                                                                                        'state. '
                                                                                                                                                                        'Use '
-                                                                                                                                                                       'unknown '
-                                                                                                                                                                       'when '
-                                                                                                                                                                       'the '
-                                                                                                                                                                       'source '
-                                                                                                                                                                       'was '
+                                                                                                                                                                       'asserted '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'caller '
+                                                                                                                                                                       'claims '
                                                                                                                                                                        'not '
-                                                                                                                                                                       'verified.'},
+                                                                                                                                                                       'verified '
+                                                                                                                                                                       'by '
+                                                                                                                                                                       'an '
+                                                                                                                                                                       'adapter.'},
                                                                                                                                              'source': {'type': 'string',
                                                                                                                                                         'enum': ['code_impact',
                                                                                                                                                                  'git_diff',
@@ -1452,10 +1735,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                            'between '
                                                                                                                                                                            'zero '
                                                                                                                                                                            'and '
-                                                                                                                                                                           'one.'}}},
+                                                                                                                                                                           'one.'},
+                                                                                                                                             'adapter_receipt': {'type': 'object',
+                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                 'required': ['name',
+                                                                                                                                                                              'version',
+                                                                                                                                                                              'status',
+                                                                                                                                                                              'claim',
+                                                                                                                                                                              'fingerprint'],
+                                                                                                                                                                 'description': 'Bounded '
+                                                                                                                                                                                'receipt '
+                                                                                                                                                                                'emitted '
+                                                                                                                                                                                'by '
+                                                                                                                                                                                'a '
+                                                                                                                                                                                'known '
+                                                                                                                                                                                'evidence '
+                                                                                                                                                                                'adapter; '
+                                                                                                                                                                                'source '
+                                                                                                                                                                                'labels '
+                                                                                                                                                                                'alone '
+                                                                                                                                                                                'are '
+                                                                                                                                                                                'not '
+                                                                                                                                                                                'verification.',
+                                                                                                                                                                 'properties': {'name': {'type': 'string',
+                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                'version': {'type': 'string',
+                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                'status': {'type': 'string',
+                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                'claim': {'type': 'string',
+                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                'fingerprint': {'type': 'string',
+                                                                                                                                                                                                'maxLength': 128}}}}},
                                                                                                             'public_contract': {'type': 'object',
                                                                                                                                 'additionalProperties': False,
-                                                                                                                                'maxProperties': 6,
+                                                                                                                                'maxProperties': 7,
                                                                                                                                 'description': 'One '
                                                                                                                                                'bounded, '
                                                                                                                                                'attributable '
@@ -1467,7 +1782,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                'policy '
                                                                                                                                                'question.',
                                                                                                                                 'properties': {'status': {'type': 'string',
-                                                                                                                                                          'enum': ['confirmed',
+                                                                                                                                                          'enum': ['asserted',
+                                                                                                                                                                   'confirmed',
                                                                                                                                                                    'candidate',
                                                                                                                                                                    'unknown',
                                                                                                                                                                    'not_applicable',
@@ -1475,13 +1791,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                           'description': 'Evidence '
                                                                                                                                                                          'state. '
                                                                                                                                                                          'Use '
-                                                                                                                                                                         'unknown '
-                                                                                                                                                                         'when '
-                                                                                                                                                                         'the '
-                                                                                                                                                                         'source '
-                                                                                                                                                                         'was '
+                                                                                                                                                                         'asserted '
+                                                                                                                                                                         'for '
+                                                                                                                                                                         'caller '
+                                                                                                                                                                         'claims '
                                                                                                                                                                          'not '
-                                                                                                                                                                         'verified.'},
+                                                                                                                                                                         'verified '
+                                                                                                                                                                         'by '
+                                                                                                                                                                         'an '
+                                                                                                                                                                         'adapter.'},
                                                                                                                                                'source': {'type': 'string',
                                                                                                                                                           'enum': ['code_impact',
                                                                                                                                                                    'git_diff',
@@ -1563,10 +1881,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                              'between '
                                                                                                                                                                              'zero '
                                                                                                                                                                              'and '
-                                                                                                                                                                             'one.'}}},
+                                                                                                                                                                             'one.'},
+                                                                                                                                               'adapter_receipt': {'type': 'object',
+                                                                                                                                                                   'additionalProperties': False,
+                                                                                                                                                                   'maxProperties': 5,
+                                                                                                                                                                   'required': ['name',
+                                                                                                                                                                                'version',
+                                                                                                                                                                                'status',
+                                                                                                                                                                                'claim',
+                                                                                                                                                                                'fingerprint'],
+                                                                                                                                                                   'description': 'Bounded '
+                                                                                                                                                                                  'receipt '
+                                                                                                                                                                                  'emitted '
+                                                                                                                                                                                  'by '
+                                                                                                                                                                                  'a '
+                                                                                                                                                                                  'known '
+                                                                                                                                                                                  'evidence '
+                                                                                                                                                                                  'adapter; '
+                                                                                                                                                                                  'source '
+                                                                                                                                                                                  'labels '
+                                                                                                                                                                                  'alone '
+                                                                                                                                                                                  'are '
+                                                                                                                                                                                  'not '
+                                                                                                                                                                                  'verification.',
+                                                                                                                                                                   'properties': {'name': {'type': 'string',
+                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                  'version': {'type': 'string',
+                                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                                  'status': {'type': 'string',
+                                                                                                                                                                                             'enum': ['verified']},
+                                                                                                                                                                                  'claim': {'type': 'string',
+                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                  'fingerprint': {'type': 'string',
+                                                                                                                                                                                                  'maxLength': 128}}}}},
                                                                                                             'tests': {'type': 'object',
                                                                                                                       'additionalProperties': False,
-                                                                                                                      'maxProperties': 6,
+                                                                                                                      'maxProperties': 7,
                                                                                                                       'description': 'One '
                                                                                                                                      'bounded, '
                                                                                                                                      'attributable '
@@ -1578,7 +1928,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                      'policy '
                                                                                                                                      'question.',
                                                                                                                       'properties': {'status': {'type': 'string',
-                                                                                                                                                'enum': ['confirmed',
+                                                                                                                                                'enum': ['asserted',
+                                                                                                                                                         'confirmed',
                                                                                                                                                          'candidate',
                                                                                                                                                          'unknown',
                                                                                                                                                          'not_applicable',
@@ -1586,13 +1937,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                 'description': 'Evidence '
                                                                                                                                                                'state. '
                                                                                                                                                                'Use '
-                                                                                                                                                               'unknown '
-                                                                                                                                                               'when '
-                                                                                                                                                               'the '
-                                                                                                                                                               'source '
-                                                                                                                                                               'was '
+                                                                                                                                                               'asserted '
+                                                                                                                                                               'for '
+                                                                                                                                                               'caller '
+                                                                                                                                                               'claims '
                                                                                                                                                                'not '
-                                                                                                                                                               'verified.'},
+                                                                                                                                                               'verified '
+                                                                                                                                                               'by '
+                                                                                                                                                               'an '
+                                                                                                                                                               'adapter.'},
                                                                                                                                      'source': {'type': 'string',
                                                                                                                                                 'enum': ['code_impact',
                                                                                                                                                          'git_diff',
@@ -1674,7 +2027,39 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                    'between '
                                                                                                                                                                    'zero '
                                                                                                                                                                    'and '
-                                                                                                                                                                   'one.'}}}}}}},
+                                                                                                                                                                   'one.'},
+                                                                                                                                     'adapter_receipt': {'type': 'object',
+                                                                                                                                                         'additionalProperties': False,
+                                                                                                                                                         'maxProperties': 5,
+                                                                                                                                                         'required': ['name',
+                                                                                                                                                                      'version',
+                                                                                                                                                                      'status',
+                                                                                                                                                                      'claim',
+                                                                                                                                                                      'fingerprint'],
+                                                                                                                                                         'description': 'Bounded '
+                                                                                                                                                                        'receipt '
+                                                                                                                                                                        'emitted '
+                                                                                                                                                                        'by '
+                                                                                                                                                                        'a '
+                                                                                                                                                                        'known '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter; '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'labels '
+                                                                                                                                                                        'alone '
+                                                                                                                                                                        'are '
+                                                                                                                                                                        'not '
+                                                                                                                                                                        'verification.',
+                                                                                                                                                         'properties': {'name': {'type': 'string',
+                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                        'version': {'type': 'string',
+                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                        'status': {'type': 'string',
+                                                                                                                                                                                   'enum': ['verified']},
+                                                                                                                                                                        'claim': {'type': 'string',
+                                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                                        'fingerprint': {'type': 'string',
+                                                                                                                                                                                        'maxLength': 128}}}}}}}}},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '
@@ -2400,7 +2785,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                             'unknown.',
                                                              'properties': {'existing_capability': {'type': 'object',
                                                                                                     'additionalProperties': False,
-                                                                                                    'maxProperties': 6,
+                                                                                                    'maxProperties': 7,
                                                                                                     'description': 'One '
                                                                                                                    'bounded, '
                                                                                                                    'attributable '
@@ -2412,7 +2797,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                    'policy '
                                                                                                                    'question.',
                                                                                                     'properties': {'status': {'type': 'string',
-                                                                                                                              'enum': ['confirmed',
+                                                                                                                              'enum': ['asserted',
+                                                                                                                                       'confirmed',
                                                                                                                                        'candidate',
                                                                                                                                        'unknown',
                                                                                                                                        'not_applicable',
@@ -2420,13 +2806,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                               'description': 'Evidence '
                                                                                                                                              'state. '
                                                                                                                                              'Use '
-                                                                                                                                             'unknown '
-                                                                                                                                             'when '
-                                                                                                                                             'the '
-                                                                                                                                             'source '
-                                                                                                                                             'was '
+                                                                                                                                             'asserted '
+                                                                                                                                             'for '
+                                                                                                                                             'caller '
+                                                                                                                                             'claims '
                                                                                                                                              'not '
-                                                                                                                                             'verified.'},
+                                                                                                                                             'verified '
+                                                                                                                                             'by '
+                                                                                                                                             'an '
+                                                                                                                                             'adapter.'},
                                                                                                                    'source': {'type': 'string',
                                                                                                                               'enum': ['code_impact',
                                                                                                                                        'git_diff',
@@ -2508,10 +2896,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                  'between '
                                                                                                                                                  'zero '
                                                                                                                                                  'and '
-                                                                                                                                                 'one.'}}},
+                                                                                                                                                 'one.'},
+                                                                                                                   'adapter_receipt': {'type': 'object',
+                                                                                                                                       'additionalProperties': False,
+                                                                                                                                       'maxProperties': 5,
+                                                                                                                                       'required': ['name',
+                                                                                                                                                    'version',
+                                                                                                                                                    'status',
+                                                                                                                                                    'claim',
+                                                                                                                                                    'fingerprint'],
+                                                                                                                                       'description': 'Bounded '
+                                                                                                                                                      'receipt '
+                                                                                                                                                      'emitted '
+                                                                                                                                                      'by '
+                                                                                                                                                      'a '
+                                                                                                                                                      'known '
+                                                                                                                                                      'evidence '
+                                                                                                                                                      'adapter; '
+                                                                                                                                                      'source '
+                                                                                                                                                      'labels '
+                                                                                                                                                      'alone '
+                                                                                                                                                      'are '
+                                                                                                                                                      'not '
+                                                                                                                                                      'verification.',
+                                                                                                                                       'properties': {'name': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                      'version': {'type': 'string',
+                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                      'status': {'type': 'string',
+                                                                                                                                                                 'enum': ['verified']},
+                                                                                                                                                      'claim': {'type': 'string',
+                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                      'fingerprint': {'type': 'string',
+                                                                                                                                                                      'maxLength': 128}}}}},
                                                                             'stdlib_or_native': {'type': 'object',
                                                                                                  'additionalProperties': False,
-                                                                                                 'maxProperties': 6,
+                                                                                                 'maxProperties': 7,
                                                                                                  'description': 'One '
                                                                                                                 'bounded, '
                                                                                                                 'attributable '
@@ -2523,7 +2943,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                 'policy '
                                                                                                                 'question.',
                                                                                                  'properties': {'status': {'type': 'string',
-                                                                                                                           'enum': ['confirmed',
+                                                                                                                           'enum': ['asserted',
+                                                                                                                                    'confirmed',
                                                                                                                                     'candidate',
                                                                                                                                     'unknown',
                                                                                                                                     'not_applicable',
@@ -2531,13 +2952,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                            'description': 'Evidence '
                                                                                                                                           'state. '
                                                                                                                                           'Use '
-                                                                                                                                          'unknown '
-                                                                                                                                          'when '
-                                                                                                                                          'the '
-                                                                                                                                          'source '
-                                                                                                                                          'was '
+                                                                                                                                          'asserted '
+                                                                                                                                          'for '
+                                                                                                                                          'caller '
+                                                                                                                                          'claims '
                                                                                                                                           'not '
-                                                                                                                                          'verified.'},
+                                                                                                                                          'verified '
+                                                                                                                                          'by '
+                                                                                                                                          'an '
+                                                                                                                                          'adapter.'},
                                                                                                                 'source': {'type': 'string',
                                                                                                                            'enum': ['code_impact',
                                                                                                                                     'git_diff',
@@ -2619,10 +3042,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                               'between '
                                                                                                                                               'zero '
                                                                                                                                               'and '
-                                                                                                                                              'one.'}}},
+                                                                                                                                              'one.'},
+                                                                                                                'adapter_receipt': {'type': 'object',
+                                                                                                                                    'additionalProperties': False,
+                                                                                                                                    'maxProperties': 5,
+                                                                                                                                    'required': ['name',
+                                                                                                                                                 'version',
+                                                                                                                                                 'status',
+                                                                                                                                                 'claim',
+                                                                                                                                                 'fingerprint'],
+                                                                                                                                    'description': 'Bounded '
+                                                                                                                                                   'receipt '
+                                                                                                                                                   'emitted '
+                                                                                                                                                   'by '
+                                                                                                                                                   'a '
+                                                                                                                                                   'known '
+                                                                                                                                                   'evidence '
+                                                                                                                                                   'adapter; '
+                                                                                                                                                   'source '
+                                                                                                                                                   'labels '
+                                                                                                                                                   'alone '
+                                                                                                                                                   'are '
+                                                                                                                                                   'not '
+                                                                                                                                                   'verification.',
+                                                                                                                                    'properties': {'name': {'type': 'string',
+                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                   'version': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                   'status': {'type': 'string',
+                                                                                                                                                              'enum': ['verified']},
+                                                                                                                                                   'claim': {'type': 'string',
+                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                   'fingerprint': {'type': 'string',
+                                                                                                                                                                   'maxLength': 128}}}}},
                                                                             'installed_dependency': {'type': 'object',
                                                                                                      'additionalProperties': False,
-                                                                                                     'maxProperties': 6,
+                                                                                                     'maxProperties': 7,
                                                                                                      'description': 'One '
                                                                                                                     'bounded, '
                                                                                                                     'attributable '
@@ -2634,7 +3089,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                     'policy '
                                                                                                                     'question.',
                                                                                                      'properties': {'status': {'type': 'string',
-                                                                                                                               'enum': ['confirmed',
+                                                                                                                               'enum': ['asserted',
+                                                                                                                                        'confirmed',
                                                                                                                                         'candidate',
                                                                                                                                         'unknown',
                                                                                                                                         'not_applicable',
@@ -2642,13 +3098,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                'description': 'Evidence '
                                                                                                                                               'state. '
                                                                                                                                               'Use '
-                                                                                                                                              'unknown '
-                                                                                                                                              'when '
-                                                                                                                                              'the '
-                                                                                                                                              'source '
-                                                                                                                                              'was '
+                                                                                                                                              'asserted '
+                                                                                                                                              'for '
+                                                                                                                                              'caller '
+                                                                                                                                              'claims '
                                                                                                                                               'not '
-                                                                                                                                              'verified.'},
+                                                                                                                                              'verified '
+                                                                                                                                              'by '
+                                                                                                                                              'an '
+                                                                                                                                              'adapter.'},
                                                                                                                     'source': {'type': 'string',
                                                                                                                                'enum': ['code_impact',
                                                                                                                                         'git_diff',
@@ -2730,10 +3188,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                   'between '
                                                                                                                                                   'zero '
                                                                                                                                                   'and '
-                                                                                                                                                  'one.'}}},
+                                                                                                                                                  'one.'},
+                                                                                                                    'adapter_receipt': {'type': 'object',
+                                                                                                                                        'additionalProperties': False,
+                                                                                                                                        'maxProperties': 5,
+                                                                                                                                        'required': ['name',
+                                                                                                                                                     'version',
+                                                                                                                                                     'status',
+                                                                                                                                                     'claim',
+                                                                                                                                                     'fingerprint'],
+                                                                                                                                        'description': 'Bounded '
+                                                                                                                                                       'receipt '
+                                                                                                                                                       'emitted '
+                                                                                                                                                       'by '
+                                                                                                                                                       'a '
+                                                                                                                                                       'known '
+                                                                                                                                                       'evidence '
+                                                                                                                                                       'adapter; '
+                                                                                                                                                       'source '
+                                                                                                                                                       'labels '
+                                                                                                                                                       'alone '
+                                                                                                                                                       'are '
+                                                                                                                                                       'not '
+                                                                                                                                                       'verification.',
+                                                                                                                                        'properties': {'name': {'type': 'string',
+                                                                                                                                                                'maxLength': 64},
+                                                                                                                                                       'version': {'type': 'string',
+                                                                                                                                                                   'maxLength': 64},
+                                                                                                                                                       'status': {'type': 'string',
+                                                                                                                                                                  'enum': ['verified']},
+                                                                                                                                                       'claim': {'type': 'string',
+                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                       'fingerprint': {'type': 'string',
+                                                                                                                                                                       'maxLength': 128}}}}},
                                                                             'smallest_safe_diff': {'type': 'object',
                                                                                                    'additionalProperties': False,
-                                                                                                   'maxProperties': 6,
+                                                                                                   'maxProperties': 7,
                                                                                                    'description': 'One '
                                                                                                                   'bounded, '
                                                                                                                   'attributable '
@@ -2745,7 +3235,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                   'policy '
                                                                                                                   'question.',
                                                                                                    'properties': {'status': {'type': 'string',
-                                                                                                                             'enum': ['confirmed',
+                                                                                                                             'enum': ['asserted',
+                                                                                                                                      'confirmed',
                                                                                                                                       'candidate',
                                                                                                                                       'unknown',
                                                                                                                                       'not_applicable',
@@ -2753,13 +3244,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                              'description': 'Evidence '
                                                                                                                                             'state. '
                                                                                                                                             'Use '
-                                                                                                                                            'unknown '
-                                                                                                                                            'when '
-                                                                                                                                            'the '
-                                                                                                                                            'source '
-                                                                                                                                            'was '
+                                                                                                                                            'asserted '
+                                                                                                                                            'for '
+                                                                                                                                            'caller '
+                                                                                                                                            'claims '
                                                                                                                                             'not '
-                                                                                                                                            'verified.'},
+                                                                                                                                            'verified '
+                                                                                                                                            'by '
+                                                                                                                                            'an '
+                                                                                                                                            'adapter.'},
                                                                                                                   'source': {'type': 'string',
                                                                                                                              'enum': ['code_impact',
                                                                                                                                       'git_diff',
@@ -2841,10 +3334,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                 'between '
                                                                                                                                                 'zero '
                                                                                                                                                 'and '
-                                                                                                                                                'one.'}}},
+                                                                                                                                                'one.'},
+                                                                                                                  'adapter_receipt': {'type': 'object',
+                                                                                                                                      'additionalProperties': False,
+                                                                                                                                      'maxProperties': 5,
+                                                                                                                                      'required': ['name',
+                                                                                                                                                   'version',
+                                                                                                                                                   'status',
+                                                                                                                                                   'claim',
+                                                                                                                                                   'fingerprint'],
+                                                                                                                                      'description': 'Bounded '
+                                                                                                                                                     'receipt '
+                                                                                                                                                     'emitted '
+                                                                                                                                                     'by '
+                                                                                                                                                     'a '
+                                                                                                                                                     'known '
+                                                                                                                                                     'evidence '
+                                                                                                                                                     'adapter; '
+                                                                                                                                                     'source '
+                                                                                                                                                     'labels '
+                                                                                                                                                     'alone '
+                                                                                                                                                     'are '
+                                                                                                                                                     'not '
+                                                                                                                                                     'verification.',
+                                                                                                                                      'properties': {'name': {'type': 'string',
+                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                     'version': {'type': 'string',
+                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                     'status': {'type': 'string',
+                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                     'claim': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                     'fingerprint': {'type': 'string',
+                                                                                                                                                                     'maxLength': 128}}}}},
                                                                             'validation_surface': {'type': 'object',
                                                                                                    'additionalProperties': False,
-                                                                                                   'maxProperties': 6,
+                                                                                                   'maxProperties': 7,
                                                                                                    'description': 'One '
                                                                                                                   'bounded, '
                                                                                                                   'attributable '
@@ -2856,7 +3381,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                   'policy '
                                                                                                                   'question.',
                                                                                                    'properties': {'status': {'type': 'string',
-                                                                                                                             'enum': ['confirmed',
+                                                                                                                             'enum': ['asserted',
+                                                                                                                                      'confirmed',
                                                                                                                                       'candidate',
                                                                                                                                       'unknown',
                                                                                                                                       'not_applicable',
@@ -2864,13 +3390,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                              'description': 'Evidence '
                                                                                                                                             'state. '
                                                                                                                                             'Use '
-                                                                                                                                            'unknown '
-                                                                                                                                            'when '
-                                                                                                                                            'the '
-                                                                                                                                            'source '
-                                                                                                                                            'was '
+                                                                                                                                            'asserted '
+                                                                                                                                            'for '
+                                                                                                                                            'caller '
+                                                                                                                                            'claims '
                                                                                                                                             'not '
-                                                                                                                                            'verified.'},
+                                                                                                                                            'verified '
+                                                                                                                                            'by '
+                                                                                                                                            'an '
+                                                                                                                                            'adapter.'},
                                                                                                                   'source': {'type': 'string',
                                                                                                                              'enum': ['code_impact',
                                                                                                                                       'git_diff',
@@ -2952,7 +3480,39 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                 'between '
                                                                                                                                                 'zero '
                                                                                                                                                 'and '
-                                                                                                                                                'one.'}}},
+                                                                                                                                                'one.'},
+                                                                                                                  'adapter_receipt': {'type': 'object',
+                                                                                                                                      'additionalProperties': False,
+                                                                                                                                      'maxProperties': 5,
+                                                                                                                                      'required': ['name',
+                                                                                                                                                   'version',
+                                                                                                                                                   'status',
+                                                                                                                                                   'claim',
+                                                                                                                                                   'fingerprint'],
+                                                                                                                                      'description': 'Bounded '
+                                                                                                                                                     'receipt '
+                                                                                                                                                     'emitted '
+                                                                                                                                                     'by '
+                                                                                                                                                     'a '
+                                                                                                                                                     'known '
+                                                                                                                                                     'evidence '
+                                                                                                                                                     'adapter; '
+                                                                                                                                                     'source '
+                                                                                                                                                     'labels '
+                                                                                                                                                     'alone '
+                                                                                                                                                     'are '
+                                                                                                                                                     'not '
+                                                                                                                                                     'verification.',
+                                                                                                                                      'properties': {'name': {'type': 'string',
+                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                     'version': {'type': 'string',
+                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                     'status': {'type': 'string',
+                                                                                                                                                                'enum': ['verified']},
+                                                                                                                                                     'claim': {'type': 'string',
+                                                                                                                                                               'maxLength': 64},
+                                                                                                                                                     'fingerprint': {'type': 'string',
+                                                                                                                                                                     'maxLength': 128}}}}},
                                                                             'preservation': {'type': 'object',
                                                                                              'additionalProperties': False,
                                                                                              'maxProperties': 6,
@@ -2969,7 +3529,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                             'preserved.',
                                                                                              'properties': {'validation': {'type': 'object',
                                                                                                                            'additionalProperties': False,
-                                                                                                                           'maxProperties': 6,
+                                                                                                                           'maxProperties': 7,
                                                                                                                            'description': 'One '
                                                                                                                                           'bounded, '
                                                                                                                                           'attributable '
@@ -2981,7 +3541,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                           'policy '
                                                                                                                                           'question.',
                                                                                                                            'properties': {'status': {'type': 'string',
-                                                                                                                                                     'enum': ['confirmed',
+                                                                                                                                                     'enum': ['asserted',
+                                                                                                                                                              'confirmed',
                                                                                                                                                               'candidate',
                                                                                                                                                               'unknown',
                                                                                                                                                               'not_applicable',
@@ -2989,13 +3550,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                      'description': 'Evidence '
                                                                                                                                                                     'state. '
                                                                                                                                                                     'Use '
-                                                                                                                                                                    'unknown '
-                                                                                                                                                                    'when '
-                                                                                                                                                                    'the '
-                                                                                                                                                                    'source '
-                                                                                                                                                                    'was '
+                                                                                                                                                                    'asserted '
+                                                                                                                                                                    'for '
+                                                                                                                                                                    'caller '
+                                                                                                                                                                    'claims '
                                                                                                                                                                     'not '
-                                                                                                                                                                    'verified.'},
+                                                                                                                                                                    'verified '
+                                                                                                                                                                    'by '
+                                                                                                                                                                    'an '
+                                                                                                                                                                    'adapter.'},
                                                                                                                                           'source': {'type': 'string',
                                                                                                                                                      'enum': ['code_impact',
                                                                                                                                                               'git_diff',
@@ -3077,10 +3640,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                         'between '
                                                                                                                                                                         'zero '
                                                                                                                                                                         'and '
-                                                                                                                                                                        'one.'}}},
+                                                                                                                                                                        'one.'},
+                                                                                                                                          'adapter_receipt': {'type': 'object',
+                                                                                                                                                              'additionalProperties': False,
+                                                                                                                                                              'maxProperties': 5,
+                                                                                                                                                              'required': ['name',
+                                                                                                                                                                           'version',
+                                                                                                                                                                           'status',
+                                                                                                                                                                           'claim',
+                                                                                                                                                                           'fingerprint'],
+                                                                                                                                                              'description': 'Bounded '
+                                                                                                                                                                             'receipt '
+                                                                                                                                                                             'emitted '
+                                                                                                                                                                             'by '
+                                                                                                                                                                             'a '
+                                                                                                                                                                             'known '
+                                                                                                                                                                             'evidence '
+                                                                                                                                                                             'adapter; '
+                                                                                                                                                                             'source '
+                                                                                                                                                                             'labels '
+                                                                                                                                                                             'alone '
+                                                                                                                                                                             'are '
+                                                                                                                                                                             'not '
+                                                                                                                                                                             'verification.',
+                                                                                                                                                              'properties': {'name': {'type': 'string',
+                                                                                                                                                                                      'maxLength': 64},
+                                                                                                                                                                             'version': {'type': 'string',
+                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                             'status': {'type': 'string',
+                                                                                                                                                                                        'enum': ['verified']},
+                                                                                                                                                                             'claim': {'type': 'string',
+                                                                                                                                                                                       'maxLength': 64},
+                                                                                                                                                                             'fingerprint': {'type': 'string',
+                                                                                                                                                                                             'maxLength': 128}}}}},
                                                                                                             'error_contract': {'type': 'object',
                                                                                                                                'additionalProperties': False,
-                                                                                                                               'maxProperties': 6,
+                                                                                                                               'maxProperties': 7,
                                                                                                                                'description': 'One '
                                                                                                                                               'bounded, '
                                                                                                                                               'attributable '
@@ -3092,7 +3687,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                               'policy '
                                                                                                                                               'question.',
                                                                                                                                'properties': {'status': {'type': 'string',
-                                                                                                                                                         'enum': ['confirmed',
+                                                                                                                                                         'enum': ['asserted',
+                                                                                                                                                                  'confirmed',
                                                                                                                                                                   'candidate',
                                                                                                                                                                   'unknown',
                                                                                                                                                                   'not_applicable',
@@ -3100,13 +3696,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                          'description': 'Evidence '
                                                                                                                                                                         'state. '
                                                                                                                                                                         'Use '
-                                                                                                                                                                        'unknown '
-                                                                                                                                                                        'when '
-                                                                                                                                                                        'the '
-                                                                                                                                                                        'source '
-                                                                                                                                                                        'was '
+                                                                                                                                                                        'asserted '
+                                                                                                                                                                        'for '
+                                                                                                                                                                        'caller '
+                                                                                                                                                                        'claims '
                                                                                                                                                                         'not '
-                                                                                                                                                                        'verified.'},
+                                                                                                                                                                        'verified '
+                                                                                                                                                                        'by '
+                                                                                                                                                                        'an '
+                                                                                                                                                                        'adapter.'},
                                                                                                                                               'source': {'type': 'string',
                                                                                                                                                          'enum': ['code_impact',
                                                                                                                                                                   'git_diff',
@@ -3188,10 +3786,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                             'between '
                                                                                                                                                                             'zero '
                                                                                                                                                                             'and '
-                                                                                                                                                                            'one.'}}},
+                                                                                                                                                                            'one.'},
+                                                                                                                                              'adapter_receipt': {'type': 'object',
+                                                                                                                                                                  'additionalProperties': False,
+                                                                                                                                                                  'maxProperties': 5,
+                                                                                                                                                                  'required': ['name',
+                                                                                                                                                                               'version',
+                                                                                                                                                                               'status',
+                                                                                                                                                                               'claim',
+                                                                                                                                                                               'fingerprint'],
+                                                                                                                                                                  'description': 'Bounded '
+                                                                                                                                                                                 'receipt '
+                                                                                                                                                                                 'emitted '
+                                                                                                                                                                                 'by '
+                                                                                                                                                                                 'a '
+                                                                                                                                                                                 'known '
+                                                                                                                                                                                 'evidence '
+                                                                                                                                                                                 'adapter; '
+                                                                                                                                                                                 'source '
+                                                                                                                                                                                 'labels '
+                                                                                                                                                                                 'alone '
+                                                                                                                                                                                 'are '
+                                                                                                                                                                                 'not '
+                                                                                                                                                                                 'verification.',
+                                                                                                                                                                  'properties': {'name': {'type': 'string',
+                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                 'version': {'type': 'string',
+                                                                                                                                                                                             'maxLength': 64},
+                                                                                                                                                                                 'status': {'type': 'string',
+                                                                                                                                                                                            'enum': ['verified']},
+                                                                                                                                                                                 'claim': {'type': 'string',
+                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                 'fingerprint': {'type': 'string',
+                                                                                                                                                                                                 'maxLength': 128}}}}},
                                                                                                             'security_auth': {'type': 'object',
                                                                                                                               'additionalProperties': False,
-                                                                                                                              'maxProperties': 6,
+                                                                                                                              'maxProperties': 7,
                                                                                                                               'description': 'One '
                                                                                                                                              'bounded, '
                                                                                                                                              'attributable '
@@ -3203,7 +3833,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                              'policy '
                                                                                                                                              'question.',
                                                                                                                               'properties': {'status': {'type': 'string',
-                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                        'enum': ['asserted',
+                                                                                                                                                                 'confirmed',
                                                                                                                                                                  'candidate',
                                                                                                                                                                  'unknown',
                                                                                                                                                                  'not_applicable',
@@ -3211,13 +3842,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                         'description': 'Evidence '
                                                                                                                                                                        'state. '
                                                                                                                                                                        'Use '
-                                                                                                                                                                       'unknown '
-                                                                                                                                                                       'when '
-                                                                                                                                                                       'the '
-                                                                                                                                                                       'source '
-                                                                                                                                                                       'was '
+                                                                                                                                                                       'asserted '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'caller '
+                                                                                                                                                                       'claims '
                                                                                                                                                                        'not '
-                                                                                                                                                                       'verified.'},
+                                                                                                                                                                       'verified '
+                                                                                                                                                                       'by '
+                                                                                                                                                                       'an '
+                                                                                                                                                                       'adapter.'},
                                                                                                                                              'source': {'type': 'string',
                                                                                                                                                         'enum': ['code_impact',
                                                                                                                                                                  'git_diff',
@@ -3299,10 +3932,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                            'between '
                                                                                                                                                                            'zero '
                                                                                                                                                                            'and '
-                                                                                                                                                                           'one.'}}},
+                                                                                                                                                                           'one.'},
+                                                                                                                                             'adapter_receipt': {'type': 'object',
+                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                 'required': ['name',
+                                                                                                                                                                              'version',
+                                                                                                                                                                              'status',
+                                                                                                                                                                              'claim',
+                                                                                                                                                                              'fingerprint'],
+                                                                                                                                                                 'description': 'Bounded '
+                                                                                                                                                                                'receipt '
+                                                                                                                                                                                'emitted '
+                                                                                                                                                                                'by '
+                                                                                                                                                                                'a '
+                                                                                                                                                                                'known '
+                                                                                                                                                                                'evidence '
+                                                                                                                                                                                'adapter; '
+                                                                                                                                                                                'source '
+                                                                                                                                                                                'labels '
+                                                                                                                                                                                'alone '
+                                                                                                                                                                                'are '
+                                                                                                                                                                                'not '
+                                                                                                                                                                                'verification.',
+                                                                                                                                                                 'properties': {'name': {'type': 'string',
+                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                'version': {'type': 'string',
+                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                'status': {'type': 'string',
+                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                'claim': {'type': 'string',
+                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                'fingerprint': {'type': 'string',
+                                                                                                                                                                                                'maxLength': 128}}}}},
                                                                                                             'accessibility': {'type': 'object',
                                                                                                                               'additionalProperties': False,
-                                                                                                                              'maxProperties': 6,
+                                                                                                                              'maxProperties': 7,
                                                                                                                               'description': 'One '
                                                                                                                                              'bounded, '
                                                                                                                                              'attributable '
@@ -3314,7 +3979,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                              'policy '
                                                                                                                                              'question.',
                                                                                                                               'properties': {'status': {'type': 'string',
-                                                                                                                                                        'enum': ['confirmed',
+                                                                                                                                                        'enum': ['asserted',
+                                                                                                                                                                 'confirmed',
                                                                                                                                                                  'candidate',
                                                                                                                                                                  'unknown',
                                                                                                                                                                  'not_applicable',
@@ -3322,13 +3988,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                         'description': 'Evidence '
                                                                                                                                                                        'state. '
                                                                                                                                                                        'Use '
-                                                                                                                                                                       'unknown '
-                                                                                                                                                                       'when '
-                                                                                                                                                                       'the '
-                                                                                                                                                                       'source '
-                                                                                                                                                                       'was '
+                                                                                                                                                                       'asserted '
+                                                                                                                                                                       'for '
+                                                                                                                                                                       'caller '
+                                                                                                                                                                       'claims '
                                                                                                                                                                        'not '
-                                                                                                                                                                       'verified.'},
+                                                                                                                                                                       'verified '
+                                                                                                                                                                       'by '
+                                                                                                                                                                       'an '
+                                                                                                                                                                       'adapter.'},
                                                                                                                                              'source': {'type': 'string',
                                                                                                                                                         'enum': ['code_impact',
                                                                                                                                                                  'git_diff',
@@ -3410,10 +4078,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                            'between '
                                                                                                                                                                            'zero '
                                                                                                                                                                            'and '
-                                                                                                                                                                           'one.'}}},
+                                                                                                                                                                           'one.'},
+                                                                                                                                             'adapter_receipt': {'type': 'object',
+                                                                                                                                                                 'additionalProperties': False,
+                                                                                                                                                                 'maxProperties': 5,
+                                                                                                                                                                 'required': ['name',
+                                                                                                                                                                              'version',
+                                                                                                                                                                              'status',
+                                                                                                                                                                              'claim',
+                                                                                                                                                                              'fingerprint'],
+                                                                                                                                                                 'description': 'Bounded '
+                                                                                                                                                                                'receipt '
+                                                                                                                                                                                'emitted '
+                                                                                                                                                                                'by '
+                                                                                                                                                                                'a '
+                                                                                                                                                                                'known '
+                                                                                                                                                                                'evidence '
+                                                                                                                                                                                'adapter; '
+                                                                                                                                                                                'source '
+                                                                                                                                                                                'labels '
+                                                                                                                                                                                'alone '
+                                                                                                                                                                                'are '
+                                                                                                                                                                                'not '
+                                                                                                                                                                                'verification.',
+                                                                                                                                                                 'properties': {'name': {'type': 'string',
+                                                                                                                                                                                         'maxLength': 64},
+                                                                                                                                                                                'version': {'type': 'string',
+                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                'status': {'type': 'string',
+                                                                                                                                                                                           'enum': ['verified']},
+                                                                                                                                                                                'claim': {'type': 'string',
+                                                                                                                                                                                          'maxLength': 64},
+                                                                                                                                                                                'fingerprint': {'type': 'string',
+                                                                                                                                                                                                'maxLength': 128}}}}},
                                                                                                             'public_contract': {'type': 'object',
                                                                                                                                 'additionalProperties': False,
-                                                                                                                                'maxProperties': 6,
+                                                                                                                                'maxProperties': 7,
                                                                                                                                 'description': 'One '
                                                                                                                                                'bounded, '
                                                                                                                                                'attributable '
@@ -3425,7 +4125,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                'policy '
                                                                                                                                                'question.',
                                                                                                                                 'properties': {'status': {'type': 'string',
-                                                                                                                                                          'enum': ['confirmed',
+                                                                                                                                                          'enum': ['asserted',
+                                                                                                                                                                   'confirmed',
                                                                                                                                                                    'candidate',
                                                                                                                                                                    'unknown',
                                                                                                                                                                    'not_applicable',
@@ -3433,13 +4134,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                           'description': 'Evidence '
                                                                                                                                                                          'state. '
                                                                                                                                                                          'Use '
-                                                                                                                                                                         'unknown '
-                                                                                                                                                                         'when '
-                                                                                                                                                                         'the '
-                                                                                                                                                                         'source '
-                                                                                                                                                                         'was '
+                                                                                                                                                                         'asserted '
+                                                                                                                                                                         'for '
+                                                                                                                                                                         'caller '
+                                                                                                                                                                         'claims '
                                                                                                                                                                          'not '
-                                                                                                                                                                         'verified.'},
+                                                                                                                                                                         'verified '
+                                                                                                                                                                         'by '
+                                                                                                                                                                         'an '
+                                                                                                                                                                         'adapter.'},
                                                                                                                                                'source': {'type': 'string',
                                                                                                                                                           'enum': ['code_impact',
                                                                                                                                                                    'git_diff',
@@ -3521,10 +4224,42 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                              'between '
                                                                                                                                                                              'zero '
                                                                                                                                                                              'and '
-                                                                                                                                                                             'one.'}}},
+                                                                                                                                                                             'one.'},
+                                                                                                                                               'adapter_receipt': {'type': 'object',
+                                                                                                                                                                   'additionalProperties': False,
+                                                                                                                                                                   'maxProperties': 5,
+                                                                                                                                                                   'required': ['name',
+                                                                                                                                                                                'version',
+                                                                                                                                                                                'status',
+                                                                                                                                                                                'claim',
+                                                                                                                                                                                'fingerprint'],
+                                                                                                                                                                   'description': 'Bounded '
+                                                                                                                                                                                  'receipt '
+                                                                                                                                                                                  'emitted '
+                                                                                                                                                                                  'by '
+                                                                                                                                                                                  'a '
+                                                                                                                                                                                  'known '
+                                                                                                                                                                                  'evidence '
+                                                                                                                                                                                  'adapter; '
+                                                                                                                                                                                  'source '
+                                                                                                                                                                                  'labels '
+                                                                                                                                                                                  'alone '
+                                                                                                                                                                                  'are '
+                                                                                                                                                                                  'not '
+                                                                                                                                                                                  'verification.',
+                                                                                                                                                                   'properties': {'name': {'type': 'string',
+                                                                                                                                                                                           'maxLength': 64},
+                                                                                                                                                                                  'version': {'type': 'string',
+                                                                                                                                                                                              'maxLength': 64},
+                                                                                                                                                                                  'status': {'type': 'string',
+                                                                                                                                                                                             'enum': ['verified']},
+                                                                                                                                                                                  'claim': {'type': 'string',
+                                                                                                                                                                                            'maxLength': 64},
+                                                                                                                                                                                  'fingerprint': {'type': 'string',
+                                                                                                                                                                                                  'maxLength': 128}}}}},
                                                                                                             'tests': {'type': 'object',
                                                                                                                       'additionalProperties': False,
-                                                                                                                      'maxProperties': 6,
+                                                                                                                      'maxProperties': 7,
                                                                                                                       'description': 'One '
                                                                                                                                      'bounded, '
                                                                                                                                      'attributable '
@@ -3536,7 +4271,8 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                      'policy '
                                                                                                                                      'question.',
                                                                                                                       'properties': {'status': {'type': 'string',
-                                                                                                                                                'enum': ['confirmed',
+                                                                                                                                                'enum': ['asserted',
+                                                                                                                                                         'confirmed',
                                                                                                                                                          'candidate',
                                                                                                                                                          'unknown',
                                                                                                                                                          'not_applicable',
@@ -3544,13 +4280,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                 'description': 'Evidence '
                                                                                                                                                                'state. '
                                                                                                                                                                'Use '
-                                                                                                                                                               'unknown '
-                                                                                                                                                               'when '
-                                                                                                                                                               'the '
-                                                                                                                                                               'source '
-                                                                                                                                                               'was '
+                                                                                                                                                               'asserted '
+                                                                                                                                                               'for '
+                                                                                                                                                               'caller '
+                                                                                                                                                               'claims '
                                                                                                                                                                'not '
-                                                                                                                                                               'verified.'},
+                                                                                                                                                               'verified '
+                                                                                                                                                               'by '
+                                                                                                                                                               'an '
+                                                                                                                                                               'adapter.'},
                                                                                                                                      'source': {'type': 'string',
                                                                                                                                                 'enum': ['code_impact',
                                                                                                                                                          'git_diff',
@@ -3632,7 +4370,39 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                    'between '
                                                                                                                                                                    'zero '
                                                                                                                                                                    'and '
-                                                                                                                                                                   'one.'}}}}}}},
+                                                                                                                                                                   'one.'},
+                                                                                                                                     'adapter_receipt': {'type': 'object',
+                                                                                                                                                         'additionalProperties': False,
+                                                                                                                                                         'maxProperties': 5,
+                                                                                                                                                         'required': ['name',
+                                                                                                                                                                      'version',
+                                                                                                                                                                      'status',
+                                                                                                                                                                      'claim',
+                                                                                                                                                                      'fingerprint'],
+                                                                                                                                                         'description': 'Bounded '
+                                                                                                                                                                        'receipt '
+                                                                                                                                                                        'emitted '
+                                                                                                                                                                        'by '
+                                                                                                                                                                        'a '
+                                                                                                                                                                        'known '
+                                                                                                                                                                        'evidence '
+                                                                                                                                                                        'adapter; '
+                                                                                                                                                                        'source '
+                                                                                                                                                                        'labels '
+                                                                                                                                                                        'alone '
+                                                                                                                                                                        'are '
+                                                                                                                                                                        'not '
+                                                                                                                                                                        'verification.',
+                                                                                                                                                         'properties': {'name': {'type': 'string',
+                                                                                                                                                                                 'maxLength': 64},
+                                                                                                                                                                        'version': {'type': 'string',
+                                                                                                                                                                                    'maxLength': 64},
+                                                                                                                                                                        'status': {'type': 'string',
+                                                                                                                                                                                   'enum': ['verified']},
+                                                                                                                                                                        'claim': {'type': 'string',
+                                                                                                                                                                                  'maxLength': 64},
+                                                                                                                                                                        'fingerprint': {'type': 'string',
+                                                                                                                                                                                        'maxLength': 128}}}}}}}}},
                                  'max_tokens': {'type': 'integer',
                                                 'default': 4000,
                                                 'minimum': 500,

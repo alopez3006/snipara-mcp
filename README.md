@@ -84,9 +84,11 @@ opt-in until project evidence calibrates stronger enforcement.
 
 Callers may provide bounded `minimum_change_evidence` with named provenance
 such as `runtime`, `manifest`, `lockfile`, `git_diff`, or `test_runner`.
-Unverified `confirmed` claims remain visible as `candidate`; responses also
-include non-blocking preservation guards for validation, errors, auth/security,
-accessibility, public contracts, and tests.
+Unverified `confirmed` claims remain visible as `asserted`; `confirmed` is
+reserved for a versioned, fingerprint-matching adapter receipt. The first
+verified adapter is `lockfile_manifest` for direct installed dependencies.
+Responses also include non-blocking preservation guards for validation, errors,
+auth/security, accessibility, public contracts, and tests.
 
 ### Semantic rule contract (2.8.27)
 
