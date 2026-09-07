@@ -5834,9 +5834,13 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                  'description': 'Optional collection description'}},
                   'required': []}},
  {'name': 'snipara_upload_business_document',
-  'description': 'Upload or update a reusable document in a Team Business Context collection. For '
-                 'current client/project files with metadata, use snipara_upload_document instead.',
+  'description': 'Upload or update reusable Team Business Context: markdown text or actual '
+                 'base64-encoded PDF, DOCX or XLSX bytes. Binary sources are parsed in Snipara '
+                 'with provenance and explicit extraction coverage, not approved business truth. '
+                 'Partial extraction is rejected by default. For current client/project files use '
+                 'snipara_upload_document instead.',
   'inputSchema': {'type': 'object',
+                  'additionalProperties': False,
                   'properties': {'collection_id': {'type': 'string',
                                                    'description': 'Business collection ID. If '
                                                                   'omitted, provide preset or '
@@ -5853,9 +5857,40 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                      'description': 'Business collection slug to '
                                                                     'resolve when collection_id is '
                                                                     'omitted.'},
-                                 'title': {'type': 'string', 'description': 'Document title'},
+                                 'title': {'type': 'string',
+                                           'minLength': 1,
+                                           'maxLength': 200,
+                                           'description': 'Document title'},
                                  'content': {'type': 'string',
-                                             'description': 'Document content (usually markdown)'},
+                                             'minLength': 1,
+                                             'maxLength': 6990515,
+                                             'description': 'Markdown text (512000 UTF-8 bytes '
+                                                            'max), or base64: followed by '
+                                                            'canonical base64 of original binary '
+                                                            'bytes (5 MiB decoded max). Not a path '
+                                                            'or URL.'},
+                                 'format': {'type': 'string',
+                                            'enum': ['markdown', 'pdf', 'docx', 'xlsx'],
+                                            'default': 'markdown'},
+                                 'source_path': {'type': 'string',
+                                                 'minLength': 1,
+                                                 'maxLength': 512,
+                                                 'description': 'Relative source filename with '
+                                                                'matching extension; provenance '
+                                                                'label only, never fetched or '
+                                                                'opened.'},
+                                 'enable_ocr': {'type': 'boolean',
+                                                'default': False,
+                                                'description': 'Explicitly request PDF OCR, '
+                                                               'subject to server configuration '
+                                                               'and authenticated plan.'},
+                                 'allow_partial': {'type': 'boolean',
+                                                   'default': False,
+                                                   'description': 'Explicitly permit storing '
+                                                                  'partial extracted context with '
+                                                                  'warnings; never marks missing '
+                                                                  'content complete or approves '
+                                                                  'business facts.'},
                                  'category': {'type': 'string',
                                               'enum': ['MANDATORY',
                                                        'BEST_PRACTICES',
@@ -5865,7 +5900,10 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                               'description': 'Shared-context category used for '
                                                              'token budget allocation.'},
                                  'tags': {'type': 'array',
-                                          'items': {'type': 'string'},
+                                          'maxItems': 20,
+                                          'items': {'type': 'string',
+                                                    'minLength': 1,
+                                                    'maxLength': 64},
                                           'description': 'Tags such as offer, template, diagram, '
                                                          'client-example, or methodology.'},
                                  'priority': {'type': 'integer',
