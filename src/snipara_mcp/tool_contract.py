@@ -7722,12 +7722,53 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                   'required': []}},
  {'name': 'snipara_load_document',
   'description': 'Load one exact source document by path. Use when you already know the document '
-                 'path and need direct source truth instead of ranked retrieval or memory recall.',
+                 'path and need direct source truth instead of ranked retrieval or memory recall. '
+                 'Set paginated=true for bounded, version-pinned source units with original '
+                 'locators and extraction accounting. Follow next_cursor until exhausted; '
+                 'exhaustion is not extraction or analysis completeness. Revalidate '
+                 'expected_revision before finalizing.',
   'inputSchema': {'type': 'object',
                   'properties': {'path': {'type': 'string',
                                           'description': 'Exact document path (for example '
-                                                         "'docs/api.md' or "
-                                                         "'clients/acme/rfp.md')"}},
+                                                         "'docs/api.md' or 'clients/acme/rfp.md')"},
+                                 'paginated': {'type': 'boolean',
+                                               'default': False,
+                                               'description': 'Opt in to document-read.v1; legacy '
+                                                              'full indexed content remains the '
+                                                              'default.'},
+                                 'source_id': {'type': 'string',
+                                               'minLength': 1,
+                                               'maxLength': 200,
+                                               'description': 'Optional real source ID returned by '
+                                                              'a prior page. Scoped to this '
+                                                              'project; requires paginated=true.'},
+                                 'cursor': {'type': 'string',
+                                            'minLength': 1,
+                                            'maxLength': 1024,
+                                            'description': 'Opaque next_cursor from the preceding '
+                                                           'page. Never edit it; requires '
+                                                           'paginated=true.'},
+                                 'expected_revision': {'type': 'string',
+                                                       'minLength': 1,
+                                                       'maxLength': 100,
+                                                       'description': 'Authoritative '
+                                                                      'source_revision to '
+                                                                      'revalidate. Changed sources '
+                                                                      'fail closed; requires '
+                                                                      'paginated=true.'},
+                                 'max_chars': {'type': 'integer',
+                                               'minimum': 1024,
+                                               'maximum': 32768,
+                                               'default': 16384,
+                                               'description': 'Maximum extracted characters per '
+                                                              'page; server also caps fragments '
+                                                              'and bytes. Requires '
+                                                              'paginated=true.'},
+                                 'enable_ocr': {'type': 'boolean',
+                                                'default': False,
+                                                'description': 'Explicit OCR consent for paginated '
+                                                               'PDF reads, subject to existing '
+                                                               'server and plan gates.'}},
                   'required': ['path']}},
  {'name': 'snipara_load_project',
   'description': 'Load structured map of all project documents with content. Returns a '

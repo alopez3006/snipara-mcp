@@ -492,3 +492,26 @@ def test_get_headers_uses_auth_type_specific_header(monkeypatch) -> None:
 
     assert api_key_headers["X-API-Key"] == "rlm_pk_snipara"
     assert "Authorization" not in api_key_headers
+
+
+async def test_paged_document_contract_and_forwarding(monkeypatch) -> None:
+    """The stdio bridge preserves revision/cursor parameters and completeness flags."""
+    contract = next(t for t in MCP_TOOL_DEFINITIONS if t["name"] == "snipara_load_document")
+    properties = contract["inputSchema"]["properties"]
+    assert properties["paginated"]["default"] is False
+    assert properties["max_chars"]["maximum"] == 32768
+    arguments = {
+        "path": "dossier.pdf", "paginated": True, "source_id": "source",
+        "expected_revision": "sr1_revision", "cursor": "opaque", "max_chars": 4096,
+    }
+    calls = []
+
+    async def fake_call_api(tool, params):
+        calls.append((tool, params))
+        return {"success": True, "result": {"version": "snipara.document-read.v1",
+            "extraction": {"complete": False}, "pagination": {"exhausted": True, "next_cursor": None}}}
+
+    monkeypatch.setattr(mcp_server, "call_api", fake_call_api)
+    result = await mcp_server.call_tool("snipara_load_document", arguments)
+    assert calls[-1] == ("rlm_load_document", arguments)
+    assert '"complete": false' in result[0].text
