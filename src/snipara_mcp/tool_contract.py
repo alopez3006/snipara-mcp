@@ -5943,6 +5943,52 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                'maxLength': 128,
                                                'pattern': '^[A-Za-z0-9_.:-]+$'}},
                   'required': ['upload_id']}},
+ {'name': 'snipara_load_business_document',
+  'annotations': {'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False},
+  'description': 'Read a business library SharedDocument by collection_id and document_id using '
+                 'snipara.business-document-read.v1. Each bounded page rechecks the authenticated '
+                 "human or service account's current project and TEAM collection access. Continue "
+                 'with pagination.next_cursor and expected_revision; a cursor grants no access. '
+                 'Returns retained extraction fragments, page/table/cell locators and explicit '
+                 'gaps. Source changes, deletion or revoked access stop the read and require '
+                 'revalidation. Legacy text without structured extraction remains incomplete and '
+                 'requires reimport. Pagination exhaustion proves traversal only, never model '
+                 'analysis or business approval.',
+  'inputSchema': {'type': 'object',
+                  'additionalProperties': False,
+                  'properties': {'collection_id': {'type': 'string',
+                                                   'minLength': 1,
+                                                   'maxLength': 200,
+                                                   'description': 'Authorized TEAM business '
+                                                                  'collection ID.'},
+                                 'document_id': {'type': 'string',
+                                                 'minLength': 1,
+                                                 'maxLength': 200,
+                                                 'description': 'SharedDocument ID returned by the '
+                                                                'business upload receipt.'},
+                                 'cursor': {'type': 'string',
+                                            'minLength': 1,
+                                            'maxLength': 1024,
+                                            'description': 'Opaque next_cursor from the preceding '
+                                                           'page; never an access token.'},
+                                 'expected_revision': {'type': 'string',
+                                                       'minLength': 1,
+                                                       'maxLength': 100,
+                                                       'description': "Pin to the first page's "
+                                                                      'source_revision. A '
+                                                                      'different current revision '
+                                                                      'fails closed.'},
+                                 'max_chars': {'type': 'integer',
+                                               'minimum': 1024,
+                                               'maximum': 32768,
+                                               'default': 16384,
+                                               'description': 'Maximum returned content characters '
+                                                              'per page; byte and fragment bounds '
+                                                              'also apply.'}},
+                  'required': ['collection_id', 'document_id']}},
  {'name': 'snipara_list_client_projects',
   'description': 'List client/project business-context workspaces in the current team. These are '
                  'project-scoped containers for current client documents, deliverables, diagrams, '
@@ -9090,6 +9136,7 @@ MCP_TOOL_NAMES = ['snipara_collaboration_status',
  'snipara_ensure_business_collection',
  'snipara_upload_business_document',
  'snipara_business_document_status',
+ 'snipara_load_business_document',
  'snipara_list_client_projects',
  'snipara_create_client_project',
  'snipara_remember',
