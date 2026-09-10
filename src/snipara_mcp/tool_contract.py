@@ -5841,7 +5841,18 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                  'snipara_upload_document instead.',
   'inputSchema': {'type': 'object',
                   'additionalProperties': False,
-                  'properties': {'collection_id': {'type': 'string',
+                  'properties': {'upload_id': {'type': 'string',
+                                               'minLength': 1,
+                                               'maxLength': 128,
+                                               'pattern': '^[A-Za-z0-9_.:-]+$',
+                                               'description': 'Required for service accounts, '
+                                                              'together with explicit '
+                                                              'collection_id. Stable retry '
+                                                              'identity; a different payload with '
+                                                              'the same ID is rejected. Service '
+                                                              'accounts need explicit collection '
+                                                              'EDITOR/ADMIN rights.'},
+                                 'collection_id': {'type': 'string',
                                                    'description': 'Business collection ID. If '
                                                                   'omitted, provide preset or '
                                                                   'collection_slug.'},
@@ -5920,6 +5931,18 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                             'collection instead of '
                                                                             'a standard preset.'}},
                   'required': ['title', 'content']}},
+ {'name': 'snipara_business_document_status',
+  'description': 'Read a service-account upload receipt by stable upload_id in the current '
+                 'project. Returns received, rejected, processing or unknown. Unknown (including '
+                 'no receipt for historical uploads) never permits quota release. Does not search '
+                 'document contents.',
+  'inputSchema': {'type': 'object',
+                  'additionalProperties': False,
+                  'properties': {'upload_id': {'type': 'string',
+                                               'minLength': 1,
+                                               'maxLength': 128,
+                                               'pattern': '^[A-Za-z0-9_.:-]+$'}},
+                  'required': ['upload_id']}},
  {'name': 'snipara_list_client_projects',
   'description': 'List client/project business-context workspaces in the current team. These are '
                  'project-scoped containers for current client documents, deliverables, diagrams, '
@@ -9066,6 +9089,7 @@ MCP_TOOL_NAMES = ['snipara_collaboration_status',
  'snipara_list_business_collections',
  'snipara_ensure_business_collection',
  'snipara_upload_business_document',
+ 'snipara_business_document_status',
  'snipara_list_client_projects',
  'snipara_create_client_project',
  'snipara_remember',
