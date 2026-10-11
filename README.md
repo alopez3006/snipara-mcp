@@ -373,3 +373,14 @@ publishing this package.
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+### Conceptual research with bounded query plans (2.8.39)
+
+`snipara_context_query` accepts up to four optional `retrieval_queries` authored
+by the agent. Describe concrete mechanisms, capabilities, constraints and
+counterevidence in the source language. Keep the original question in `query`
+and preserve named entities. The hosted server combines ranked sources within
+one strict `max_tokens` budget, including Answer Packs and chunk references.
+Facets are hypotheses, not facts; unsupported claims remain unknown. The server
+does not run its own LLM to generate the plan. Existing calls remain compatible
+when the optional field is omitted.
