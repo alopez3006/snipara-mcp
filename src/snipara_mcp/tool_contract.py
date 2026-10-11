@@ -360,11 +360,13 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
   'description': 'Query project documents, parsed business files, and shared context. Use this '
                  'first for source truth and narrative documentation. Returns a source-grounded '
                  'answer_pack plus retrieval_diagnostics and ranked sections within token budget. '
-                 'If a broad query times out, retry once with a narrow 3-8 term query, max_tokens '
-                 "800-1500, search_mode='keyword', return_references=true, auto_decompose=false, "
-                 'and include_all_tiers=false. For exact text use snipara_search; for structural '
-                 'code context use snipara_code_neighbors, snipara_code_callers, or '
-                 'snipara_code_imports.',
+                 'For conceptual, cross-language or multi-part questions, supply 2-4 '
+                 'retrieval_queries with concrete mechanisms, capabilities, constraints and '
+                 'counterevidence in the source language. If a broad query times out, retry once '
+                 "with a narrow 3-8 term query, max_tokens 800-1500, search_mode='keyword', "
+                 'return_references=true, auto_decompose=false, and include_all_tiers=false. For '
+                 'exact text use snipara_search; for structural code context use '
+                 'snipara_code_neighbors, snipara_code_callers, or snipara_code_imports.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string',
                                            'description': 'Documentation, business-context, or '
@@ -2445,6 +2447,27 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                                                                                                                                                        'to '
                                                                                                                                                                                                        'its '
                                                                                                                                                                                                        'evidence.'}}}}}}}}},
+                                 'retrieval_queries': {'type': 'array',
+                                                       'maxItems': 4,
+                                                       'items': {'type': 'string',
+                                                                 'minLength': 1,
+                                                                 'maxLength': 512},
+                                                       'description': 'Optional 2-4 agent-authored '
+                                                                      'concrete search facets for '
+                                                                      'conceptual, cross-language '
+                                                                      'or multi-part questions. '
+                                                                      'Describe mechanisms, '
+                                                                      'capabilities, constraints '
+                                                                      'and counterevidence in the '
+                                                                      'source language; preserve '
+                                                                      'named entities. Original '
+                                                                      'query is retained; all '
+                                                                      'sources share max_tokens '
+                                                                      'and support references and '
+                                                                      'answer_pack. Facets are '
+                                                                      'hypotheses, not evidence. '
+                                                                      'No server-side LLM '
+                                                                      'inference.'},
                                  'auto_decompose': {'type': 'boolean',
                                                     'default': True,
                                                     'description': 'Auto-decompose complex queries '

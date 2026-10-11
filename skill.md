@@ -914,3 +914,12 @@ Returns current project configuration including:
 ---
 
 **For complete API documentation, visit: https://docs.snipara.com**
+
+## Conceptual and multi-part research
+
+For conceptual or cross-language questions, formulate 2-4 neutral `retrieval_queries`
+covering mechanisms, capabilities, constraints and counterevidence in the source
+language. Pass them with the original query to `snipara_context_query`. Preserve
+named entities. Facets are hypotheses; cite retrieved sources, load referenced
+chunks, and leave unsupported claims unknown. The server shares one `max_tokens`
+budget and does not generate a plan or answer using its own LLM.

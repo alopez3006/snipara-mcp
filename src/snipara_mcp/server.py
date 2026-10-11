@@ -346,6 +346,8 @@ def _build_context_query_payload(
         "auto_decompose": arguments.get("auto_decompose", True),
         "include_all_tiers": arguments.get("include_all_tiers", False),
     }
+    if "retrieval_queries" in arguments:
+        payload["retrieval_queries"] = arguments["retrieval_queries"]
     return _with_correlation_context(payload, arguments)
 
 
