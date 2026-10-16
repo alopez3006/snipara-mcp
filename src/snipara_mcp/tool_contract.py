@@ -5520,11 +5520,14 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                              'description': 'Force refresh from API'}},
                   'required': []}},
  {'name': 'snipara_help',
-  'description': 'Discover the correct Snipara tool without executing that tool or changing '
-                 'project state. Use query for ranked recommendations, tool for one detailed '
-                 'contract, tier for a bounded category, or list_all for the deterministic catalog '
-                 'including specialists hidden from tools/list. Returns selection guidance, '
-                 'examples, access requirements, surface metadata, and related tools.',
+  'description': 'Read Snipara tool documentation and discovery metadata. This read-only operation '
+                 'returns tool names, descriptions and schemas; it never invokes another tool, '
+                 'runs a command, or changes project state. It is not an execution proxy. Use '
+                 'query for recommendations, tool for one contract, tier for a category, or '
+                 'list_all for the catalog. A documented tool is callable only when the client '
+                 'separately exposes its own MCP contract and the caller has permission. Returns '
+                 'selection guidance, examples, access requirements, exposure metadata, and '
+                 'related tool names.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string',
                                            'description': 'Describe what you want to do (e.g., '
@@ -6141,9 +6144,10 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
  {'name': 'snipara_remember_if_novel',
   'description': 'Store one durable Memory V2 record only when it is sufficiently different from '
                  'existing reviewed memory. This EDITOR operation may write project, team, user, '
-                 'or agent state; duplicate calls normally skip the write, while auto_safe '
-                 'reconciliation may supersede high-confidence same-owner matches without deleting '
-                 'them. Use snipara_end_of_task_commit for multi-outcome workflow capture and '
+                 'or agent state; duplicate calls normally skip the write. Explicit corrections '
+                 'and auto_safe reconciliation may mark older matching memories as superseded, '
+                 'changing which records are current. Superseded records are retained rather than '
+                 'deleted. Use snipara_end_of_task_commit for multi-outcome workflow capture and '
                  'context tools for source documents. Returns whether storage occurred, duplicate '
                  'evidence, the memory ID, and reconciliation actions.',
   'inputSchema': {'type': 'object',
@@ -6243,13 +6247,15 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                   'required': ['text']},
   'annotations': {'title': 'Store memory only when novel',
                   'readOnlyHint': False,
-                  'destructiveHint': False,
+                  'destructiveHint': True,
                   'idempotentHint': True,
                   'openWorldHint': False}},
  {'name': 'snipara_end_of_task_commit',
   'description': 'Persist a bounded end-of-task summary, optional structured Why Capture, and '
                  'selected durable outcomes so another agent can resume the work. This EDITOR '
-                 'operation writes memory and workflow state and is non-idempotent; dry_run '
+                 'operation writes memory and workflow state and is non-idempotent. With auto_safe '
+                 'reconciliation it may also mark older same-owner memories as superseded, '
+                 'changing which records are current while retaining their history. dry_run '
                  'validates without writing. Use snipara_remember_if_novel for one reusable memory '
                  'and document upload tools for source material. Unknown fields fail closed. '
                  'Returns created or skipped records, review candidates, handoff metadata, and '
@@ -6406,7 +6412,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                   'anyOf': [{'required': ['summary']}, {'required': ['why']}]},
   'annotations': {'title': 'Commit durable task memory',
                   'readOnlyHint': False,
-                  'destructiveHint': False,
+                  'destructiveHint': True,
                   'idempotentHint': False,
                   'openWorldHint': False}},
  {'name': 'snipara_remember_bulk',
@@ -8266,12 +8272,14 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                   'idempotentHint': True,
                   'openWorldHint': False}},
  {'name': 'snipara_inbox_review_plan',
-  'description': 'Validate evidence-backed recommendations for team Inbox memory candidates and '
-                 'ProjectDecision drafts without changing authority. This read-only ADMIN '
-                 'operation creates a snapshot-bound review_plan_id; approve/reject items enter '
-                 'the snapshot while needs_human items remain pending. Use '
-                 'snipara_inbox_review_queue first and never call apply without explicit human '
-                 'authorization. Returns the immutable plan, exclusions, and validation findings.',
+  'description': 'Preview evidence-backed recommendations for team Inbox memory candidates and '
+                 'ProjectDecision drafts. This read-only ADMIN operation reads pending items and '
+                 'computes a deterministic snapshot-hash review_plan_id in its response. It does '
+                 'not save a plan, approve or reject items, or change authority or review state. '
+                 'needs_human items remain outside the proposed apply snapshot. Use '
+                 'snipara_inbox_review_queue first; only the separate snipara_inbox_review_apply '
+                 'tool can apply changes after explicit human authorization. Returns the computed '
+                 'preview, exclusions, and validation findings.',
   'inputSchema': {'type': 'object',
                   'properties': {'recommendations': {'type': 'array',
                                                      'minItems': 1,
