@@ -8112,14 +8112,23 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                          "'performance'])"}},
                   'required': ['title', 'owner', 'scope', 'context', 'decision', 'rationale']}},
  {'name': 'snipara_decision_query',
-  'description': 'Query project decisions with filters.\n'
+  'description': 'Read current applicable project decisions and their declared evidence.\n'
                  '\n'
-                 'Search by status, impact, scope, tags, or text query.\n'
-                 'Returns decisions sorted by recency with supersession chain info.',
+                 'Default: ACTIVE records without a replacement pointer. Query an exact DEC-ID '
+                 'for\n'
+                 'progressive detail, or supply task text for bounded lexical applicability '
+                 'ranking.\n'
+                 'Explicit status or include_superseded accesses history. Returns rationale,\n'
+                 'supersession links, declared evidence and index-resolvable chunk references.\n'
+                 'Available indexed evidence is not entailment, live verification or human '
+                 'approval.\n'
+                 'A candidate_limit_reached flag signals incomplete bounded search coverage.',
   'inputSchema': {'type': 'object',
                   'properties': {'query': {'type': 'string',
-                                           'description': 'Text search in title, context, '
-                                                          'decision, rationale'},
+                                           'maxLength': 2000,
+                                           'description': 'Task text across title, scope, tags, '
+                                                          'context, decision and rationale, or '
+                                                          'exact DEC-ID'},
                                  'status': {'type': 'string',
                                             'enum': ['ACTIVE', 'SUPERSEDED', 'REVERTED', 'DRAFT'],
                                             'description': 'Filter by decision status'},
@@ -8132,13 +8141,20 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                           'description': 'Filter by tags (OR logic)'},
                                  'limit': {'type': 'integer',
                                            'default': 10,
+                                           'minimum': 1,
+                                           'maximum': 100,
                                            'description': 'Maximum decisions to return'},
                                  'include_superseded': {'type': 'boolean',
                                                         'default': False,
                                                         'description': 'Include superseded '
                                                                        'decisions in results'}},
                   'required': [],
-                  'additionalProperties': False}},
+                  'additionalProperties': False},
+  'annotations': {'title': 'Read current project decisions and declared evidence',
+                  'readOnlyHint': True,
+                  'destructiveHint': False,
+                  'idempotentHint': True,
+                  'openWorldHint': False}},
  {'name': 'snipara_decision_review_queue',
   'description': 'List current DRAFT ProjectDecision records awaiting review. Use this when the '
                  'user asks to list pending decisions or wants help deciding which ones to '
