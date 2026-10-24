@@ -6063,9 +6063,61 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                  'client/project/RFP, team for reviewed shared standards, and user for one '
                  "person's preferences. Do not store source truth here; use snipara_context_query, "
                  'snipara_load_document, or snipara_shared_context for specs, RFPs, diagrams, and '
-                 'raw docs. Use snipara_end_of_task_commit for workflow capture.',
+                 'raw docs. Use snipara_end_of_task_commit for workflow capture. Optional '
+                 'observation mode automatically validates or invalidates typed source '
+                 'observations against current hosted documents or project-linked collections. In '
+                 'that mode omit text, use project scope and fact type; server-generated content '
+                 'cannot approve business judgments. Missing evidence is retryable; only '
+                 'unsupported interpretation requires human judgment.',
   'inputSchema': {'type': 'object',
-                  'properties': {'text': {'type': 'string',
+                  'properties': {'observation': {'type': 'object',
+                                                 'additionalProperties': False,
+                                                 'description': 'Opt-in source observation; '
+                                                                'incompatible with text/content, '
+                                                                'actor, source, or authority '
+                                                                'overrides. PROJECT/FACT only. '
+                                                                'Existing identical observation is '
+                                                                'reverified without duplication.',
+                                                 'required': ['source', 'assertion'],
+                                                 'properties': {'source': {'type': 'object',
+                                                                           'additionalProperties': False,
+                                                                           'required': ['kind',
+                                                                                        'id'],
+                                                                           'properties': {'kind': {'type': 'string',
+                                                                                                   'enum': ['document',
+                                                                                                            'shared_document']},
+                                                                                          'id': {'type': 'string',
+                                                                                                 'minLength': 1,
+                                                                                                 'maxLength': 200}}},
+                                                                'assertion': {'oneOf': [{'type': 'object',
+                                                                                         'additionalProperties': False,
+                                                                                         'required': ['kind',
+                                                                                                      'keys',
+                                                                                                      'value'],
+                                                                                         'properties': {'kind': {'type': 'string',
+                                                                                                                 'const': 'json_value'},
+                                                                                                        'keys': {'type': 'array',
+                                                                                                                 'minItems': 1,
+                                                                                                                 'maxItems': 16,
+                                                                                                                 'items': {'type': 'string',
+                                                                                                                           'minLength': 1,
+                                                                                                                           'maxLength': 128}},
+                                                                                                        'value': {'type': ['string',
+                                                                                                                           'number',
+                                                                                                                           'boolean',
+                                                                                                                           'null'],
+                                                                                                                  'maxLength': 4000}}},
+                                                                                        {'type': 'object',
+                                                                                         'additionalProperties': False,
+                                                                                         'required': ['kind',
+                                                                                                      'text'],
+                                                                                         'properties': {'kind': {'type': 'string',
+                                                                                                                 'enum': ['source_excerpt',
+                                                                                                                          'interpretation']},
+                                                                                                        'text': {'type': 'string',
+                                                                                                                 'minLength': 1,
+                                                                                                                 'maxLength': 4000}}}]}}},
+                                 'text': {'type': 'string',
                                           'maxLength': 65536,
                                           'description': 'The memory text to store'},
                                  'content': {'type': 'string',
@@ -6138,7 +6190,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                   'required': []},
   'annotations': {'title': 'Store reviewed memory',
                   'readOnlyHint': False,
-                  'destructiveHint': False,
+                  'destructiveHint': True,
                   'idempotentHint': False,
                   'openWorldHint': False}},
  {'name': 'snipara_remember_if_novel',
@@ -6840,7 +6892,12 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                             'description': 'Optional supersession reason'}},
                   'required': ['old_memory_id', 'new_memory_id']}},
  {'name': 'snipara_memory_verify',
-  'description': 'Verify whether a Memory V2 record still has valid supporting evidence.',
+  'description': 'EDITOR operation: verify supporting evidence. For managed source observations, '
+                 're-read current hosted source and atomically validate/invalidate or defer '
+                 'without routine human approval, recording a source-hash receipt. Missing '
+                 'evidence remains retryable; interpretations need judgment. Manual/terminal '
+                 'states and retention are preserved. Legacy memories retain existence-only '
+                 'verification, not semantic proof.',
   'inputSchema': {'type': 'object',
                   'properties': {'memory_id': {'type': 'string',
                                                'description': 'Legacy or V2 memory ID'},
@@ -6922,6 +6979,14 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                  'target_memory_id': {'type': 'string',
                                                       'description': 'Required for merge and '
                                                                      'supersede actions.'},
+                                 'expected_source_hash': {'type': 'string',
+                                                          'description': 'Required to accept a '
+                                                                         'source observation '
+                                                                         'interpretation: copy the '
+                                                                         'source hash from the '
+                                                                         'reviewed queue item. '
+                                                                         'Changed sources require '
+                                                                         'a new review.'},
                                  'notes': {'type': 'string',
                                            'description': 'Optional reviewer notes or rationale.'}},
                   'required': ['memory_id', 'action']}},
