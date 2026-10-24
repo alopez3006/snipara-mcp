@@ -6408,8 +6408,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                              'default': False,
                                              'description': 'Validate extraction and return the '
                                                             'proposed receipt without writing '
-                                                            'memory or workflow state.'}},
-                  'anyOf': [{'required': ['summary']}, {'required': ['why']}]},
+                                                            'memory or workflow state.'}}},
   'annotations': {'title': 'Commit durable task memory',
                   'readOnlyHint': False,
                   'destructiveHint': True,
