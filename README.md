@@ -16,6 +16,20 @@ other MCP clients the decisions, active work, code impact, proof, and handoffs
 they need before they edit. If your client supports streamable HTTP MCP
 directly, prefer the hosted endpoint and skip the local process.
 
+## Choose the connection
+
+| Client capability | Recommended path |
+| --- | --- |
+| Streamable HTTP MCP | Connect directly to `https://api.snipara.com/mcp/YOUR_PROJECT_SLUG` |
+| Local stdio process only | Use this Python connector with its documented environment |
+| Guided workspace setup | `npx create-snipara@latest` |
+| Local task tracking without Hosted | [Companion](https://github.com/Snipara/snipara-companion) |
+
+Resolve the project endpoint from your authorized setup. Supply credentials
+through the client's supported environment or secret mechanism, and check a
+source citation after connecting. Installing the connector does not select a
+project, upload documents or install Companion, Orchestrator or Sandbox.
+
 ## What Is Snipara?
 
 Snipara is the shared Project Intelligence layer for AI-assisted software work.
