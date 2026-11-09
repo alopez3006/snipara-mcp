@@ -22,6 +22,7 @@ from typing import Any, Literal, TYPE_CHECKING
 
 import httpx
 from .tool_contract import MCP_TOOL_DEFINITIONS
+from .memory_view import require_memory_view
 
 if TYPE_CHECKING:
     from rlm.backends.base import Tool
@@ -117,7 +118,10 @@ class SniparaClient:
                 raise RuntimeError(result.get("error", "Unknown error"))
 
             self._tool_endpoint_url = endpoint_url
-            return result.get("result", {})
+            payload = result.get("result", {})
+            if tool_name in ("rlm_recall", "snipara_recall"):
+                return require_memory_view(payload, params.get("memory_view", "current"), params.get("as_of"))
+            return payload
 
         if last_response is not None:
             last_response.raise_for_status()
@@ -722,6 +726,9 @@ def get_snipara_tools(
         task: str | None = None,
         outcome_rerank_mode: OutcomeRerankMode | None = None,
         correlation_context: dict[str, str] | None = None,
+        retrieval_queries: list[str] | None = None,
+        memory_view: str = "current",
+        as_of: str | None = None,
     ) -> dict[str, Any]:
         """Recall memories semantically.
 
@@ -749,6 +756,8 @@ def get_snipara_tools(
             "include_inactive": include_inactive,
             "warning_threshold": warning_threshold,
         }
+        if retrieval_queries is not None:
+            params["retrieval_queries"] = retrieval_queries
         if type:
             params["type"] = type
         if scope:
@@ -761,7 +770,12 @@ def get_snipara_tools(
             params["outcome_rerank_mode"] = outcome_rerank_mode
         if correlation_context is not None:
             params["correlation_context"] = correlation_context
-        return await client.call_tool("rlm_recall", params)
+        if memory_view != "current" or as_of is not None:
+            params["memory_view"] = memory_view
+            if as_of is not None:
+                params["as_of"] = as_of
+        result = await client.call_tool("rlm_recall", params)
+        return require_memory_view(result, memory_view, as_of)
 
     async def memories(
         type: str | None = None,
@@ -1918,6 +1932,13 @@ def get_snipara_tools(
             parameters={
                 "type": "object",
                 "properties": {
+                    "memory_view": {"type": "string", "enum": ["current", "history"], "default": "current", "description": "Explicit retained history or current evidence; history grants no current authority."},
+                    "as_of": {"type": "string", "maxLength": 64, "description": "Past ISO timestamp with timezone; requires memory_view=history and current access/retention."},
+                    "retrieval_queries": {
+                        "type": "array", "maxItems": 4,
+                        "items": {"type": "string", "minLength": 1, "maxLength": 512},
+                        "description": "Optional source-language translations or question facets; preserve entities and do not assume answers.",
+                    },
                     "query": {
                         "type": "string",
                         "description": "Search query for semantic recall",

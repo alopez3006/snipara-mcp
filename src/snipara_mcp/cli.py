@@ -17,6 +17,7 @@ Usage:
 
 import asyncio
 import json
+import math
 import os
 import re
 import subprocess
@@ -1014,6 +1015,8 @@ def recall(
     memory_type: Optional[str] = typer.Option(None, "--type", "-t", help="Filter by memory type"),
     limit: int = typer.Option(5, "--limit", "-l", help="Max memories to return"),
     slug: Optional[str] = typer.Option(None, "--slug", "-s", help="Project slug"),
+    memory_view: str = typer.Option("current", "--memory-view", help="current or retained history; history is not current authority"),
+    as_of: Optional[str] = typer.Option(None, "--as-of", help="Past ISO timestamp with timezone; requires --memory-view history"),
 ) -> None:
     """Recall memories matching a query."""
 
@@ -1057,6 +1060,10 @@ def recall(
                     headers["X-API-Key"] = auth_header
 
                 args = {"query": query, "limit": limit}
+                if memory_view != "current" or as_of is not None:
+                    args["memory_view"] = memory_view
+                    if as_of is not None:
+                        args["as_of"] = as_of
                 if memory_type:
                     args["type"] = memory_type
 
@@ -1072,29 +1079,101 @@ def recall(
                 )
 
                 if response.status_code == 200:
-                    result = response.json()
-                    if "result" in result:
-                        # Parse the result
-                        content = result["result"].get("content", [])
-                        for item in content:
-                            if item.get("type") == "text":
+                    historical_intent = memory_view != "current" or as_of is not None
+                    if historical_intent:
+                        from .memory_view import require_memory_view
+
+                        display_lines: list[str] = []
+                        refusal = "Hosted server did not confirm the requested memory view"
+                        try:
+                            result = response.json()
+                            if not isinstance(result, dict) or "error" in result:
+                                raise RuntimeError(f"{refusal}; recall request failed")
+                            tool_result = result.get("result")
+                            if (
+                                not isinstance(tool_result, dict)
+                                or tool_result.get("isError", False) is not False
+                            ):
+                                raise RuntimeError(f"{refusal}; recall tool result failed")
+                            content = tool_result.get("content")
+                            if not isinstance(content, list):
+                                raise RuntimeError(f"{refusal}; invalid recall content")
+                            for item in content:
+                                if not isinstance(item, dict):
+                                    raise RuntimeError(f"{refusal}; invalid recall content item")
+                                if item.get("type") != "text":
+                                    continue
+                                raw_text = item.get("text")
+                                if not isinstance(raw_text, str):
+                                    raise RuntimeError(f"{refusal}; invalid recall text")
                                 try:
-                                    data = json.loads(item["text"])
-                                    memories = data.get("memories", [])
-                                    print(f"Found {len(memories)} memory(ies)")
-                                    print()
-                                    for mem in memories:
-                                        mtype = mem.get("type", "unknown")
-                                        mtext = mem.get("text", "")[:200]
-                                        relevance = mem.get("relevance", 0)
-                                        print(color(f"[{mtype}]", Colors.BOLD), f"(relevance: {relevance:.2f})")
-                                        print(f"  {mtext}")
+                                    data = json.loads(raw_text)
+                                except (ValueError, RecursionError):
+                                    raise RuntimeError(
+                                        f"{refusal}; invalid recall JSON"
+                                    ) from None
+                                if not isinstance(data, dict):
+                                    raise RuntimeError(f"{refusal}; invalid recall result")
+                                require_memory_view(data, memory_view, as_of)
+                                memories = data.get("memories")
+                                if not isinstance(memories, list) or any(
+                                    not isinstance(memory, dict) for memory in memories
+                                ):
+                                    raise RuntimeError(f"{refusal}; invalid recall memories")
+                                display_lines.extend([
+                                    "Retained historical evidence; no current source authority or check reuse.",
+                                    f"Found {len(memories)} memory(ies)",
+                                    "",
+                                ])
+                                for memory in memories:
+                                    display_type = memory.get("type", "unknown")
+                                    display_text = memory.get("content", memory.get("text", ""))
+                                    relevance = memory.get("relevance", 0)
+                                    if (
+                                        not isinstance(display_type, str)
+                                        or not isinstance(display_text, str)
+                                        or type(relevance) not in (int, float)
+                                    ):
+                                        raise RuntimeError("invalid memory display data")
+                                    try:
+                                        if not math.isfinite(relevance):
+                                            raise ValueError("Non-finite relevance")
+                                        formatted_relevance = f"{relevance:.2f}"
+                                    except (TypeError, ValueError, OverflowError):
+                                        raise RuntimeError("invalid memory display data") from None
+                                    display_lines.extend([
+                                        f"{color(f'[{display_type}]', Colors.BOLD)} (relevance: {formatted_relevance})",
+                                        f"  {display_text[:200]}",
+                                        "",
+                                    ])
+                            if not display_lines:
+                                raise RuntimeError(f"{refusal}; no confirmed recall text")
+                        except (RuntimeError, ValueError) as error:
+                            print_error(f"Historical recall refused: {error}")
+                            raise typer.Exit(1) from None
+                        print("\n".join(display_lines))
+                    else:
+                        result = response.json()
+                        if "result" in result:
+                            for item in result["result"].get("content", []):
+                                if item.get("type") == "text":
+                                    try:
+                                        data = json.loads(item["text"])
+                                        memories = data.get("memories", [])
+                                        print(f"Found {len(memories)} memory(ies)")
                                         print()
-                                except Exception:
-                                    print(item["text"])
-                    elif "error" in result:
-                        print_error(result["error"].get("message", "Unknown error"))
-                        raise typer.Exit(1)
+                                        for mem in memories:
+                                            mtype = mem.get("type", "unknown")
+                                            mtext = mem.get("content", mem.get("text", ""))[:200]
+                                            relevance = mem.get("relevance", 0)
+                                            print(color(f"[{mtype}]", Colors.BOLD), f"(relevance: {relevance:.2f})")
+                                            print(f"  {mtext}")
+                                            print()
+                                    except Exception:
+                                        print(item["text"])
+                        elif "error" in result:
+                            print_error(result["error"].get("message", "Unknown error"))
+                            raise typer.Exit(1)
                 else:
                     print_error(f"HTTP {response.status_code}")
                     raise typer.Exit(1)

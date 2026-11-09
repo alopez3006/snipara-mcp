@@ -210,3 +210,41 @@ async def test_retrieval_helpers_forward_task_correlation_and_bounded_outcome_co
         "shadow",
         "enabled",
     ]
+
+
+@pytest.mark.asyncio
+async def test_recall_forwards_bounded_retrieval_plan(monkeypatch, fake_runtime_module):
+    monkeypatch.setattr(rlm_tools, "SniparaClient", FakeSniparaClient)
+    tool_map = {
+        tool.name: tool
+        for tool in rlm_tools.get_snipara_tools(api_key="rlm_test", project_slug="snipara")
+    }
+    assert tool_map["recall"].parameters["properties"]["retrieval_queries"]["maxItems"] == 4
+    await tool_map["recall"].handler(
+        "question française", retrieval_queries=["source language question"]
+    )
+    assert FakeSniparaClient.instances[0].calls[0][1]["retrieval_queries"] == [
+        "source language question"
+    ]
+
+
+@pytest.mark.asyncio
+async def test_explicit_history_refuses_old_server_and_preserves_default_compatibility(monkeypatch, fake_runtime_module):
+    monkeypatch.setattr(rlm_tools, "SniparaClient", FakeSniparaClient)
+    tools = {tool.name: tool for tool in rlm_tools.get_snipara_tools(api_key="fixture", project_slug="snipara")}
+    assert tools["recall"].parameters["properties"]["memory_view"]["enum"] == ["current", "history"]
+    await tools["recall"].handler("decision")
+    with pytest.raises(RuntimeError, match="did not confirm"):
+        await tools["recall"].handler("decision", memory_view="history", as_of="2020-01-01T00:00:00Z")
+    assert FakeSniparaClient.instances[0].calls[-1][1]["memory_view"] == "history"
+    assert FakeSniparaClient.instances[0].calls[-1][1]["as_of"] == "2020-01-01T00:00:00Z"
+
+
+def test_historical_response_requires_exact_confirmed_cutoff():
+    from snipara_mcp.memory_view import require_memory_view
+    result = {"memories": [], "temporal_context": {"contract": "snipara.memory-temporal.v1", "view": "history", "as_of": "2020-01-01T00:00:00+00:00"}}
+    assert require_memory_view(result, "history", "2020-01-01T00:00:00Z") is result
+    for bad in [{}, {"temporal_context": {"contract": "snipara.memory-temporal.v1", "view": "current"}},
+                {"temporal_context": {**result["temporal_context"], "as_of": "2020-01-02T00:00:00Z"}}]:
+        with pytest.raises(RuntimeError):
+            require_memory_view(bad, "history", "2020-01-01T00:00:00Z")

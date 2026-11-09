@@ -398,3 +398,84 @@ one strict `max_tokens` budget, including Answer Packs and chunk references.
 Facets are hypotheses, not facts; unsupported claims remain unknown. The server
 does not run its own LLM to generate the plan. Existing calls remain compatible
 when the optional field is omitted.
+
+### 3.0 context-query migration
+
+The primary text block of a default stdio `snipara_context_query` response is
+compact JSON. Session context may appear in a separate text block. Retrieved
+sources, citations and caveats are preserved, with Answer Packs and automatic
+query decomposition disabled by default. Consumers that parsed the previous Markdown
+response should request `include_metadata=true` to use the full response format.
+That full mode retains the previous defaults; set `include_answer_pack=false`
+and `auto_decompose=false` explicitly if you only need source retrieval.
+
+In compact mode, request `include_answer_pack=true` or `auto_decompose=true` only
+when needed. `max_tokens` bounds the selected retrieval content, not the complete
+serialized MCP response. Smaller responses do not establish better answer accuracy
+or lower end-to-end latency.
+
+### 3.0 memory context contract
+
+Recall accepts up to four `retrieval_queries` for source-language translations or
+question facets. Owner scope, minimum relevance and final result limits still apply.
+
+Recall defaults to `memory_view="current"`: active, currently effective candidates;
+source observations are checked against their accessible source on this read.
+Choose retained history explicitly when asking about an earlier state:
+
+```python
+snipara_recall(query="workflow status", memory_view="current")
+snipara_recall(
+    query="workflow status",
+    memory_view="history",
+    as_of="2026-10-25T10:00:00Z",
+)
+```
+
+The equivalent CLI options are `snipara recall "workflow status" --memory-view history
+--as-of 2026-10-25T10:00:00Z`, or `snipara-companion recall --query "workflow status"
+--memory-view history --as-of 2026-10-25T10:00:00Z --json`. Query prose alone does not
+select a historical view. `as_of` requires history and a past timestamp with a
+timezone. Current access, owner scope and retention/TTL still apply: history never
+restores expired/deleted content or reconstructs unavailable mutable source versions.
+Stored source-observation receipts can support an earlier recorded assertion;
+their integrity hashes do not cryptographically authenticate origin, and older
+records may predate the reserved-writer guard. Generic evidence attachment cannot
+write the reserved observation descriptor/receipt namespace. Historical receipts grant
+no current authority, current handoff evidence or check reuse. Historical authority
+is marked ineligible for current use, without declaring the old evidence false or
+changing stored lifecycle/review state. Conflicting explicit checkpoints retain an
+unresolved conflict rather than a winner selected by recency.
+
+Default calls remain compatible with older servers. For explicit history/as-of,
+these clients refuse a missing or mismatched `temporal_context` confirmation rather
+than silently accepting a current result. Candidate selection combines the bounded
+recent pool with bounded literal recovery; neither a successful source check nor
+an empty result establishes that no older relevant memory exists.
+
+`snipara_resume_context(mode="context")` returns `agent-resume-context-v2` with freshly
+verified project observation references. Pass `memory_ids` cited by the producer;
+missing, inaccessible, withdrawn or over-budget evidence yields an abstention and
+an automatic recovery action. Calls without mode or source/proposal fields retain
+the historical continuity contract, including Companion branch/files/token-budget
+arguments. `mode="continuity"` explicitly selects it. Memory IDs imply context
+mode, while explicit continuity rejects source/proposal fields. Never treat
+continuity history as current source or execution proof.
+The 3.0.0 contract also accepts `proposed_actions` on resume. Submit the
+model's plan before consuming it; the hosted validator automatically blocks check
+reuse and proposes evidence recovery without execution authorization. Memory recall
+now uses optional facets only for weak or ambiguous initial rankings; counters
+remain in telemetry. This does not intercept external tools invoked outside the
+Snipara contract.
+Context-refresh proposals also expose whether their target exactly resolves to an
+already-loaded verified memory/source locator. Unresolved free text stays advisory;
+resolution performs no refresh and grants no execution authority.
+
+The unpublished compact `validate_actions` beta is withdrawn from the advertised
+contract after reader precision regressions. Old beta calls automatically fall
+back to source-verified context and return `resumeContext`; this fallback provides
+no zero-read/token-saving guarantee. Use `mode="context"` for current facts and
+proposal validation. Responses expose current allowed citation IDs; optional
+`proposed_citations` checks membership, never the truth of the answer's claims.
+The two behaviors are `continuity` and `context`; the schema retains
+`validate_actions` as a deprecated alias for context. The client remains unpublished.

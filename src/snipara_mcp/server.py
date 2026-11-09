@@ -34,6 +34,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, ResourceTemplate, TextContent, Tool
 
 from .tool_contract import DEFAULT_AGENT_TOOL_DEFINITIONS, MCP_TOOL_DEFINITIONS, TOOL_NAMES
+from .memory_view import require_memory_view
+from ._version import __version__
 
 # Configuration
 API_URL = os.environ.get("SNIPARA_API_URL", "https://api.snipara.com")
@@ -207,7 +209,7 @@ async def get_project_settings() -> dict[str, Any]:
     }
 
 
-server = Server("snipara")
+server = Server("snipara", version=__version__)
 
 
 def get_headers() -> dict[str, str]:
@@ -330,24 +332,34 @@ def _build_context_query_payload(
     query: str,
 ) -> dict[str, Any]:
     """Build the hosted API payload without polluting retrieval with session context."""
+    for flag in ("include_metadata", "include_answer_pack", "include_shared_context", "auto_decompose"):
+        if flag in arguments and type(arguments[flag]) is not bool:
+            raise ValueError(f"{flag} must be a boolean")
     max_tokens = arguments.get("max_tokens") or settings.get("maxTokensPerQuery", 4000)
     search_mode = arguments.get("search_mode") or settings.get("searchMode", "hybrid")
     include_summaries = arguments.get(
         "prefer_summaries",
         settings.get("includeSummaries", True),
     )
+    include_metadata = arguments.get("include_metadata", False)
     payload = {
         "query": query,
         "max_tokens": max_tokens,
         "search_mode": search_mode,
-        "include_metadata": arguments.get("include_metadata", True),
+        "include_metadata": include_metadata,
         "prefer_summaries": include_summaries,
         "return_references": arguments.get("return_references", False),
-        "auto_decompose": arguments.get("auto_decompose", True),
+        "auto_decompose": arguments.get("auto_decompose", include_metadata),
         "include_all_tiers": arguments.get("include_all_tiers", False),
     }
     if "retrieval_queries" in arguments:
         payload["retrieval_queries"] = arguments["retrieval_queries"]
+    if "include_answer_pack" in arguments:
+        payload["include_answer_pack"] = arguments["include_answer_pack"]
+    elif not payload["include_metadata"]:
+        payload["include_answer_pack"] = False
+    if "include_shared_context" in arguments:
+        payload["include_shared_context"] = arguments["include_shared_context"]
     return _with_correlation_context(payload, arguments)
 
 
@@ -657,9 +669,7 @@ async def ensure_session_bootstrap(force: bool = False) -> None:
 async def list_tools() -> list[Tool]:
     """List available Snipara tools."""
     profile = os.environ.get("SNIPARA_TOOL_PROFILE", "core").strip().lower()
-    tool_definitions = (
-        MCP_TOOL_DEFINITIONS if profile == "full" else DEFAULT_AGENT_TOOL_DEFINITIONS
-    )
+    tool_definitions = MCP_TOOL_DEFINITIONS if profile == "full" else DEFAULT_AGENT_TOOL_DEFINITIONS
     return [
         Tool(
             name=tool["name"],
@@ -725,6 +735,18 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
 
             if result.get("success"):
                 data = result.get("result", {})
+                if not arguments.get("include_metadata", False):
+                    contents = [
+                        TextContent(
+                            type="text",
+                            text=json.dumps(data, ensure_ascii=False, separators=(",", ":"), default=str),
+                        )
+                    ]
+                    if _session_context:
+                        contents.append(
+                            TextContent(type="text", text=f"## Session Context\n{_session_context}")
+                        )
+                    return contents
                 sections = data.get("sections", [])
                 section_refs = data.get("section_refs", [])
                 if sections:
@@ -1483,6 +1505,13 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 _with_correlation_context(
                     {
                         "query": arguments["query"],
+                        **({"memory_view": arguments["memory_view"]} if "memory_view" in arguments else {}),
+                        **({"as_of": arguments["as_of"]} if "as_of" in arguments else {}),
+                        **(
+                            {"retrieval_queries": arguments["retrieval_queries"]}
+                            if "retrieval_queries" in arguments
+                            else {}
+                        ),
                         "type": arguments.get("type"),
                         "scope": arguments.get("scope"),
                         "category": arguments.get("category"),
@@ -1496,6 +1525,9 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             )
             if result.get("success"):
                 data = result.get("result", {})
+                require_memory_view(data, arguments.get("memory_view", "current"), arguments.get("as_of"))
+                if arguments.get("memory_view") == "history":
+                    return [TextContent(type="text", text=_json_text(data))]
                 memories = data.get("memories", [])
                 warnings = data.get("warnings", [])
                 if memories:

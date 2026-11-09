@@ -246,7 +246,10 @@ def test_generated_contract_exposes_agent_context_surface() -> None:
     help_props = contract_tools["snipara_help"]["inputSchema"]["properties"]
 
     assert "include_answer_pack" in context_props
-    assert context_props["include_answer_pack"]["default"] is True
+    assert context_props["include_answer_pack"]["default"] is False
+    assert context_props["include_metadata"]["default"] is False
+    assert context_props["include_shared_context"]["default"] is True
+    assert context_props["auto_decompose"]["default"] is False
     assert context_props["minimum_change_mode"]["enum"] == ["off", "review"]
     assert "list_all" in help_props
     assert help_props["list_all"]["default"] is False
@@ -515,3 +518,21 @@ async def test_paged_document_contract_and_forwarding(monkeypatch) -> None:
     result = await mcp_server.call_tool("snipara_load_document", arguments)
     assert calls[-1] == ("rlm_load_document", arguments)
     assert '"complete": false' in result[0].text
+
+
+def test_actual_sdk_initialization_options_use_package_identity():
+    options = mcp_server.server.create_initialization_options()
+    assert options.server_name == "snipara"
+    assert options.server_version == snipara_mcp.__version__ == "3.0.0"
+
+
+def test_checkout_version_discovery_does_not_require_python311_tomllib(monkeypatch):
+    import builtins
+    from snipara_mcp import _version
+    original = builtins.__import__
+    def without_tomllib(name, *args, **kwargs):
+        if name in ("tomllib", "tomli"):
+            raise ModuleNotFoundError("simulated Python3.10 standard library")
+        return original(name, *args, **kwargs)
+    monkeypatch.setattr(builtins, "__import__", without_tomllib)
+    assert _version._discover_version() == "3.0.0"

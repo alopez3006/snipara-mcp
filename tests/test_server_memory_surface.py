@@ -12,6 +12,25 @@ def _tool_by_name(tools: list[Any], name: str) -> Any:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("params", [
+    {"branch": "dev", "task": "handoff", "changedFiles": ["a.py"], "max_tokens": 4000},
+    {"mode": "context", "memory_ids": ["m1"], "proposed_citations": ["m1"]},
+    {"mode": "validate_actions", "proposed_actions": [], "proposed_citations": []},
+])
+async def test_resume_dispatch_preserves_both_legacy_and_source_requests(monkeypatch, params):
+    call = {}
+
+    async def fake_api(name, arguments):
+        call.update(name=name, arguments=arguments)
+        return {"success": True, "result": {"resumeContext": {"version": "fixture"}}}
+
+    monkeypatch.setattr(server_module, "call_api", fake_api)
+    response = await server_module.call_tool("snipara_resume_context", params)
+    assert call == {"name": "rlm_resume_context", "arguments": params}
+    assert "fixture" in response[0].text
+
+
+@pytest.mark.asyncio
 async def test_full_profile_exposes_graveyard_lite_memory_surface(
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -78,6 +97,7 @@ async def test_call_tool_forwards_recall_warning_controls(monkeypatch: pytest.Mo
         "rlm_recall",
         {
             "query": "auth flow",
+            "retrieval_queries": ["authentication decisions"],
             "include_inactive": True,
             "warning_threshold": 0.8,
             "correlation_context": {
@@ -88,6 +108,7 @@ async def test_call_tool_forwards_recall_warning_controls(monkeypatch: pytest.Mo
     )
 
     assert captured["tool"] == "rlm_recall"
+    assert captured["params"]["retrieval_queries"] == ["authentication decisions"]
     assert captured["params"]["include_inactive"] is True
     assert captured["params"]["warning_threshold"] == 0.8
     assert captured["params"]["correlation_context"]["session_id"] == ("agent-session:recall")
@@ -148,3 +169,15 @@ async def test_call_tool_supports_memory_lifecycle_mutations(monkeypatch: pytest
     assert "Memory invalidated" in invalidate[0].text
     assert "Memory superseded" in supersede[0].text
     assert "mem_456" in supersede[0].text
+
+
+@pytest.mark.asyncio
+async def test_stdio_history_never_silently_accepts_legacy_current_result(monkeypatch):
+    calls = []
+    async def old_server(tool, arguments):
+        calls.append(arguments)
+        return {"success": True, "result": {"memories": []}}
+    monkeypatch.setattr(server_module, "call_api", old_server)
+    response = await server_module.call_tool("snipara_recall", {"query": "decision", "memory_view": "history", "as_of": "2020-01-01T00:00:00Z"})
+    assert calls[0]["memory_view"] == "history" and calls[0]["as_of"] == "2020-01-01T00:00:00Z"
+    assert "did not confirm" in response[0].text
