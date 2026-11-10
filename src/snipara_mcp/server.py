@@ -480,6 +480,13 @@ def _append_session_context(parts: list[str]) -> None:
     parts.append("")
 
 
+def _append_source_authority(parts: list[str], source: dict[str, Any]) -> None:
+    """Keep parent lifecycle restrictions visible in curated retrieval output."""
+    authority = source.get("source_authority")
+    if authority:
+        parts.append(f"Source authority: {_json_text(authority)}")
+
+
 def _generic_success_response(name: str, payload: Any) -> list[TextContent]:
     """Render a generic tool payload when no curated formatter exists."""
     if payload in (None, "", [], {}):
@@ -761,6 +768,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                         parts.append(
                             f"*{s.get('file', '')} | Score: {s.get('relevance_score', 0):.2f}*\n"
                         )
+                        _append_source_authority(parts, s)
                         parts.append(s.get("content", ""))
                         parts.append("")
                     parts.append(
@@ -782,6 +790,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                             f"*{ref.get('file', '')} | Lines: {ref.get('lines', '')} | "
                             f"Score: {ref.get('relevance_score', 0):.2f}*"
                         )
+                        _append_source_authority(parts, ref)
                         parts.append(f"Chunk: `{ref.get('chunk_id', '')}`")
                         if ref.get("preview"):
                             parts.append(ref["preview"])
@@ -817,6 +826,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                         file_path = s.get("file", s.get("file_path", ""))
                         parts.append(f"### {s.get('title', 'Untitled')}")
                         parts.append(f"*{file_path}*\n")
+                        _append_source_authority(parts, s)
                         parts.append(s.get("content", ""))
                         parts.append("")
                     return [TextContent(type="text", text="\n".join(parts))]
@@ -842,6 +852,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 if matches:
                     lines = [f"Found {len(matches)} matches:\n"]
                     for m in matches[:max_results]:
+                        _append_source_authority(lines, m)
                         lines.append(
                             f"  {m.get('file', '')}:{m.get('line_number', 0)}: {m.get('content', '')[:100]}"
                         )
@@ -886,6 +897,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 for r in data.get("results", []):
                     parts.append(f"### {r.get('query', '')}")
                     for s in r.get("sections", [])[:2]:
+                        _append_source_authority(parts, s)
                         parts.append(f"- {s.get('title', '')} ({s.get('file', '')})")
                     parts.append("")
                 parts.append(f"*Total: {data.get('total_tokens', 0)} tokens*")
@@ -1046,18 +1058,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             ]
 
         elif name == "rlm_read":
+            payload = {
+                key: arguments[key]
+                for key in ("file_path", "file", "path", "document", "start_line", "end_line")
+                if key in arguments
+            }
             result = await call_api(
-                "rlm_read",
-                {"start_line": arguments["start_line"], "end_line": arguments["end_line"]},
+                "rlm_read", _with_correlation_context(payload, arguments)
             )
             if result.get("success"):
-                content = result.get("result", {}).get("content", "")
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Lines {arguments['start_line']}-{arguments['end_line']}:**\n```\n{content}\n```",
-                    )
-                ]
+                # Preserve actual returned bounds, errors, and lifecycle authority.
+                return _generic_success_response(name, _tool_result_payload(result))
             return [
                 TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
             ]

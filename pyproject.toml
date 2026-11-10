@@ -1,6 +1,6 @@
 [project]
 name = "snipara-mcp"
-version = "3.0.0"
+version = "3.0.1"
 description = "MCP connector for Snipara, the Project Brain for AI coding agents"
 readme = "README.md"
 requires-python = ">=3.10"
