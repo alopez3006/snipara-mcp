@@ -1396,10 +1396,19 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     "ttl_days": arguments.get("ttl_days"),
                     "related_to": arguments.get("related_to"),
                     "document_refs": arguments.get("document_refs"),
+                    "sources": arguments.get("sources"),
+                    "session_id": arguments.get("session_id"),
                 },
             )
             if result.get("success"):
                 data = result.get("result", {})
+                if data.get("reason") == "duplicate":
+                    return [
+                        TextContent(
+                            type="text",
+                            text=f"**Memory not stored: already known** (ID: {data.get('duplicate_memory_id', '')}, corroborated: {bool(data.get('corroborated'))})",
+                        )
+                    ]
                 return [
                     TextContent(
                         type="text",
@@ -1431,9 +1440,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     "ttl_days": arguments.get("ttl_days"),
                     "related_to": arguments.get("related_to"),
                     "document_refs": arguments.get("document_refs"),
-                    "novelty_threshold": arguments.get("novelty_threshold"),
-                    "dedupe_limit": arguments.get("dedupe_limit", 5),
-                    "allow_supersede": arguments.get("allow_supersede", True),
+                    "sources": arguments.get("sources"),
+                    "session_id": arguments.get("session_id"),
                 },
             )
             if result.get("success"):
@@ -1445,6 +1453,10 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 ]
                 if data.get("memory_id"):
                     lines.append(f"ID: {data['memory_id']}")
+                if data.get("duplicate_memory_id"):
+                    lines.append(
+                        f"Existing memory: {data['duplicate_memory_id']} (corroborated: {bool(data.get('corroborated'))})"
+                    )
                 matches = data.get("matched_memories") or []
                 if matches:
                     lines.append("")
@@ -1471,6 +1483,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     "persist_types": arguments.get("persist_types"),
                     "category": arguments.get("category"),
                     "dry_run": arguments.get("dry_run", False),
+                    "sources": arguments.get("sources"),
+                    "session_id": arguments.get("session_id"),
                 },
             )
             if result.get("success"):
@@ -1529,7 +1543,6 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                         "limit": arguments.get("limit", 5),
                         "min_relevance": arguments.get("min_relevance", 0.5),
                         "include_inactive": arguments.get("include_inactive", False),
-                        "warning_threshold": arguments.get("warning_threshold", 0.72),
                     },
                     arguments,
                 ),
@@ -1676,6 +1689,8 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                     "type": arguments.get("type"),
                     "category": arguments.get("category"),
                     "older_than_days": arguments.get("older_than_days"),
+                    **({"soft": True} if arguments.get("soft") else {}),
+                    **({"reason": arguments["reason"]} if arguments.get("reason") else {}),
                 },
             )
             if result.get("success"):
@@ -1715,29 +1730,39 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
             ]
 
-        elif name == "rlm_memory_daily_brief":
+        elif name == "rlm_memory_restore":
+            params = {"memory_id": arguments["memory_id"]}
+            for key in ("reason", "undo_supersede", "agent_id"):
+                if arguments.get(key) is not None:
+                    params[key] = arguments[key]
+            result = await call_api("rlm_memory_restore", params)
+            if result.get("success"):
+                return [TextContent(type="text", text=_json_text(result.get("result", {})))]
+            return [
+                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
+            ]
+
+        elif name == "rlm_memory_outcome":
+            params = {"memory_ids": arguments["memory_ids"]}
+            if arguments.get("outcome") is not None:
+                params["outcome"] = arguments["outcome"]
+            for key in ("count", "agent_id", "phase_id", "result", "receipt_ref", "verdicts", "session_id"):
+                if arguments.get(key) is not None:
+                    params[key] = arguments[key]
+            result = await call_api("rlm_memory_outcome", params)
+            if result.get("success"):
+                return [TextContent(type="text", text=_json_text(result.get("result", {})))]
+            return [
+                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
+            ]
+
+        elif name == "rlm_memory_retirement_candidates":
             result = await call_api(
-                "rlm_memory_daily_brief",
-                {
-                    "date": arguments.get("date"),
-                    "max_items": arguments.get("max_items", 10),
-                },
+                "rlm_memory_retirement_candidates",
+                {"limit": arguments.get("limit", 20)},
             )
             if result.get("success"):
-                data = result.get("result", {})
-                brief = data.get("brief")
-                if brief:
-                    return [TextContent(type="text", text=brief)]
-                counts = data.get("counts", {})
-                return [
-                    TextContent(
-                        type="text",
-                        text=(
-                            f"**Daily brief**\nDecisions: {counts.get('decisions', 0)} | "
-                            f"TODOs: {counts.get('todos', 0)} | Learnings: {counts.get('learnings', 0)}"
-                        ),
-                    )
-                ]
+                return [TextContent(type="text", text=_json_text(result.get("result", {})))]
             return [
                 TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
             ]
@@ -1762,244 +1787,6 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
                 TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
             ]
 
-        # Phase 9.1: Multi-Agent Swarm Handlers
-        elif name == "rlm_swarm_create":
-            result = await call_api(
-                "rlm_swarm_create",
-                {
-                    "name": arguments["name"],
-                    "description": arguments.get("description"),
-                    "max_agents": arguments.get("max_agents", 10),
-                    "config": arguments.get("config"),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Swarm created:** {data.get('name', '')}\nID: {data.get('swarm_id', '')} | Max agents: {data.get('max_agents', 10)}",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_swarm_join":
-            result = await call_api(
-                "rlm_swarm_join",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "role": arguments.get("role", "worker"),
-                    "capabilities": arguments.get("capabilities"),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Joined swarm** as {data.get('role', 'worker')}\nAgent ID: {data.get('agent_id', '')}",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_claim":
-            result = await call_api(
-                "rlm_claim",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "resource_type": arguments["resource_type"],
-                    "resource_id": arguments["resource_id"],
-                    "timeout_seconds": arguments.get("timeout_seconds", 300),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                if data.get("extended"):
-                    return [
-                        TextContent(
-                            type="text",
-                            text=f"**Claim extended** until {data.get('expires_at', '')}",
-                        )
-                    ]
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Resource claimed:** {data.get('resource_type', '')}:{data.get('resource_id', '')}\nExpires: {data.get('expires_at', '')}",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_release":
-            result = await call_api(
-                "rlm_release",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "claim_id": arguments.get("claim_id"),
-                    "resource_type": arguments.get("resource_type"),
-                    "resource_id": arguments.get("resource_id"),
-                },
-            )
-            if result.get("success"):
-                return [TextContent(type="text", text="**Claim released**")]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_state_get":
-            result = await call_api(
-                "rlm_state_get",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "key": arguments["key"],
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                if data.get("found"):
-                    value_str = _json_text(data.get("value"))
-                    return [
-                        TextContent(
-                            type="text",
-                            text=f"**{arguments['key']}** (v{data.get('version', 0)})\n```json\n{value_str}\n```",
-                        )
-                    ]
-                return [TextContent(type="text", text=f"Key '{arguments['key']}' not found")]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_state_set":
-            result = await call_api(
-                "rlm_state_set",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "key": arguments["key"],
-                    "value": arguments["value"],
-                    "expected_version": arguments.get("expected_version"),
-                    "ttl_seconds": arguments.get("ttl_seconds"),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**State {data.get('message', 'updated')}:** {arguments['key']} → v{data.get('version', 0)}",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_broadcast":
-            result = await call_api(
-                "rlm_broadcast",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "event_type": arguments["event_type"],
-                    "payload": arguments.get("payload"),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                redis_status = "✓ real-time" if data.get("redis_published") else "✗ persisted only"
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Event broadcast:** {arguments['event_type']} ({redis_status})",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_task_create":
-            result = await call_api(
-                "rlm_task_create",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "title": arguments["title"],
-                    "description": arguments.get("description"),
-                    "priority": arguments.get("priority", 0),
-                    "deadline": arguments.get("deadline"),
-                    "depends_on": arguments.get("depends_on"),
-                    "metadata": arguments.get("metadata"),
-                    "for_agent_id": arguments.get("for_agent_id"),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                deps = (
-                    f" (depends on: {data.get('depends_on', [])})" if data.get("depends_on") else ""
-                )
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Task created:** {arguments['title']}\nID: {data.get('task_id', '')} | Priority: {data.get('priority', 0)}{deps}",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_task_claim":
-            result = await call_api(
-                "rlm_task_claim",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "task_id": arguments.get("task_id"),
-                    "timeout_seconds": arguments.get("timeout_seconds", 600),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Task claimed:** {data.get('title', '')}\nID: {data.get('task_id', '')} | Deadline: {data.get('deadline', '')}",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        elif name == "rlm_task_complete":
-            result = await call_api(
-                "rlm_task_complete",
-                {
-                    "swarm_id": arguments["swarm_id"],
-                    "agent_id": arguments["agent_id"],
-                    "task_id": arguments["task_id"],
-                    "success": arguments.get("success", True),
-                    "result": arguments.get("result"),
-                },
-            )
-            if result.get("success"):
-                data = result.get("result", {})
-                return [
-                    TextContent(
-                        type="text",
-                        text=f"**Task {data.get('status', 'completed')}:** {arguments['task_id']}",
-                    )
-                ]
-            return [
-                TextContent(type="text", text=f"**Error:** {result.get('error', 'Unknown error')}")
-            ]
-
-        # Sprint 3: Index Health & Analytics
         elif name == "rlm_index_health":
             result = await call_api(
                 "rlm_index_health",

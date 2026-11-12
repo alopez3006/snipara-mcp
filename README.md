@@ -343,7 +343,6 @@ Common tool groups:
 - project setup: client, project, and business-context workspace tools
 - operations: `snipara_settings`, `snipara_index_health`, `snipara_reindex`
 - code graph: `snipara_code_*` tools when code indexes are available
-- coordination: swarm, hierarchical task, and state tools when enabled
 
 Tool availability can vary by plan, hosted deployment, and project index state.
 

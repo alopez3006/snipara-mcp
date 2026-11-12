@@ -64,7 +64,6 @@ async def test_memory_tools_forward_new_lifecycle_params(
     await tool_map["recall"].handler(
         "auth decisions",
         include_inactive=True,
-        warning_threshold=0.81,
     )
     await tool_map["memories"].handler(status="SUPERSEDED", include_inactive=True)
     await tool_map["memory_invalidate"].handler("mem_123", reason="Outdated flow")
@@ -83,7 +82,6 @@ async def test_memory_tools_forward_new_lifecycle_params(
             "min_relevance": 0.5,
             "include_expired": False,
             "include_inactive": True,
-            "warning_threshold": 0.81,
         },
     )
     assert client.calls[1] == (

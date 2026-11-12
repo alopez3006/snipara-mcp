@@ -45,8 +45,7 @@ async def test_full_profile_exposes_graveyard_lite_memory_surface(
     recall_props = recall.inputSchema["properties"]
     assert "include_inactive" in recall_props
     assert recall_props["include_inactive"]["default"] is False
-    assert "warning_threshold" in recall_props
-    assert recall_props["warning_threshold"]["default"] == 0.72
+    assert "warning_threshold" not in recall_props
 
     memories_props = memories.inputSchema["properties"]
     assert memories_props["status"]["enum"] == ["ACTIVE", "INVALIDATED", "SUPERSEDED"]
@@ -99,7 +98,6 @@ async def test_call_tool_forwards_recall_warning_controls(monkeypatch: pytest.Mo
             "query": "auth flow",
             "retrieval_queries": ["authentication decisions"],
             "include_inactive": True,
-            "warning_threshold": 0.8,
             "correlation_context": {
                 "version": "retrieval-correlation-v1",
                 "session_id": "agent-session:recall",
@@ -110,7 +108,7 @@ async def test_call_tool_forwards_recall_warning_controls(monkeypatch: pytest.Mo
     assert captured["tool"] == "rlm_recall"
     assert captured["params"]["retrieval_queries"] == ["authentication decisions"]
     assert captured["params"]["include_inactive"] is True
-    assert captured["params"]["warning_threshold"] == 0.8
+    assert "warning_threshold" not in captured["params"]
     assert captured["params"]["correlation_context"]["session_id"] == ("agent-session:recall")
     assert "Inactive memory warnings" in contents[0].text
     assert "SUPERSEDED" in contents[0].text

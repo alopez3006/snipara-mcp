@@ -523,7 +523,7 @@ async def test_paged_document_contract_and_forwarding(monkeypatch) -> None:
 def test_actual_sdk_initialization_options_use_package_identity():
     options = mcp_server.server.create_initialization_options()
     assert options.server_name == "snipara"
-    assert options.server_version == snipara_mcp.__version__ == "3.0.1"
+    assert options.server_version == snipara_mcp.__version__ == "4.0.0"
 
 
 def test_checkout_version_discovery_does_not_require_python311_tomllib(monkeypatch):
@@ -535,4 +535,4 @@ def test_checkout_version_discovery_does_not_require_python311_tomllib(monkeypat
             raise ModuleNotFoundError("simulated Python3.10 standard library")
         return original(name, *args, **kwargs)
     monkeypatch.setattr(builtins, "__import__", without_tomllib)
-    assert _version._discover_version() == "3.0.1"
+    assert _version._discover_version() == "4.0.0"

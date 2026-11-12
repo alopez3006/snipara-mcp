@@ -68,11 +68,11 @@ class LocalMcpBackend:
                 "status": "healthy",
                 "orphaned_memories": 0,
             }
-        elif tool == "rlm_htask_get":
+        elif tool == "rlm_index_health":
             payload = {
-                "task_id": params.get("task_id"),
-                "title": "E2E htask",
-                "status": "OPEN",
+                "stale_threshold_days": params.get("stale_threshold_days"),
+                "health_score": 96,
+                "health_status": "healthy",
             }
         else:
             return httpx.Response(400, json={"success": False, "error": f"unknown tool {tool}"})
@@ -129,15 +129,17 @@ def test_server_e2e_list_tools_and_real_tool_calls(monkeypatch) -> None:
             {"text": "The SDK prefers the hosted MCP endpoint.", "type": "learning"},
         )
         health = await mcp_server.call_tool("snipara_memory_health", {})
-        htask = await mcp_server.call_tool("snipara_htask_get", {"task_id": "task-e2e"})
-        return tools, context, remember, health, htask
+        index_health = await mcp_server.call_tool(
+            "snipara_index_health", {"stale_threshold_days": 30}
+        )
+        return tools, context, remember, health, index_health
 
-    tools, context, remember, health, htask = asyncio.run(run_calls())
+    tools, context, remember, health, index_health = asyncio.run(run_calls())
     assert {
         "snipara_context_query",
         "snipara_remember_if_novel",
         "snipara_memory_health",
-        "snipara_htask_get",
+        "snipara_index_health",
     }.issubset(tools)
     assert "rlm_context_query" not in tools
 
@@ -147,13 +149,13 @@ def test_server_e2e_list_tools_and_real_tool_calls(monkeypatch) -> None:
     assert "mem_e2e" in remember[0].text
     assert '"status": "healthy"' in health[0].text
     assert '"orphaned_memories": 0' in health[0].text
-    assert '"task_id": "task-e2e"' in htask[0].text
+    assert "Index Health Score: 96/100" in index_health[0].text
 
     assert [request["body"]["tool"] for request in backend.requests] == [
         "rlm_context_query",
         "rlm_remember_if_novel",
         "rlm_memory_health",
-        "rlm_htask_get",
+        "rlm_index_health",
     ]
     assert all(request["path"] == "/v1/e2e-project/mcp" for request in backend.requests)
     assert all(request["headers"]["x-api-key"] == "rlm_e2e_key" for request in backend.requests)
@@ -380,10 +382,10 @@ def test_snipara_client_endpoint_contract_prefers_hosted_mcp_and_falls_back(
     )
 
     fallback_result = asyncio.run(
-        fallback_client.call_tool("rlm_htask_get", {"task_id": "task-e2e"})
+        fallback_client.call_tool("rlm_index_health", {"stale_threshold_days": 30})
     )
 
-    assert fallback_result["task_id"] == "task-e2e"
+    assert fallback_result["stale_threshold_days"] == 30
     assert [request["path"] for request in backend_404_first.requests] == [
         "/v1/e2e-project/mcp",
         "/api/mcp/e2e-project",
