@@ -2502,12 +2502,10 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                    'unchanged.'},
                                  'include_all_tiers': {'type': 'boolean',
                                                        'default': False,
-                                                       'description': 'Include all context tiers '
-                                                                      'including COLD and ARCHIVE. '
-                                                                      'By default, searches only '
-                                                                      'HOT and WARM tiers for '
-                                                                      'faster, more relevant '
-                                                                      'results.'},
+                                                       'description': 'Deprecated, no effect: '
+                                                                      'every context tier (HOT, '
+                                                                      'WARM, COLD, ARCHIVE) is '
+                                                                      'always searched.'},
                                  'task': {'type': 'string',
                                           'minLength': 1,
                                           'maxLength': 512,
