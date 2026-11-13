@@ -6791,7 +6791,13 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                  'task': {'type': 'string',
                                           'minLength': 1,
                                           'maxLength': 512,
-                                          'description': 'Optional task label recorded for '
+                                          'description': 'Optional: the task the agent is about to '
+                                                         'carry out. When set, recall works for '
+                                                         'that task: it also reads what other '
+                                                         'agents of the project recorded, examines '
+                                                         'more candidates, and keeps a memory when '
+                                                         'it applies to the task rather than when '
+                                                         'it answers a question. Also recorded for '
                                                          'retrieval/outcome correlation.'},
                                  'use_outcome_rerank': {'type': 'boolean',
                                                         'default': True,
