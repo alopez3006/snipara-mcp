@@ -5573,10 +5573,7 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                           'them you cannot currently call.'},
                                  'runtimes': {'type': 'array',
                                               'items': {'type': 'string',
-                                                        'enum': ['hosted',
-                                                                 'companion',
-                                                                 'orchestrator',
-                                                                 'sandbox']},
+                                                        'enum': ['hosted', 'companion', 'sandbox']},
                                               'description': 'Runtimes this client can reach. Only '
                                                              'the client knows this, so anything '
                                                              'you leave out is reported as unknown '
