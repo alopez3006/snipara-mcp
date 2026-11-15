@@ -970,18 +970,24 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             ]
 
         elif name == "rlm_help":
-            result = await call_api(
-                "rlm_help",
-                {
-                    "query": arguments.get("query"),
-                    "tool": arguments.get("tool"),
-                    "tier": arguments.get("tier"),
-                    "list_all": arguments.get("list_all", False),
-                    "limit": arguments.get("limit", 5),
-                },
-            )
+            help_payload: dict[str, Any] = {
+                "query": arguments.get("query"),
+                "tool": arguments.get("tool"),
+                "tier": arguments.get("tier"),
+                "list_all": arguments.get("list_all", False),
+                "limit": arguments.get("limit", 5),
+            }
+            # Routing keys are forwarded only when present: the backend switches on
+            # their presence, and sending them as None would route every help call.
+            for routing_key in ("depth", "runtimes"):
+                if arguments.get(routing_key) is not None:
+                    help_payload[routing_key] = arguments[routing_key]
+            result = await call_api("rlm_help", help_payload)
             if result.get("success"):
                 data = result.get("result", {})
+
+                if data.get("contract") == "snipara.workflow-routing.v1":
+                    return [TextContent(type="text", text=json.dumps(data, indent=1))]
 
                 if data.get("recommendations"):
                     lines = [f"**Tool recommendations** for: {data.get('query', 'your task')}\n"]

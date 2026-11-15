@@ -248,7 +248,9 @@ def test_generated_contract_exposes_agent_context_surface() -> None:
     assert "include_answer_pack" in context_props
     assert context_props["include_answer_pack"]["default"] is False
     assert context_props["include_metadata"]["default"] is False
-    assert context_props["include_shared_context"]["default"] is True
+    # opt-in like the rest: shared team context is injected unranked, so it spends
+    # budget whether or not it bears on the question
+    assert context_props["include_shared_context"]["default"] is False
     assert context_props["auto_decompose"]["default"] is False
     assert context_props["minimum_change_mode"]["enum"] == ["off", "review"]
     assert "list_all" in help_props

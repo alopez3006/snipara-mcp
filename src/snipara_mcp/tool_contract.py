@@ -400,14 +400,26 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                                      'instructions. REST/internal '
                                                                      'defaults are unchanged.'},
                                  'include_shared_context': {'type': 'boolean',
-                                                            'default': True,
-                                                            'description': 'Include configured '
-                                                                           'shared team context. '
-                                                                           'Set false for a '
-                                                                           'project-only lookup; '
-                                                                           'this does not change '
-                                                                           'access checks or '
-                                                                           'source validity.'},
+                                                            'default': False,
+                                                            'description': 'Opt in to the shared '
+                                                                           'collections linked to '
+                                                                           'this project. Off by '
+                                                                           'default: it is '
+                                                                           'injected unranked '
+                                                                           '(relevance_basis '
+                                                                           "'unranked'), so it "
+                                                                           'spends budget whether '
+                                                                           'or not it bears on the '
+                                                                           'question. Set true '
+                                                                           'when the task is about '
+                                                                           'standards, '
+                                                                           'conventions, '
+                                                                           'compliance or '
+                                                                           'cross-project '
+                                                                           'guidance. This does '
+                                                                           'not change access '
+                                                                           'checks or source '
+                                                                           'validity.'},
                                  'prefer_summaries': {'type': 'boolean',
                                                       'default': False,
                                                       'description': 'Prefer stored summaries when '
@@ -5549,7 +5561,28 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                  'selection guidance, examples, access requirements, exposure metadata, and '
                  'related tool names.',
   'inputSchema': {'type': 'object',
-                  'properties': {'query': {'type': 'string',
+                  'properties': {'depth': {'type': 'string',
+                                           'enum': ['lite', 'standard', 'full', 'orchestrated'],
+                                           'description': 'Task depth as defined in AGENTS.md, '
+                                                          'chosen by you from consequences and '
+                                                          'uncertainty, never from keywords or a '
+                                                          'file count. Omit it to get the four '
+                                                          'definitions back and choose. With it, '
+                                                          'the answer names the tools worth '
+                                                          'reaching for at that depth and which of '
+                                                          'them you cannot currently call.'},
+                                 'runtimes': {'type': 'array',
+                                              'items': {'type': 'string',
+                                                        'enum': ['hosted',
+                                                                 'companion',
+                                                                 'orchestrator',
+                                                                 'sandbox']},
+                                              'description': 'Runtimes this client can reach. Only '
+                                                             'the client knows this, so anything '
+                                                             'you leave out is reported as unknown '
+                                                             'rather than absent; hosted is '
+                                                             'implied by calling this tool.'},
+                                 'query': {'type': 'string',
                                            'description': 'Describe what you want to do (e.g., '
                                                           "'search across all team projects', "
                                                           "'remember a decision')"},
