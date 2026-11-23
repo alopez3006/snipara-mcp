@@ -6352,6 +6352,17 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                               'description': 'Optional retention period in days; '
                                                              'omit only for knowledge that should '
                                                              'not expire automatically.'},
+                                 'supersedes': {'type': 'array',
+                                                'items': {'type': 'string', 'maxLength': 256},
+                                                'maxItems': 5,
+                                                'description': 'IDs of older memories this one '
+                                                               'replaces. When the new memory is '
+                                                               'stored, each is marked superseded '
+                                                               'by it (retained, no longer '
+                                                               'current). Use the IDs of '
+                                                               'memory_reconciliation.candidates '
+                                                               'from a previous write, or of a '
+                                                               'recall.'},
                                  'related_to': {'type': 'array',
                                                 'items': {'type': 'string', 'maxLength': 256},
                                                 'maxItems': 50,
@@ -8890,7 +8901,6 @@ MCP_TOOL_NAME_SET = set(MCP_TOOL_NAMES)
 MCP_TOOL_DEFINITIONS = [TOOL_DEFINITION_BY_NAME[name] for name in MCP_TOOL_NAMES if name in TOOL_DEFINITION_BY_NAME]
 
 DEFAULT_AGENT_TOOL_NAMES = ['snipara_context_query',
- 'snipara_ask',
  'snipara_search',
  'snipara_read',
  'snipara_stats',

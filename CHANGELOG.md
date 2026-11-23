@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.3
+
+- Regenerated tool contract: `snipara_remember_if_novel` takes `supersedes`, the memories the new one replaces; they are marked superseded when it is stored.
+
 ## 4.0.2
 
 - Regenerated tool contract: `snipara_help` no longer lists `orchestrator` among `runtimes`. Orchestrator was folded into Companion; the hosted server reports a declared `orchestrator` as retired.
