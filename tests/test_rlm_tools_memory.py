@@ -58,6 +58,7 @@ async def test_memory_tools_forward_new_lifecycle_params(
     tools = rlm_tools.get_snipara_tools(api_key="rlm_test", project_slug="snipara")
     tool_map = {tool.name: tool for tool in tools}
 
+    assert "multi_project_query" not in tool_map  # served by the team REST route only
     assert "memory_invalidate" in tool_map
     assert "memory_supersede" in tool_map
 

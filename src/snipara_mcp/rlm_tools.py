@@ -410,42 +410,6 @@ def get_snipara_tools(
             },
         )
 
-    async def multi_project_query(
-        query: str,
-        max_tokens: int = 4000,
-        per_project_limit: int = 3,
-        project_ids: list[str] | None = None,
-        exclude_project_ids: list[str] | None = None,
-        search_mode: str = "keyword",
-        include_metadata: bool = True,
-    ) -> dict[str, Any]:
-        """Query across multiple projects in your team.
-
-        Args:
-            query: The query/question to get context for
-            max_tokens: Maximum tokens to return across all projects
-            per_project_limit: Maximum sections to return per project
-            project_ids: Optional list of project IDs or slugs to include
-            exclude_project_ids: Optional list of project IDs or slugs to exclude
-            search_mode: Search strategy (keyword, semantic, hybrid)
-            include_metadata: Include file paths, line numbers, and relevance scores
-
-        Returns:
-            Dictionary with results from multiple projects
-        """
-        params: dict[str, Any] = {
-            "query": query,
-            "max_tokens": max_tokens,
-            "per_project_limit": per_project_limit,
-            "search_mode": search_mode,
-            "include_metadata": include_metadata,
-        }
-        if project_ids:
-            params["project_ids"] = project_ids
-        if exclude_project_ids:
-            params["exclude_project_ids"] = exclude_project_ids
-        return await client.call_tool("rlm_multi_project_query", params)
-
     async def stats() -> dict[str, Any]:
         """Get documentation statistics.
 
@@ -1280,55 +1244,6 @@ def get_snipara_tools(
                 "required": ["queries"],
             },
             handler=multi_query,
-        ),
-        Tool(
-            name="multi_project_query",
-            description=(
-                "Query across multiple projects in your team. "
-                "Useful for finding context across related codebases or shared documentation."
-            ),
-            parameters={
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "The query/question to get context for",
-                    },
-                    "max_tokens": {
-                        "type": "integer",
-                        "default": 4000,
-                        "description": "Maximum tokens to return across all projects",
-                    },
-                    "per_project_limit": {
-                        "type": "integer",
-                        "default": 3,
-                        "description": "Maximum sections to return per project",
-                    },
-                    "project_ids": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Optional list of project IDs or slugs to include",
-                    },
-                    "exclude_project_ids": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Optional list of project IDs or slugs to exclude",
-                    },
-                    "search_mode": {
-                        "type": "string",
-                        "enum": ["keyword", "semantic", "hybrid"],
-                        "default": "keyword",
-                        "description": "Search strategy",
-                    },
-                    "include_metadata": {
-                        "type": "boolean",
-                        "default": True,
-                        "description": "Include file paths, line numbers, and relevance scores",
-                    },
-                },
-                "required": ["query"],
-            },
-            handler=multi_project_query,
         ),
         Tool(
             name="stats",

@@ -152,7 +152,7 @@ Result: Instant, accurate answer
 
 **Tool:** `rlm_multi_project_query`
 **Use when:** You have 5+ repos and don't know which has the answer
-**Example:** One query searches ALL your team's projects
+**Example:** One query searches up to 10 of your team's projects
 **Time saved:** 5 minutes of manual searching → 3 seconds
 
 ```json

@@ -42,18 +42,18 @@ async def test_full_profile_exposes_graveyard_lite_memory_surface(
     invalidate = _tool_by_name(tools, "snipara_memory_invalidate")
     supersede = _tool_by_name(tools, "snipara_memory_supersede")
 
-    recall_props = recall.inputSchema["properties"]
+    recall_props = recall.input_schema["properties"]
     assert "include_inactive" in recall_props
     assert recall_props["include_inactive"]["default"] is False
     assert "warning_threshold" not in recall_props
 
-    memories_props = memories.inputSchema["properties"]
+    memories_props = memories.input_schema["properties"]
     assert memories_props["status"]["enum"] == ["ACTIVE", "INVALIDATED", "SUPERSEDED"]
     assert memories_props["include_inactive"]["default"] is False
 
-    assert invalidate.inputSchema["required"] == ["memory_id"]
-    assert "invalidated_at" in invalidate.inputSchema["properties"]
-    assert supersede.inputSchema["required"] == ["old_memory_id", "new_memory_id"]
+    assert invalidate.input_schema["required"] == ["memory_id"]
+    assert "invalidated_at" in invalidate.input_schema["properties"]
+    assert supersede.input_schema["required"] == ["old_memory_id", "new_memory_id"]
 
 
 @pytest.mark.asyncio

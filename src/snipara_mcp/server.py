@@ -29,9 +29,19 @@ from functools import lru_cache
 from typing import Any
 
 import httpx
-from mcp.server import Server
+import jsonschema
+from mcp.server import Server, ServerRequestContext
 from mcp.server.stdio import stdio_server
-from mcp.types import Resource, ResourceTemplate, TextContent, Tool
+from mcp.types import (
+    CallToolRequestParams,
+    CallToolResult,
+    ListResourcesResult,
+    ListResourceTemplatesResult,
+    ListToolsResult,
+    PaginatedRequestParams,
+    TextContent,
+    Tool,
+)
 
 from .tool_contract import DEFAULT_AGENT_TOOL_DEFINITIONS, MCP_TOOL_DEFINITIONS, TOOL_NAMES
 from .memory_view import require_memory_view
@@ -207,9 +217,6 @@ async def get_project_settings() -> dict[str, Any]:
         "memoryNoveltyThreshold": 0.92,
         "memoryResumeWindowMinutes": 180,
     }
-
-
-server = Server("snipara", version=__version__)
 
 
 def get_headers() -> dict[str, str]:
@@ -672,35 +679,36 @@ async def ensure_session_bootstrap(force: bool = False) -> None:
     _session_last_bootstrap_at = now
 
 
-@server.list_tools()
+def _listed_tool_definitions() -> list[dict[str, Any]]:
+    profile = os.environ.get("SNIPARA_TOOL_PROFILE", "core").strip().lower()
+    return MCP_TOOL_DEFINITIONS if profile == "full" else DEFAULT_AGENT_TOOL_DEFINITIONS
+
+
 async def list_tools() -> list[Tool]:
     """List available Snipara tools."""
-    profile = os.environ.get("SNIPARA_TOOL_PROFILE", "core").strip().lower()
-    tool_definitions = MCP_TOOL_DEFINITIONS if profile == "full" else DEFAULT_AGENT_TOOL_DEFINITIONS
     return [
         Tool(
             name=tool["name"],
             title=tool.get("title"),
             description=tool["description"],
-            inputSchema=tool["inputSchema"],
-            outputSchema=tool.get("outputSchema"),
+            input_schema=tool["inputSchema"],
+            output_schema=tool.get("outputSchema"),
             annotations=tool.get("annotations"),
             meta=tool.get("_meta"),
         )
-        for tool in tool_definitions
+        for tool in _listed_tool_definitions()
     ]
 
 
-@server.list_resources()
-async def list_resources() -> list[Resource]:
-    """Snipara MCP is tool-only and does not expose resources."""
-    return []
-
-
-@server.list_resource_templates()
-async def list_resource_templates() -> list[ResourceTemplate]:
-    """Snipara MCP is tool-only and does not expose resource templates."""
-    return []
+def _input_error(name: str, arguments: dict[str, Any]) -> str | None:
+    """Check the arguments of a listed tool against its schema (the SDK does not)."""
+    for tool in _listed_tool_definitions():
+        if tool["name"] == name:
+            try:
+                jsonschema.validate(arguments, tool["inputSchema"])
+            except jsonschema.ValidationError as error:
+                return error.message
+    return None
 
 
 def _canonical_tool_name(name: str) -> str:
@@ -717,7 +725,6 @@ def _is_known_tool_name(name: str) -> bool:
     return name.startswith("rlm_") and f"snipara_{name.removeprefix('rlm_')}" in TOOL_NAMES
 
 
-@server.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Handle tool calls."""
     global _session_context
@@ -1990,6 +1997,47 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
         return [TextContent(type="text", text=f"**Connection Error:** Cannot reach {API_URL}")]
     except Exception as e:
         return [TextContent(type="text", text=f"**Error:** {type(e).__name__}: {str(e)}")]
+
+
+async def _on_list_tools(
+    _ctx: ServerRequestContext, _params: PaginatedRequestParams | None
+) -> ListToolsResult:
+    return ListToolsResult(tools=await list_tools())
+
+
+async def _on_call_tool(_ctx: ServerRequestContext, params: CallToolRequestParams) -> CallToolResult:
+    arguments = params.arguments or {}
+    error = _input_error(params.name, arguments)
+    if error:
+        return CallToolResult(
+            content=[TextContent(type="text", text=f"Input validation error: {error}")],
+            is_error=True,
+        )
+    return CallToolResult(content=await call_tool(params.name, arguments))
+
+
+async def _on_list_resources(
+    _ctx: ServerRequestContext, _params: PaginatedRequestParams | None
+) -> ListResourcesResult:
+    """Snipara MCP is tool-only and does not expose resources."""
+    return ListResourcesResult(resources=[])
+
+
+async def _on_list_resource_templates(
+    _ctx: ServerRequestContext, _params: PaginatedRequestParams | None
+) -> ListResourceTemplatesResult:
+    """Snipara MCP is tool-only and does not expose resource templates."""
+    return ListResourceTemplatesResult(resource_templates=[])
+
+
+server = Server(
+    "snipara",
+    version=__version__,
+    on_list_tools=_on_list_tools,
+    on_call_tool=_on_call_tool,
+    on_list_resources=_on_list_resources,
+    on_list_resource_templates=_on_list_resource_templates,
+)
 
 
 async def run_server():

@@ -7,6 +7,8 @@ import sys
 import types
 
 import pytest
+from mcp import Client
+from mcp.types import TextContent
 from typer.testing import CliRunner
 
 import snipara_mcp
@@ -44,8 +46,45 @@ def test_package_version_matches_pyproject() -> None:
 
 
 def test_mcp_dependency_excludes_incompatible_major_version() -> None:
-    """The connector still uses the MCP v1 Server decorator contract."""
-    assert "mcp>=1.28.1,<2" in _package_dependencies_from_pyproject()
+    """The connector uses the MCP v2 Server handlers, which no other major version has."""
+    assert "mcp>=2.3.0,<3" in _package_dependencies_from_pyproject()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("mode", "version"), [("legacy", "2025-11-25"), ("auto", "2026-07-28")])
+async def test_server_answers_both_protocol_eras(monkeypatch, mode: str, version: str) -> None:
+    """Clients with the handshake and clients of MCP 2026-07-28 get the same tools and results."""
+
+    async def fake_call_tool(name, arguments):
+        return [TextContent(type="text", text=f"{name} {arguments}")]
+
+    monkeypatch.setattr(mcp_server, "call_tool", fake_call_tool)
+    async with Client(mcp_server.server, mode=mode) as client:
+        assert client.protocol_version == version
+        listed = (await client.list_tools()).tools
+        resources = (await client.list_resources()).resources
+        templates = (await client.list_resource_templates()).resource_templates
+        accepted = await client.call_tool("snipara_context_query", {"query": "policy"})
+        refused = [
+            await client.call_tool("snipara_context_query", arguments)
+            for arguments in ({}, None, {"query": 1})
+        ]
+        unlisted = await client.call_tool("rlm_stats")
+
+    assert [tool.name for tool in listed] == [tool["name"] for tool in DEFAULT_AGENT_TOOL_DEFINITIONS]
+    assert [tool.meta for tool in listed] == [
+        tool.get("_meta") for tool in DEFAULT_AGENT_TOOL_DEFINITIONS
+    ]
+    assert (resources, templates) == ([], [])
+    assert not accepted.is_error
+    assert accepted.content[0].text == "snipara_context_query {'query': 'policy'}"
+    assert [(result.is_error, result.content[0].text) for result in refused] == [
+        (True, "Input validation error: 'query' is a required property"),
+        (True, "Input validation error: 'query' is a required property"),
+        (True, "Input validation error: 1 is not of type 'string'"),
+    ]
+    assert not unlisted.is_error
+    assert unlisted.content[0].text == "rlm_stats {}"
 
 
 def test_glama_metadata_claims_public_repository() -> None:
@@ -142,7 +181,7 @@ def test_cli_tools_call_decodes_json_text_payload(monkeypatch) -> None:
 async def test_list_tools_defaults_to_generated_agent_contract(monkeypatch) -> None:
     """Default stdio discovery should match the hosted lean agent contract."""
     monkeypatch.delenv("SNIPARA_TOOL_PROFILE", raising=False)
-    listed_tools = {tool.name: tool.inputSchema for tool in await mcp_server.list_tools()}
+    listed_tools = {tool.name: tool.input_schema for tool in await mcp_server.list_tools()}
     contract_tools = {
         tool["name"]: tool["inputSchema"] for tool in DEFAULT_AGENT_TOOL_DEFINITIONS
     }
@@ -165,7 +204,7 @@ async def test_list_tools_supports_explicit_full_compatibility_profile(monkeypat
     """Advanced clients may opt into every generated public tool definition."""
     monkeypatch.setenv("SNIPARA_TOOL_PROFILE", "full")
 
-    listed_tools = {tool.name: tool.inputSchema for tool in await mcp_server.list_tools()}
+    listed_tools = {tool.name: tool.input_schema for tool in await mcp_server.list_tools()}
     contract_tools = {tool["name"]: tool["inputSchema"] for tool in MCP_TOOL_DEFINITIONS}
 
     assert listed_tools == contract_tools

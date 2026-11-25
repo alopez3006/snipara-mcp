@@ -1605,9 +1605,10 @@ TOOL_DEFINITIONS = [{'name': 'snipara_collaboration_status',
                                                 'maximum': 100000}},
                   'required': ['query']}},
  {'name': 'snipara_multi_project_query',
-  'description': 'Query source context across projects visible to the authenticated team. This '
-                 'read-only operation requires an ADMIN service-account key and does not broaden '
-                 'project authorization or change state. Use it for explicit cross-project '
+  'description': 'Query source context across up to 10 projects of a team. This read-only VIEWER '
+                 'operation is served by POST /v1/team/{team_slug}/mcp only, requires a Team or '
+                 'Enterprise plan and a service-account or member key, and changes no state. '
+                 'Projects the key cannot read are skipped. Use it for explicit cross-project '
                  'comparison; use snipara_context_query for the current project. Returns '
                  'per-project matches, metadata, and bounded aggregate results.',
   'inputSchema': {'type': 'object',
