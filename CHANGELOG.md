@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.4
+
+- Regenerated tool contract: `minimum_change_evidence` describes its check object once instead of eleven times, which takes `snipara_context_query` from 6,806 to 1,796 tokens and `snipara_code_impact` from 6,040 to 1,030. The accepted fields are unchanged; the hosted server bounds and filters them. `snipara_remember_if_novel` takes `include_metadata`: the hosted server answers with a compact receipt unless it is true.
+
 ## 4.0.3
 
 - Regenerated tool contract: `snipara_remember_if_novel` takes `supersedes`, the memories the new one replaces; they are marked superseded when it is stored.
