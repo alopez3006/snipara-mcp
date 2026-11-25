@@ -1,10 +1,11 @@
 # Changelog
 
-## Unreleased
+## 5.0.0
 
 - Move to version 2 of the MCP Python SDK (`mcp>=2.3.0,<3`). The stdio server answers MCP 2026-07-28 clients as well as the handshake versions up to 2025-11-25. An environment that also needs `mcp<2` keeps 4.0.4.
 - Arguments of listed tools are still checked against their schema; the SDK no longer does it. The check adds a direct dependency on `jsonschema`.
 - Tool metadata is sent as `_meta`, as MCP defines it. It was sent as `meta`, which clients ignore.
+- Remove the `multi_project_query` helper. It called the project endpoint, which does not serve team-wide queries, so it always failed. Use `POST /v1/team/{team_slug}/mcp`.
 
 ## 4.0.4
 
